@@ -1,6 +1,10 @@
-data
 data/
 .venv/
 __pycache__/
 .ruff_cache/
 .DS_Store
+*.pyc
+results/*.csv
+results/*.parquet
+results/figures/*.png
+results/cache/
