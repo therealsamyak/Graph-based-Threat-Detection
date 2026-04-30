@@ -10,13 +10,6 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.baselines.dapt_baselines import run_dapt_baselines
-from src.baselines.single_source import (
-    run_auth_only_baseline,
-    run_combined_method,
-    run_flow_only_baseline,
-)
-from src.data_loader import load_lanl_data
 from src.generate_comparison import generate_comparison
 
 logging.basicConfig(
@@ -55,46 +48,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def _run_lanl_method(fn, auth_df, flow_df, redteam_df, window_seconds):
-    """Run a single LANL baseline method with timing."""
-    t0 = time.perf_counter()
-    result = fn(auth_df, flow_df, redteam_df, window_seconds=window_seconds)
-    elapsed = time.perf_counter() - t0
-    result["latency"] = round(elapsed, 4)
-    total_events = len(auth_df) + len(flow_df)
-    result["throughput"] = round(total_events / elapsed, 2) if elapsed > 0 else 0.0
-    return result
-
-
-def _normalize_lanl_result(result: dict) -> dict:
-    """Normalize LANL result to common format."""
-    return {
-        "method": result.get("method_name", "unknown"),
-        "dataset": "LANL-2015",
-        "recall": result.get("recall", 0.0),
-        "fpr": result.get("fpr", 0.0),
-        "f1": result.get("f1", 0.0),
-        "auc": 0.0,
-        "latency": result.get("latency", 0.0),
-        "throughput": result.get("throughput", 0.0),
-    }
-
-
-def _normalize_dapt_result(result: dict) -> dict:
-    """Normalize DAPT result to common format."""
-    return {
-        "method": result.get("method_name", "unknown"),
-        "dataset": "DAPT2020",
-        "recall": result.get("recall", 0.0),
-        "fpr": result.get("fpr", 0.0),
-        "f1": result.get("f1", 0.0),
-        "auc": result.get("auc", 0.0),
-        "latency": 0.0,
-        "throughput": 0.0,
-    }
-
-
-def _print_summary(df: pd.DataFrame) -> None:
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Print formatted summary table to stdout."""
     if df.empty:
         print("\nNo results to display.")
@@ -120,49 +74,18 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
 
     all_results: list[dict] = []
 
-    # --- LANL methods ---
+    # --- LANL methods (streaming) ---
     logger.info(f"Loading LANL data from {args.data_dir} (window={args.window_size}s)")
     try:
-        data = load_lanl_data(
-            args.data_dir,
+        from src.streaming_pipeline import run_streaming_experiment
+        lanl_results = run_streaming_experiment(
+            data_dir=args.data_dir,
             window_seconds=args.window_size,
-            max_events=args.sample,
+            dapt_dir=args.dapt_dir,
         )
-        auth_df = data["auth"]
-        flow_df = data["flows"]
-        redteam_df = data["redteam"]
-        logger.info(
-            f"Loaded {len(auth_df)} auth events, {len(flow_df)} flow events, "
-            f"{len(redteam_df)} red team events"
-        )
-
-        lanl_methods = [
-            ("flow_only", run_flow_only_baseline),
-            ("auth_only", run_auth_only_baseline),
-            ("combined", run_combined_method),
-        ]
-
-        for name, fn in lanl_methods:
-            try:
-                logger.info(f"Running LANL method: {name}")
-                result = _run_lanl_method(fn, auth_df, flow_df, redteam_df, args.window_size)
-                all_results.append(_normalize_lanl_result(result))
-                logger.info(f"  {name}: recall={result['recall']:.4f}, f1={result['f1']:.4f}")
-            except Exception as e:
-                logger.warning(f"LANL method '{name}' failed: {e}")
-                continue
+        all_results.extend(lanl_results)
     except Exception as e:
-        logger.warning(f"LANL data loading failed: {e}")
-
-    # --- DAPT baselines ---
-    logger.info("Running DAPT2020 baselines")
-    try:
-        dapt_results = run_dapt_baselines(data_dir=args.dapt_dir)
-        for r in dapt_results:
-            all_results.append(_normalize_dapt_result(r))
-            logger.info(f"  {r['method_name']}: auc={r['auc']:.4f}, f1={r['f1']:.4f}")
-    except Exception as e:
-        logger.warning(f"DAPT baselines failed: {e}")
+        logger.warning(f"LANL experiment failed: {e}")
 
     # --- Aggregate and save ---
     results_df = pd.DataFrame(all_results)
