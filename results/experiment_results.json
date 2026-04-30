@@ -1,0 +1,73 @@
+[
+  {
+    "method": "flow_only",
+    "dataset": "LANL-2015",
+    "recall": 0.0,
+    "fpr": 0.0,
+    "f1": 0.0,
+    "auc": 0.0,
+    "latency": 102.85,
+    "throughput": 972.3,
+    "graph_nodes": 4836,
+    "graph_edges": 12528,
+    "rt_pairs_in_graph": 0,
+    "anomalous_edges": 0,
+    "threshold": 1.0,
+    "max_path_score": 1.0,
+    "mean_edge_score": 0.8687
+  },
+  {
+    "method": "auth_only",
+    "dataset": "LANL-2015",
+    "recall": 0.0,
+    "fpr": 0.0,
+    "f1": 0.0,
+    "auc": 0.0,
+    "latency": 5.53,
+    "throughput": 18089.8,
+    "graph_nodes": 11669,
+    "graph_edges": 17578,
+    "rt_pairs_in_graph": 1,
+    "anomalous_edges": 0,
+    "threshold": 0.0,
+    "max_path_score": 0.0,
+    "mean_edge_score": 0.0
+  },
+  {
+    "method": "combined",
+    "dataset": "LANL-2015",
+    "recall": 0.0,
+    "fpr": 0.0,
+    "f1": 0.0,
+    "auc": 0.0,
+    "latency": 323.14,
+    "throughput": 309.5,
+    "graph_nodes": 14299,
+    "graph_edges": 30106,
+    "rt_pairs_in_graph": 1,
+    "anomalous_edges": 0,
+    "threshold": 1.0,
+    "max_path_score": 1.0,
+    "mean_edge_score": 0.6331
+  },
+  {
+    "method": "oneclass_svm",
+    "dataset": "DAPT2020",
+    "recall": 0.1612,
+    "fpr": 0.0543,
+    "f1": 0.1065,
+    "auc": 0.5534,
+    "latency": 0.0,
+    "throughput": 0.0
+  },
+  {
+    "method": "isolation_forest",
+    "dataset": "DAPT2020",
+    "recall": 0.0069,
+    "fpr": 0.05,
+    "f1": 0.0051,
+    "auc": 0.4785,
+    "latency": 0.0,
+    "throughput": 0.0
+  }
+]
