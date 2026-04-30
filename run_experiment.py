@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import sys
-import time
 from pathlib import Path
 
 import pandas as pd
@@ -48,7 +46,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+def _print_summary(df: pd.DataFrame) -> None:
     """Print formatted summary table to stdout."""
     if df.empty:
         print("\nNo results to display.")

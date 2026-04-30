@@ -21,9 +21,9 @@ def _run_method(
     t0 = time.perf_counter()
     all_features = extract_all_features(g)
     edge_scores = score_edges(g, all_features["edge_features"])
-    graph_result = score_graph(g, all_features, edge_scores)
+    score_graph(g, all_features, edge_scores)
     paths = score_paths(g, edge_scores)
-    elapsed = time.perf_counter() - t0
+    _elapsed = time.perf_counter() - t0  # noqa: F841 – kept for future latency reporting
 
     if not redteam_df.empty:
         threshold = 0.5

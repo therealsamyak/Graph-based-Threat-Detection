@@ -342,4 +342,4 @@ def main() -> None:
         print(f"  {row['method']:20s} | recall={row['recall']:.4f} | fpr={row['fpr']:.4f} | f1={row['f1']:.4f} | auc={row['auc']:.4f}")
     print(f"{'='*80}")
     print(f"Total time: {elapsed:.1f}s")
-    print(f"Results saved to results/metrics.csv and results/experiment_results.json")
+    print("Results saved to results/metrics.csv and results/experiment_results.json")
