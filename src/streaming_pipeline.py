@@ -235,11 +235,16 @@ def run_streaming_experiment(
         from src.scorer import score_edges, score_paths, score_graph
 
         t1 = time.perf_counter()
+        logger.info(f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)...")
         all_feat = extract_all_features(g)
+        logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
         edge_scores = score_edges(g, all_feat["edge_features"])
+        logger.info(f"  Edge scores computed, enumerating paths (this may take a while)...")
         paths = score_paths(g, edge_scores)
+        logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
         graph_result = score_graph(g, all_feat, edge_scores)
         score_time = time.perf_counter() - t1
+        logger.info(f"  Scoring completed in {score_time:.1f}s")
 
         # Detection
         threshold = float(np.percentile(edge_scores.values, 95)) if len(edge_scores) > 0 else 0.5

@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from collections import deque
 
 import igraph as ig
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def _compute_auth_failure_rate(g: ig.Graph) -> list[float]:
@@ -114,8 +117,12 @@ def score_paths(
     Columns: source_node, path_score, path_nodes, path_edges, path_length.
     """
     all_paths: list[dict] = []
+    total_nodes = g.vcount()
+    log_every = max(total_nodes // 10, 1)
 
-    for src_idx in range(g.vcount()):
+    for src_idx in range(total_nodes):
+        if src_idx % log_every == 0 and src_idx > 0:
+            logger.info(f"    Path enumeration: {src_idx}/{total_nodes} nodes processed, {len(all_paths):,} paths found...")
         out_eids = g.incident(src_idx, mode="out")
         if not out_eids:
             continue
