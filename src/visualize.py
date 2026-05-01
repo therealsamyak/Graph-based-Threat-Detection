@@ -6,7 +6,6 @@ ROC curves, and detection timelines.
 
 from __future__ import annotations
 
-import ast
 from pathlib import Path
 
 import igraph as ig
@@ -18,8 +17,6 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
-
-from src.graph_builder import build_combined_graph
 
 # ── Styling constants ────────────────────────────────────────────────
 PALETTE = ["#2ecc71", "#e74c3c", "#3498db", "#f39c12", "#9b59b6"]
@@ -274,122 +271,3 @@ def plot_detection_timeline(
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=DPI, bbox_inches="tight", facecolor=BG_COLOR)
     plt.close(fig)
-
-
-# ── 5. Generate all figures ─────────────────────────────────────────
-def generate_all_figures(results_dir: str = "results") -> None:
-    """Generate all 4 plots, saving to ``results/figures/*.png``.
-
-    If no real data is available, demo plots with synthetic data are
-    produced so the pipeline can be verified end-to-end.
-    """
-    figures_dir = Path(results_dir) / "figures"
-    figures_dir.mkdir(parents=True, exist_ok=True)
-
-    metrics_csv = Path(results_dir) / "metrics.csv"
-    has_real_data = metrics_csv.exists()
-
-    # ── 1. Graph snapshot ────────────────────────────────────────────
-    if has_real_data:
-        try:
-            auth_path = Path(results_dir) / "auth_events.csv"
-            flow_path = Path(results_dir) / "flow_events.csv"
-            if auth_path.exists() or flow_path.exists():
-                auth_df = pd.read_csv(auth_path) if auth_path.exists() else pd.DataFrame()
-                flow_df = pd.read_csv(flow_path) if flow_path.exists() else pd.DataFrame()
-                g = build_combined_graph(auth_df, flow_df)
-            else:
-                raise FileNotFoundError
-        except Exception:
-            g = _demo_graph()
-    else:
-        g = _demo_graph()
-
-    plot_graph_snapshot(g, str(figures_dir / "graph_snapshot.png"))
-
-    # ── 2. Score distribution ────────────────────────────────────────
-    np.random.seed(0)
-    demo_scores = pd.Series(np.random.beta(2, 5, 2000))
-    demo_labels = pd.Series(np.zeros(2000, dtype=int))
-    demo_labels.iloc[np.random.choice(2000, 100, replace=False)] = 1
-    demo_scores.iloc[demo_labels == 1] = np.random.beta(5, 2, 100)
-
-    plot_score_distribution(
-        demo_scores,
-        demo_labels,
-        str(figures_dir / "score_distribution.png"),
-    )
-
-    # ── 3. ROC curves ───────────────────────────────────────────────
-    roc_data: list[dict] = []
-    if has_real_data:
-        try:
-            metrics_df = pd.read_csv(metrics_csv)
-            for _, row in metrics_df.iterrows():
-                if "fpr_array" in row and "tpr_array" in row:
-                    roc_data.append({
-                        "method_name": str(row.get("method", "unknown")),
-                        "fpr_array": np.array(ast.literal_eval(str(row["fpr_array"]))),
-                        "tpr_array": np.array(ast.literal_eval(str(row["tpr_array"]))),
-                    })
-        except Exception:
-            pass
-
-    plot_roc_curves(roc_data, str(figures_dir / "roc_curves.png"))
-
-    # ── 4. Detection timeline ───────────────────────────────────────
-    np.random.seed(1)
-    n_events = 1000
-    t_start = pd.Timestamp("2025-01-01")
-    demo_evt_times = pd.Series(
-        [t_start + pd.Timedelta(seconds=int(s)) for s in np.sort(np.random.randint(0, 86400, n_events))]
-    )
-    demo_scs = pd.Series(np.random.beta(2, 5, n_events))
-    n_rt = 20
-    demo_rt_times = pd.Series(
-        [t_start + pd.Timedelta(seconds=int(s)) for s in np.random.randint(3600, 82800, n_rt)]
-    )
-    threshold = float(demo_scs.quantile(0.95))
-
-    plot_detection_timeline(
-        demo_evt_times,
-        demo_scs,
-        demo_rt_times,
-        threshold,
-        str(figures_dir / "detection_timeline.png"),
-    )
-
-    # ── Summary ──────────────────────────────────────────────────────
-    generated = sorted(figures_dir.glob("*.png"))
-    print(f"Generated {len(generated)} figure(s):")
-    for p in generated:
-        print(f"  → {p}")
-
-
-# ── Helpers ──────────────────────────────────────────────────────────
-def _demo_graph() -> ig.Graph:
-    """Small synthetic directed graph for demo purposes."""
-    g = ig.Graph(directed=True)
-    nodes = [f"C{i}" for i in range(8)] + [f"U{i}" for i in range(5)]
-    for n in nodes:
-        g.add_vertex(name=n, node_type="computer" if n.startswith("C") else "user")
-
-    edges = [
-        ("C0", "U0", "auth"),
-        ("U0", "C1", "auth"),
-        ("C1", "U1", "auth"),
-        ("U1", "C2", "auth"),
-        ("C2", "C3", "flow"),
-        ("C3", "C4", "flow"),
-        ("C4", "U2", "auth"),
-        ("U2", "C5", "auth"),
-        ("C5", "C6", "flow"),
-        ("C6", "C7", "flow"),
-        ("U3", "C1", "auth"),
-        ("C1", "U4", "auth"),
-        ("U4", "C3", "auth"),
-    ]
-    for src, dst, etype in edges:
-        g.add_edge(src, dst, type=etype, weight=1)
-
-    return g

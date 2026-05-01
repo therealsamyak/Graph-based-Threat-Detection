@@ -7,7 +7,6 @@ adds edges to an igraph incrementally, and discards raw rows immediately.
 from __future__ import annotations
 
 import gzip
-import json
 import logging
 import time
 from pathlib import Path
@@ -161,21 +160,29 @@ def run_streaming_experiment(
     data_dir: str = "data/LANL-Dataset-2015",
     window_seconds: int = 3600,
     dapt_dir: str = "data/DAPT2020",
-) -> list[dict]:
+) -> tuple[list[dict], dict]:
     """Run full experiment using streaming graph construction.
 
     Streams auth + flow gz files through time windows,
     builds graph incrementally (no DataFrame materialization),
-    runs scoring and detection, then discards graph.
+    runs scoring and detection, then discards non-combined graphs.
+
+    Returns:
+        Tuple of (all_results, viz_data) where viz_data contains
+        the combined graph, edge scores, paths, threshold, red team
+        times, and method graphs for visualization.
     """
     data_path = Path(data_dir)
     all_results: list[dict] = []
+    viz_data: dict = {}
 
     # Load red team (tiny file)
     rt = load_redteam(str(data_path / "redteam.txt.gz"))
     red_pairs = set(zip(rt["src_comp"].astype(str), rt["dst_comp"].astype(str)))
     windows = _build_window_intervals(rt, window_seconds)
     logger.info(f"Red team: {len(rt)} events, {len(windows)} merged windows")
+    viz_data["redteam_times"] = rt["time"]
+    method_graphs: dict[str, ig.Graph | None] = {}
 
     # Stream both files into graph, then score, then discard
     for method_name, feed_auth, feed_flow in [
@@ -278,8 +285,15 @@ def run_streaming_experiment(
             f"  {method_name}: recall={recall:.4f}, fpr={fpr:.4f}, f1={f1:.4f}"
         )
 
-        # Free graph memory
-        del g
+        # Free graph memory (except for combined method)
+        if method_name == "combined":
+            viz_data["combined_graph"] = g
+            viz_data["combined_edge_scores"] = edge_scores
+            viz_data["combined_paths"] = paths
+            viz_data["combined_threshold"] = threshold
+        else:
+            method_graphs[method_name] = None
+            del g
 
     # DAPT baselines
     logger.info("Running DAPT2020 baselines")
@@ -301,45 +315,5 @@ def run_streaming_experiment(
     except Exception as e:
         logger.warning(f"DAPT baselines failed: {e}")
 
-    return all_results
-
-
-def main() -> None:
-    import argparse
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-    )
-
-    parser = argparse.ArgumentParser(description="Streaming experiment runner")
-    parser.add_argument("--data-dir", default="data/LANL-Dataset-2015")
-    parser.add_argument("--window-size", type=int, default=3600)
-    parser.add_argument("--dapt-dir", default="data/DAPT2020")
-    args = parser.parse_args()
-
-    t0 = time.perf_counter()
-    results = run_streaming_experiment(
-        data_dir=args.data_dir,
-        window_seconds=args.window_size,
-        dapt_dir=args.dapt_dir,
-    )
-    elapsed = time.perf_counter() - t0
-
-    # Save
-    import os
-    os.makedirs("results", exist_ok=True)
-    pd.DataFrame(results).to_csv("results/metrics.csv", index=False)
-    with open("results/experiment_results.json", "w") as f:
-        json.dump(results, f, indent=2)
-
-    # Print summary
-    print(f"\n{'='*80}")
-    print("EXPERIMENT RESULTS SUMMARY")
-    print(f"{'='*80}")
-    df = pd.DataFrame(results)
-    for _, row in df.iterrows():
-        print(f"  {row['method']:20s} | recall={row['recall']:.4f} | fpr={row['fpr']:.4f} | f1={row['f1']:.4f} | auc={row['auc']:.4f}")
-    print(f"{'='*80}")
-    print(f"Total time: {elapsed:.1f}s")
-    print("Results saved to results/metrics.csv and results/experiment_results.json")
+    viz_data["method_graphs"] = method_graphs
+    return all_results, viz_data
