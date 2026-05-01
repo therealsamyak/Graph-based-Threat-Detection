@@ -7,6 +7,7 @@ adds edges to an igraph incrementally, and discards raw rows immediately.
 from __future__ import annotations
 
 import gzip
+import json
 import logging
 import time
 from pathlib import Path
@@ -184,6 +185,15 @@ def run_streaming_experiment(
     viz_data["redteam_times"] = rt["time"]
     method_graphs: dict[str, ig.Graph | None] = {}
 
+    redteam_dir = Path("results") / "redteam"
+    redteam_dir.mkdir(parents=True, exist_ok=True)
+    rt.to_csv(redteam_dir / "redteam_events.csv", index=False)
+    with open(redteam_dir / "window_intervals.json", "w") as f:
+        json.dump([{"start": s, "end": e} for s, e in windows], f, indent=2)
+    with open(redteam_dir / "redteam_pairs.json", "w") as f:
+        json.dump([{"src": s, "dst": d} for s, d in sorted(red_pairs)], f, indent=2)
+    logger.info(f"  Saved redteam data to results/redteam/")
+
     # Stream both files into graph, then score, then discard
     for method_name, feed_auth, feed_flow in [
         ("flow_only", None, True),
@@ -289,6 +299,51 @@ def run_streaming_experiment(
         logger.info(
             f"  {method_name}: recall={recall:.4f}, fpr={fpr:.4f}, f1={f1:.4f}"
         )
+
+        method_dir = Path("results") / method_name
+        method_dir.mkdir(parents=True, exist_ok=True)
+
+        edge_scores.to_csv(method_dir / "edge_scores.csv", header=["score"])
+        logger.info(f"  Saved edge_scores.csv ({len(edge_scores):,} edges)")
+
+        if len(paths) > 0:
+            paths_save = paths.copy()
+            paths_save["path_nodes"] = paths_save["path_nodes"].apply(lambda x: " -> ".join(x) if isinstance(x, list) else str(x))
+            paths_save["path_edges"] = paths_save["path_edges"].apply(lambda x: ",".join(str(i) for i in x) if isinstance(x, list) else str(x))
+            paths_save.to_csv(method_dir / "paths.csv", index=False)
+            logger.info(f"  Saved paths.csv ({len(paths_save):,} paths)")
+
+        if len(anomalous_paths) > 0:
+            ap_save = anomalous_paths.copy()
+            ap_save["path_nodes"] = ap_save["path_nodes"].apply(lambda x: " -> ".join(x) if isinstance(x, list) else str(x))
+            ap_save["path_edges"] = ap_save["path_edges"].apply(lambda x: ",".join(str(i) for i in x) if isinstance(x, list) else str(x))
+            ap_save.to_csv(method_dir / "anomalous_paths.csv", index=False)
+            logger.info(f"  Saved anomalous_paths.csv ({len(ap_save):,} paths)")
+
+        all_feat["node_features"].to_csv(method_dir / "node_features.csv")
+        all_feat["edge_features"].to_csv(method_dir / "edge_features.csv")
+        with open(method_dir / "graph_features.json", "w") as f:
+            json.dump(all_feat["graph_features"], f, indent=2)
+        logger.info(f"  Saved node_features.csv, edge_features.csv, graph_features.json")
+
+        edge_rows = []
+        for e in g.es:
+            attrs = e.attributes()
+            edge_rows.append({
+                "src": g.vs[e.source]["name"],
+                "dst": g.vs[e.target]["name"],
+                **{k: v for k, v in attrs.items() if k != "weight" or True},
+            })
+        pd.DataFrame(edge_rows).to_csv(method_dir / "graph_edges.csv", index=False)
+
+        node_rows = [{"name": v["name"], **{k: v for k, v in v.attributes().items() if k != "name"}} for v in g.vs]
+        pd.DataFrame(node_rows).to_csv(method_dir / "graph_nodes.csv", index=False)
+        logger.info(f"  Saved graph_edges.csv ({g.ecount():,}), graph_nodes.csv ({g.vcount():,})")
+
+        if detected_pairs:
+            with open(method_dir / "detected_redteam_pairs.json", "w") as f:
+                json.dump([{"src": s, "dst": d} for s, d in sorted(detected_pairs)], f, indent=2)
+            logger.info(f"  Saved detected_redteam_pairs.json ({len(detected_pairs)} pairs)")
 
         # Free graph memory (except for combined method)
         if method_name == "combined":

@@ -106,7 +106,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     details = {}
     for r in all_results:
         method = r["method"]
-        details[method] = {k: v for k, v in r.items() if k not in ("edge_scores_array", "paths")}
+        details[method] = {k: v for k, v in r.items()}
     details_path = results_dir / "per_method_details.json"
     with open(details_path, "w") as f:
         json.dump(details, f, indent=2, default=str)
