@@ -73,12 +73,12 @@ def run_oneclass_svm(df: pd.DataFrame, config: dict | None = None) -> dict:
         model = OneClassSVM(
             kernel=svm_cfg.get("kernel", "rbf"),
             gamma=svm_cfg.get("gamma", "scale"),
-            nu=svm_cfg.get("nu", 0.05),
+            nu=svm_cfg.get("nu", 0.1),
         )
         model.fit(X_train)
 
     scores = model.decision_function(X_test)
-    return _evaluate(y_test.values, scores, "oneclass_svm", threshold=0.0)
+    return _evaluate(y_test.values, scores, "oneclass_svm", threshold=model.offset_)
 
 
 def run_isolation_forest(df: pd.DataFrame, config: dict | None = None) -> dict:
@@ -95,7 +95,7 @@ def run_isolation_forest(df: pd.DataFrame, config: dict | None = None) -> dict:
     model.fit(X_train)
 
     scores = model.score_samples(X_test)
-    return _evaluate(y_test.values, scores, "isolation_forest", threshold=0.0)
+    return _evaluate(y_test.values, scores, "isolation_forest", threshold=model.offset_)
 
 
 def run_dapt_baselines(data_dir: str = "data/DAPT2020", max_rows: int | None = None, config: dict | None = None) -> list[dict]:

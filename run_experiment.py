@@ -86,7 +86,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     lanl_results: list[dict] = []
     results_base = "results/pending"
 
-    data_cfg = config.get("data", {})
+    config.get("data", {})
     data_dir = args.data_dir
     window_size = args.window_size
     dapt_dir = args.dapt_dir

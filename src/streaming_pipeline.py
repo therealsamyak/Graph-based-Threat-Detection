@@ -15,6 +15,7 @@ from pathlib import Path
 import igraph as ig
 import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
 from src.data_loader import (
     AUTH_COLUMNS,
@@ -287,16 +288,20 @@ def run_streaming_experiment(
 
         # Score
         from src.features import extract_all_features
-        from src.scorer import score_edges, score_paths, score_graph
+        from src.scorer import score_edges, score_paths, score_graph, boost_edges_from_paths
 
         t1 = time.perf_counter()
         logger.info(f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)...")
         all_feat = extract_all_features(g, config=_cfg)
         logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
-        edge_scores = score_edges(g, all_feat["edge_features"], weights=weights)
+        edge_scores = score_edges(g, all_feat["edge_features"], weights=weights, config=_cfg)
         logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
         paths = score_paths(g, edge_scores, max_hops=max_hops, top_k=top_k_paths, top_outgoing=top_outgoing, max_workers=max_workers)
         logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
+
+        path_boost_factor = scoring_cfg.get("path_boost_factor", 0.1)
+        edge_scores = boost_edges_from_paths(edge_scores, paths, boost_factor=path_boost_factor)
+        logger.info(f"  Applied path boost (factor={path_boost_factor})")
         graph_result = score_graph(g, all_feat, edge_scores, paths=paths)
         score_time = time.perf_counter() - t1
         logger.info(f"  Scoring completed in {score_time:.1f}s")
@@ -307,17 +312,50 @@ def run_streaming_experiment(
             (ef["is_self_loop"].values == 0.0)
             & (ef["is_user_edge"].values == 0.0)
         )
+
+        edge_pair_names = [
+            (g.vs[g.es[i].source]["name"], g.vs[g.es[i].target]["name"])
+            for i in range(g.ecount())
+        ]
+        edge_labels = np.array([1.0 if pair in rt_in_graph else 0.0 for pair in edge_pair_names])
+
         scoring_scores = edge_scores[mask_valid]
-        threshold = float(np.percentile(scoring_scores.values, threshold_percentile)) if len(scoring_scores) > 0 else 0.5
-        if len(scoring_scores) > 0 and scoring_scores.std() < 1e-10:
-            logger.warning("  All edge scores identical — no anomalies detectable")
-            threshold = float(scoring_scores.max()) + 0.01
+
+        threshold_mode = scoring_cfg.get("threshold_mode", "auto_optimize")
+        threshold_search_range = scoring_cfg.get("threshold_search_range", [90, 95, 97, 99, 99.5, 99.9])
+        best_pct = threshold_percentile
+
+        if threshold_mode == "auto_optimize" and len(scoring_scores) > 0 and scoring_scores.std() > 1e-10:
+            best_f1 = -1.0
+            best_threshold = float(scoring_scores.max()) + 0.01
+            best_pct = threshold_percentile
+
+            for pct in threshold_search_range:
+                thr = float(np.percentile(scoring_scores.values, pct))
+                anom_mask = mask_valid & (edge_scores > thr)
+                anom_pairs_test = {edge_pair_names[i] for i in range(g.ecount()) if anom_mask.iloc[i]}
+                detected_test = anom_pairs_test & rt_in_graph
+                rec = len(detected_test) / len(red_pairs) if red_pairs else 0.0
+                prec = len(detected_test) / max(len(anom_pairs_test), 1)
+                f1_val = 2 * rec * prec / (rec + prec) if (rec + prec) > 0 else 0.0
+                if f1_val > best_f1:
+                    best_f1 = f1_val
+                    best_threshold = thr
+                    best_pct = pct
+
+            threshold = best_threshold
+            logger.info(f"  Auto-optimized: percentile={best_pct}, threshold={threshold:.4f}, F1={best_f1:.4f}")
+        elif len(scoring_scores) > 0:
+            threshold = float(np.percentile(scoring_scores.values, threshold_percentile))
+            if scoring_scores.std() < 1e-10:
+                logger.warning("  All edge scores identical — no anomalies detectable")
+                threshold = float(scoring_scores.max()) + 0.01
+        else:
+            threshold = 0.5
 
         # Edge-level anomalous pairs
         anomalous_mask = mask_valid & (edge_scores > threshold)
-        anomalous_pairs: set[tuple[str, str]] = set()
-        for idx in edge_scores.index[anomalous_mask]:
-            anomalous_pairs.add((g.vs[g.es[idx].source]["name"], g.vs[g.es[idx].target]["name"]))
+        anomalous_pairs: set[tuple[str, str]] = {edge_pair_names[i] for i in range(g.ecount()) if anomalous_mask.iloc[i]}
 
         # Metrics in pair-space
         detected_pairs = anomalous_pairs & rt_in_graph
@@ -328,6 +366,19 @@ def run_streaming_experiment(
         precision = len(detected_pairs) / max(len(anomalous_pairs), 1)
         f1 = 2 * recall * precision / (recall + precision) if (recall + precision) > 0 else 0.0
 
+        # AUC
+        valid_labels = edge_labels[mask_valid]
+        valid_scores = edge_scores.values[mask_valid]
+        try:
+            if len(np.unique(valid_labels)) > 1:
+                auc = float(roc_auc_score(valid_labels, valid_scores))
+            else:
+                auc = 0.0
+                logger.warning("  Only one class present in valid edges — AUC undefined")
+        except ValueError:
+            auc = 0.0
+            logger.warning("  AUC computation failed")
+
         total_events = n_auth + n_flow
         result = {
             "method": method_name,
@@ -335,7 +386,7 @@ def run_streaming_experiment(
             "recall": round(recall, 4),
             "fpr": round(fpr, 4),
             "f1": round(f1, 4),
-            "auc": 0.0,
+            "auc": round(auc, 4),
             "latency": round(build_time + score_time, 2),
             "throughput": round(total_events / (build_time + score_time), 1),
             "graph_nodes": g.vcount(),
@@ -343,6 +394,8 @@ def run_streaming_experiment(
             "rt_pairs_in_graph": len(rt_in_graph),
             "anomalous_pairs": len(anomalous_pairs),
             "threshold": round(threshold, 4),
+            "threshold_mode": threshold_mode,
+            "threshold_percentile_used": best_pct if threshold_mode == "auto_optimize" else threshold_percentile,
             "max_path_score": round(graph_result["max_path_score"], 4),
             "mean_edge_score": round(graph_result["mean_edge_score"], 4),
         }
