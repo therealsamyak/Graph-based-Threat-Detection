@@ -173,11 +173,17 @@ def run_streaming_experiment(
         the combined graph, edge scores, paths, threshold, red team
         times, and method graphs for visualization.
     """
+    from datetime import datetime, timezone
+
     data_path = Path(data_dir)
     all_results: list[dict] = []
     viz_data: dict = {}
 
-    # Load red team (tiny file)
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    results_base = Path("results") / run_id
+    results_base.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Run ID: {run_id}, output dir: {results_base}")
+
     rt = load_redteam(str(data_path / "redteam.txt.gz"))
     red_pairs = set(zip(rt["src_comp"].astype(str), rt["dst_comp"].astype(str)))
     windows = _build_window_intervals(rt, window_seconds)
@@ -185,14 +191,14 @@ def run_streaming_experiment(
     viz_data["redteam_times"] = rt["time"]
     method_graphs: dict[str, ig.Graph | None] = {}
 
-    redteam_dir = Path("results") / "redteam"
+    redteam_dir = results_base / "redteam"
     redteam_dir.mkdir(parents=True, exist_ok=True)
     rt.to_csv(redteam_dir / "redteam_events.csv", index=False)
     with open(redteam_dir / "window_intervals.json", "w") as f:
         json.dump([{"start": s, "end": e} for s, e in windows], f, indent=2)
     with open(redteam_dir / "redteam_pairs.json", "w") as f:
         json.dump([{"src": s, "dst": d} for s, d in sorted(red_pairs)], f, indent=2)
-    logger.info(f"  Saved redteam data to results/redteam/")
+    logger.info(f"  Saved redteam data to {redteam_dir}")
 
     # Stream both files into graph, then score, then discard
     for method_name, feed_auth, feed_flow in [
@@ -300,7 +306,7 @@ def run_streaming_experiment(
             f"  {method_name}: recall={recall:.4f}, fpr={fpr:.4f}, f1={f1:.4f}"
         )
 
-        method_dir = Path("results") / method_name
+        method_dir = results_base / method_name
         method_dir.mkdir(parents=True, exist_ok=True)
 
         edge_scores.to_csv(method_dir / "edge_scores.csv", header=["score"])
@@ -376,4 +382,4 @@ def run_streaming_experiment(
         logger.warning(f"DAPT baselines failed: {e}")
 
     viz_data["method_graphs"] = method_graphs
-    return all_results, viz_data
+    return all_results, viz_data, str(results_base)

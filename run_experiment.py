@@ -72,15 +72,19 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     """Execute the full experiment pipeline and return results DataFrame."""
     args = _parse_args(argv)
 
+    from datetime import datetime, timezone
+
     all_results: list[dict] = []
     viz_data: dict = {}
     lanl_results: list[dict] = []
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    results_base = f"results/{run_id}"
 
     # --- LANL methods (streaming) ---
     logger.info(f"Loading LANL data from {args.data_dir} (window={args.window_size}s)")
     try:
         from src.streaming_pipeline import run_streaming_experiment
-        lanl_results, viz_data = run_streaming_experiment(
+        lanl_results, viz_data, results_base = run_streaming_experiment(
             data_dir=args.data_dir,
             window_seconds=args.window_size,
             dapt_dir=args.dapt_dir,
@@ -92,8 +96,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     # --- Aggregate and save ---
     results_df = pd.DataFrame(all_results)
 
-    results_dir = Path("results")
-    results_dir.mkdir(parents=True, exist_ok=True)
+    results_dir = Path(results_base)
     csv_path = results_dir / "metrics.csv"
     results_df.to_csv(csv_path, index=False)
     logger.info(f"Results saved to {csv_path}")
@@ -112,7 +115,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
         json.dump(details, f, indent=2, default=str)
     logger.info(f"Per-method details saved to {details_path}")
 
-    generate_comparison()
+    generate_comparison(results_dir=str(results_dir))
 
     # --- Generate figures with real data ---
     from src.visualize import (

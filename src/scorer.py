@@ -3,13 +3,83 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections import deque
+from concurrent.futures import ProcessPoolExecutor
+from typing import TYPE_CHECKING
 
 import igraph as ig
 import numpy as np
 import pandas as pd
 
+if TYPE_CHECKING:
+    pass
+
 logger = logging.getLogger(__name__)
+
+
+def _enumerate_paths_for_nodes(
+    g: ig.Graph,
+    edge_scores_arr: np.ndarray,
+    node_indices: list[int],
+    max_hops: int,
+) -> list[dict]:
+    """BFS path enumeration for a subset of nodes. Returns list of path dicts."""
+    all_paths: list[dict] = []
+
+    for src_idx in node_indices:
+        out_eids = g.incident(src_idx, mode="out")
+        if not out_eids:
+            continue
+
+        scored_out = sorted(
+            out_eids,
+            key=lambda eid: edge_scores_arr[eid],
+            reverse=True,
+        )[:10]
+
+        queue: deque[tuple[int, list[int], set[int]]] = deque()
+        for eid in scored_out:
+            dst = g.es[eid].target
+            queue.append((dst, [eid], {src_idx, dst}))
+
+        while queue:
+            node, path_edges, visited = queue.popleft()
+            path_len = len(path_edges)
+            if path_len > max_hops:
+                continue
+
+            escores = [edge_scores_arr[eid] for eid in path_edges]
+            product = float(np.prod(escores)) if escores else 0.0
+            max_s = float(np.max(escores)) if escores else 0.0
+            mean_s = float(np.mean(escores)) if escores else 0.0
+            path_score = (product + max_s + mean_s) / 3.0
+
+            path_nodes = [g.vs[src_idx]["name"]]
+            for eid in path_edges:
+                path_nodes.append(g.es[eid].target_vertex["name"])
+
+            all_paths.append({
+                "source_node": g.vs[src_idx]["name"],
+                "path_score": path_score,
+                "path_nodes": path_nodes,
+                "path_edges": path_edges,
+                "path_length": path_len,
+            })
+
+            if path_len < max_hops:
+                next_eids = g.incident(node, mode="out")
+                next_scored = sorted(
+                    next_eids,
+                    key=lambda eid: edge_scores_arr[eid],
+                    reverse=True,
+                )[:10]
+                for eid in next_scored:
+                    dst = g.es[eid].target
+                    if dst not in visited:
+                        queue.append((dst, path_edges + [eid], visited | {dst}))
+
+    return all_paths
 
 
 def _compute_auth_failure_rate(g: ig.Graph) -> list[float]:
@@ -116,55 +186,42 @@ def score_paths(
     Returns DataFrame sorted by path_score descending, limited to top_k.
     Columns: source_node, path_score, path_nodes, path_edges, path_length.
     """
-    all_paths: list[dict] = []
     total_nodes = g.vcount()
-    log_every = max(total_nodes // 10, 1)
+    n_workers = min(os.cpu_count() or 1, 6)
+    edge_scores_arr = edge_scores.values
 
-    for src_idx in range(total_nodes):
-        if src_idx % log_every == 0 and src_idx > 0:
-            logger.info(f"    Path enumeration: {src_idx}/{total_nodes} nodes processed, {len(all_paths):,} paths found...")
-        out_eids = g.incident(src_idx, mode="out")
-        if not out_eids:
-            continue
+    if n_workers <= 1 or total_nodes < n_workers * 10:
+        all_paths = _enumerate_paths_for_nodes(
+            g, edge_scores_arr, list(range(total_nodes)), max_hops,
+        )
+    else:
+        chunk_size = total_nodes // n_workers
+        node_chunks = [
+            list(range(i * chunk_size, min((i + 1) * chunk_size, total_nodes)))
+            for i in range(n_workers)
+        ]
+        if node_chunks and node_chunks[-1][-1] < total_nodes - 1:
+            node_chunks[-1].extend(range(node_chunks[-1][-1] + 1, total_nodes))
 
-        scored_out = sorted(out_eids, key=lambda eid: edge_scores.iloc[eid], reverse=True)[:10]
+        logger.info(
+            f"    Parallel path enumeration: {total_nodes:,} nodes across {n_workers} workers"
+        )
 
-        queue: deque[tuple[int, list[int], set[int]]] = deque()
-        for eid in scored_out:
-            dst = g.es[eid].target
-            queue.append((dst, [eid], {src_idx, dst}))
-
-        while queue:
-            node, path_edges, visited = queue.popleft()
-            path_len = len(path_edges)
-            if path_len > max_hops:
-                continue
-
-            escores = [edge_scores.iloc[eid] for eid in path_edges]
-            product = float(np.prod(escores)) if escores else 0.0
-            max_s = float(np.max(escores)) if escores else 0.0
-            mean_s = float(np.mean(escores)) if escores else 0.0
-            path_score = (product + max_s + mean_s) / 3.0
-
-            path_nodes = [g.vs[src_idx]["name"]]
-            for eid in path_edges:
-                path_nodes.append(g.es[eid].target_vertex["name"])
-
-            all_paths.append({
-                "source_node": g.vs[src_idx]["name"],
-                "path_score": path_score,
-                "path_nodes": path_nodes,
-                "path_edges": path_edges,
-                "path_length": path_len,
-            })
-
-            if path_len < max_hops:
-                next_eids = g.incident(node, mode="out")
-                next_scored = sorted(next_eids, key=lambda eid: edge_scores.iloc[eid], reverse=True)[:10]
-                for eid in next_scored:
-                    dst = g.es[eid].target
-                    if dst not in visited:
-                        queue.append((dst, path_edges + [eid], visited | {dst}))
+        all_paths: list[dict] = []
+        with ProcessPoolExecutor(max_workers=n_workers) as pool:
+            futures = [
+                pool.submit(_enumerate_paths_for_nodes, g, edge_scores_arr, chunk, max_hops)
+                for chunk in node_chunks
+            ]
+            done_count = 0
+            for future in futures:
+                result = future.result()
+                all_paths.extend(result)
+                done_count += 1
+                logger.info(
+                    f"    Path enumeration: worker {done_count}/{n_workers} done, "
+                    f"{len(all_paths):,} paths so far"
+                )
 
     if not all_paths:
         return pd.DataFrame(columns=["source_node", "path_score", "path_nodes", "path_edges", "path_length"])
