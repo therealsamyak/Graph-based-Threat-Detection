@@ -19,8 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 def _enumerate_paths_for_nodes(
-    g: ig.Graph,
+    adjacency: dict[int, list[tuple[int, int]]],
     edge_scores_arr: np.ndarray,
+    node_names: list[str],
+    edge_targets: np.ndarray,
     node_indices: list[int],
     max_hops: int,
 ) -> list[dict]:
@@ -28,19 +30,12 @@ def _enumerate_paths_for_nodes(
     all_paths: list[dict] = []
 
     for src_idx in node_indices:
-        out_eids = g.incident(src_idx, mode="out")
-        if not out_eids:
+        scored_out = adjacency.get(src_idx, [])
+        if not scored_out:
             continue
 
-        scored_out = sorted(
-            out_eids,
-            key=lambda eid: edge_scores_arr[eid],
-            reverse=True,
-        )[:10]
-
         queue: deque[tuple[int, list[int], set[int]]] = deque()
-        for eid in scored_out:
-            dst = g.es[eid].target
+        for eid, dst in scored_out:
             queue.append((dst, [eid], {src_idx, dst}))
 
         while queue:
@@ -55,12 +50,12 @@ def _enumerate_paths_for_nodes(
             mean_s = float(np.mean(escores)) if escores else 0.0
             path_score = (product + max_s + mean_s) / 3.0
 
-            path_nodes = [g.vs[src_idx]["name"]]
+            path_nodes = [node_names[src_idx]]
             for eid in path_edges:
-                path_nodes.append(g.es[eid].target_vertex["name"])
+                path_nodes.append(node_names[edge_targets[eid]])
 
             all_paths.append({
-                "source_node": g.vs[src_idx]["name"],
+                "source_node": node_names[src_idx],
                 "path_score": path_score,
                 "path_nodes": path_nodes,
                 "path_edges": path_edges,
@@ -68,70 +63,46 @@ def _enumerate_paths_for_nodes(
             })
 
             if path_len < max_hops:
-                next_eids = g.incident(node, mode="out")
-                next_scored = sorted(
-                    next_eids,
-                    key=lambda eid: edge_scores_arr[eid],
-                    reverse=True,
-                )[:10]
-                for eid in next_scored:
-                    dst = g.es[eid].target
+                next_scored = adjacency.get(node, [])
+                for eid, dst in next_scored:
                     if dst not in visited:
                         queue.append((dst, path_edges + [eid], visited | {dst}))
 
     return all_paths
 
 
-def _compute_auth_failure_rate(g: ig.Graph) -> list[float]:
-    """Fraction of auth edges from same source with success != '1'."""
+def _compute_edge_source_stats(g: ig.Graph) -> tuple[list[float], list[float]]:
+    """Single-pass computation of auth_failure_rate and port_diversity per edge."""
     n = g.ecount()
-    result = [0.0] * n
 
-    src_auth: dict[int, list[int]] = {}
-    for i in range(n):
-        if g.es[i].attributes().get("type") == "auth":
-            src = g.es[i].source
-            src_auth.setdefault(src, []).append(i)
-
-    src_failure_rate: dict[int, float] = {}
-    for src, eids in src_auth.items():
-        if not eids:
-            src_failure_rate[src] = 0.0
-            continue
-        failures = sum(1 for eid in eids if g.es[eid].attributes().get("success") != "1")
-        src_failure_rate[src] = failures / len(eids)
+    src_auth_failures: dict[int, int] = {}
+    src_auth_total: dict[int, int] = {}
+    src_ports: dict[int, set[str]] = {}
+    src_flow_total: dict[int, int] = {}
 
     for i in range(n):
+        attrs = g.es[i].attributes()
         src = g.es[i].source
-        result[i] = src_failure_rate.get(src, 0.0)
+        edge_type = attrs.get("type", "")
 
-    return result
+        if edge_type == "auth":
+            src_auth_total[src] = src_auth_total.get(src, 0) + 1
+            if attrs.get("success") != "1":
+                src_auth_failures[src] = src_auth_failures.get(src, 0) + 1
+        elif edge_type == "flow":
+            src_flow_total[src] = src_flow_total.get(src, 0) + 1
+            port = str(attrs.get("dst_port", ""))
+            if src not in src_ports:
+                src_ports[src] = set()
+            src_ports[src].add(port)
 
+    src_failure_rate = {src: src_auth_failures.get(src, 0) / total for src, total in src_auth_total.items()}
+    src_diversity = {src: len(src_ports[src]) / total for src, total in src_flow_total.items() if total > 0}
 
-def _compute_port_diversity(g: ig.Graph) -> list[float]:
-    """Normalized unique dst_port count from flow edges of same source."""
-    n = g.ecount()
-    result = [0.0] * n
+    auth_fail = [src_failure_rate.get(g.es[i].source, 0.0) for i in range(n)]
+    port_div = [src_diversity.get(g.es[i].source, 0.0) for i in range(n)]
 
-    src_ports: dict[int, list[str]] = {}
-    for i in range(n):
-        if g.es[i].attributes().get("type") == "flow":
-            src = g.es[i].source
-            port = str(g.es[i].attributes().get("dst_port", ""))
-            src_ports.setdefault(src, []).append(port)
-
-    src_diversity: dict[int, float] = {}
-    for src, ports in src_ports.items():
-        if not ports:
-            src_diversity[src] = 0.0
-            continue
-        src_diversity[src] = len(set(ports)) / len(ports)
-
-    for i in range(n):
-        src = g.es[i].source
-        result[i] = src_diversity.get(src, 0.0)
-
-    return result
+    return auth_fail, port_div
 
 
 def _minmax_scale(values: list[float]) -> list[float]:
@@ -157,8 +128,7 @@ def score_edges(
 
     n = g.ecount()
     edge_rarity = edge_features["edge_rarity"].tolist()
-    auth_fail = _compute_auth_failure_rate(g)
-    port_div = _compute_port_diversity(g)
+    auth_fail, port_div = _compute_edge_source_stats(g)
 
     w_r = weights.get("edge_rarity", 1 / 3)
     w_a = weights.get("auth_failure_rate", 1 / 3)
@@ -190,9 +160,19 @@ def score_paths(
     n_workers = min(os.cpu_count() or 1, 6)
     edge_scores_arr = edge_scores.values
 
+    node_names = [g.vs[i]["name"] for i in range(total_nodes)]
+    adjacency: dict[int, list[tuple[int, int]]] = {}
+    for src in range(total_nodes):
+        out_eids = g.incident(src, mode="out")
+        if out_eids:
+            scored = sorted(out_eids, key=lambda eid: edge_scores_arr[eid], reverse=True)[:10]
+            adjacency[src] = [(eid, g.es[eid].target) for eid in scored]
+
+    edge_targets = np.array([g.es[i].target for i in range(g.ecount())])
+
     if n_workers <= 1 or total_nodes < n_workers * 10:
         all_paths = _enumerate_paths_for_nodes(
-            g, edge_scores_arr, list(range(total_nodes)), max_hops,
+            adjacency, edge_scores_arr, node_names, edge_targets, list(range(total_nodes)), max_hops,
         )
     else:
         chunk_size = total_nodes // n_workers
@@ -210,7 +190,7 @@ def score_paths(
         all_paths: list[dict] = []
         with ProcessPoolExecutor(max_workers=n_workers) as pool:
             futures = [
-                pool.submit(_enumerate_paths_for_nodes, g, edge_scores_arr, chunk, max_hops)
+                pool.submit(_enumerate_paths_for_nodes, adjacency, edge_scores_arr, node_names, edge_targets, chunk, max_hops)
                 for chunk in node_chunks
             ]
             done_count = 0

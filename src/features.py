@@ -89,11 +89,14 @@ def extract_edge_features(g: ig.Graph) -> pd.DataFrame:
     src_out_deg = [0] * n
     dst_in_deg = [0] * n
 
+    out_deg_arr = g.outdegree()
+    in_deg_arr = g.indegree()
+
     for i in range(n):
         weight = g.es[i].attributes().get("weight", 1)
         edge_rarity[i] = 1.0 / weight
-        src_out_deg[i] = g.es[i].source_vertex.outdegree()
-        dst_in_deg[i] = g.es[i].target_vertex.indegree()
+        src_out_deg[i] = out_deg_arr[g.es[i].source]
+        dst_in_deg[i] = in_deg_arr[g.es[i].target]
 
     df = pd.DataFrame(
         {
@@ -111,7 +114,7 @@ def extract_graph_features(g: ig.Graph) -> dict:
     """Global graph-level features."""
     return {
         "density": g.density(),
-        "avg_clustering": float(np.mean(g.transitivity_local_undirected(mode="zero"))),
+        "avg_clustering": float(np.mean(g.to_undirected().transitivity_local_undirected(mode="zero"))),
         "component_count": len(g.connected_components(mode="weak")),
         "node_count": g.vcount(),
         "edge_count": g.ecount(),

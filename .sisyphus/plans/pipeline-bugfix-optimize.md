@@ -696,7 +696,7 @@ print('Edge rarity varies correctly')
   - Message: `fix(features): edge rarity uses event count (weight) not pair_count`
   - Files: `src/features.py`
 
-- [ ] 8. Refactor scorer parallel path enum — no igraph pickling
+- [x] 8. Refactor scorer parallel path enum — no igraph pickling
 
   **What to do**:
   - Refactor `_enumerate_paths_for_nodes` to accept lightweight data structures instead of `ig.Graph`:
@@ -811,7 +811,7 @@ print('Path enumeration OK')
   - Message: `perf(scorer): refactor parallel path enum to avoid igraph pickling`
   - Files: `src/scorer.py`
 
-- [ ] 9. Merge auth_failure + port_diversity into single pass
+- [x] 9. Merge auth_failure + port_diversity into single pass
 
   **What to do**:
   - `src/scorer.py:85-134`: `_compute_auth_failure_rate` and `_compute_port_diversity` both iterate all edges separately (each O(n) with separate loops). Merge into a single function `_compute_edge_source_stats(g)` that does one pass over all edges.
@@ -908,7 +908,7 @@ print('Single-pass scoring OK')
   - Message: `perf(scorer): merge auth_failure + port_diversity into single pass`
   - Files: `src/scorer.py`
 
-- [ ] 10. Precompute degree arrays in features.py
+- [x] 10. Precompute degree arrays in features.py
 
   **What to do**:
   - `src/features.py:100-106`: Currently calls `g.es[i].source_vertex.outdegree()` and `g.es[i].target_vertex.indegree()` per edge — this is a property lookup via igraph's attribute system on every iteration.
@@ -976,7 +976,7 @@ print('Precomputed degrees OK')
   - Message: `perf(features): precompute degree arrays for edge features`
   - Files: `src/features.py`
 
-- [ ] 11. Fix clustering coefficient on directed graph
+- [x] 11. Fix clustering coefficient on directed graph
 
   **What to do**:
   - `src/features.py:124`: `g.transitivity_local_undirected(mode="zero")` is called on a directed graph. igraph silently computes undirected clustering, but this is semantically misleading.
