@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import bisect
 import gzip
 from collections.abc import Iterator
 from pathlib import Path
@@ -71,11 +72,10 @@ def _build_window_intervals(
 
 
 def _time_in_any_window(time: int, windows: list[tuple[int, int]]) -> bool:
-    for w_start, w_end in windows:
-        if w_start <= time <= w_end:
-            return True
-        if time < w_start:
-            return False
+    starts = [w[0] for w in windows]
+    i = bisect.bisect_right(starts, time) - 1
+    if i >= 0 and windows[i][0] <= time <= windows[i][1]:
+        return True
     return False
 
 

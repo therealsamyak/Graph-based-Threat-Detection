@@ -161,7 +161,7 @@ def run_streaming_experiment(
     data_dir: str = "data/LANL-Dataset-2015",
     window_seconds: int = 3600,
     dapt_dir: str = "data/DAPT2020",
-) -> tuple[list[dict], dict]:
+) -> tuple[list[dict], dict, str]:
     """Run full experiment using streaming graph construction.
 
     Streams auth + flow gz files through time windows,
@@ -169,9 +169,10 @@ def run_streaming_experiment(
     runs scoring and detection, then discards non-combined graphs.
 
     Returns:
-        Tuple of (all_results, viz_data) where viz_data contains
+        Tuple of (all_results, viz_data, results_base) where viz_data contains
         the combined graph, edge scores, paths, threshold, red team
-        times, and method graphs for visualization.
+        times, and method graphs for visualization. results_base is the
+        output directory path string.
     """
     from datetime import datetime, timezone
 

@@ -72,13 +72,10 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     """Execute the full experiment pipeline and return results DataFrame."""
     args = _parse_args(argv)
 
-    from datetime import datetime, timezone
-
     all_results: list[dict] = []
     viz_data: dict = {}
     lanl_results: list[dict] = []
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    results_base = f"results/{run_id}"
+    results_base = "results/pending"
 
     # --- LANL methods (streaming) ---
     logger.info(f"Loading LANL data from {args.data_dir} (window={args.window_size}s)")
