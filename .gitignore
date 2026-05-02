@@ -15,3 +15,10 @@ datasets/
 
 # Cache directory (parquet intermediates)
 results/cache/
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
