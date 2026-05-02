@@ -89,19 +89,9 @@ def extract_edge_features(g: ig.Graph) -> pd.DataFrame:
     src_out_deg = [0] * n
     dst_in_deg = [0] * n
 
-    # Precompute pair counts: count edges sharing same (src_name, dst_name)
-    pair_count: dict[tuple[str, str], int] = {}
     for i in range(n):
-        src_name = g.es[i].source_vertex["name"]
-        dst_name = g.es[i].target_vertex["name"]
-        key = (src_name, dst_name)
-        pair_count[key] = pair_count.get(key, 0) + 1
-
-    for i in range(n):
-        src_name = g.es[i].source_vertex["name"]
-        dst_name = g.es[i].target_vertex["name"]
-        key = (src_name, dst_name)
-        edge_rarity[i] = 1.0 / pair_count[key]
+        weight = g.es[i].attributes().get("weight", 1)
+        edge_rarity[i] = 1.0 / weight
         src_out_deg[i] = g.es[i].source_vertex.outdegree()
         dst_in_deg[i] = g.es[i].target_vertex.indegree()
 

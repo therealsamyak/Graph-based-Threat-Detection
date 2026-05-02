@@ -47,15 +47,17 @@ class StreamingGraphBuilder:
             self._g.add_vertex(name, node_type=node_type, is_machine=is_machine)
             self._node_set.add(name)
 
-    def _add_edge(self, src: str, dst: str, attrs: dict) -> None:
-        self._ensure_node(src, "computer")
-        self._ensure_node(dst, "computer")
+    def _add_edge(self, src: str, dst: str, attrs: dict, src_type: str = "computer", dst_type: str = "computer") -> None:
+        self._ensure_node(src, src_type)
+        self._ensure_node(dst, dst_type)
         key = (src, dst)
         if key in self._edge_map:
             self._edge_map[key]["weight"] += 1
-            self._edge_map[key]["time"] = attrs.get("time", 0)
+            existing_time = self._edge_map[key].get("first_time", self._edge_map[key].get("time", 0))
+            self._edge_map[key]["last_time"] = attrs.get("time", 0)
+            self._edge_map[key]["first_time"] = existing_time
         else:
-            self._edge_map[key] = {**attrs, "weight": 1}
+            self._edge_map[key] = {**attrs, "weight": 1, "first_time": attrs.get("time", 0)}
 
     def feed_auth_event(self, row: dict) -> None:
         src_c = row.get("src_comp")
@@ -76,8 +78,15 @@ class StreamingGraphBuilder:
         self._add_edge(str(src_c), str(dst_c), base)
 
         if not pd.isna(src_u) and not pd.isna(dst_u):
-            self._ensure_node(str(src_u), "user")
-            self._ensure_node(str(dst_u), "user")
+            user_edge_attrs = {
+                "type": "auth",
+                "auth_type": row.get("auth_type", ""),
+                "logon_type": row.get("logon_type", ""),
+                "auth_orientation": row.get("auth_orientation", ""),
+                "success": row.get("success", ""),
+                "time": float(row.get("time", 0)),
+            }
+            self._add_edge(str(src_u), str(dst_u), user_edge_attrs, src_type="user", dst_type="user")
 
     def feed_flow_event(self, row: dict) -> None:
         src_c = row.get("src_comp")
@@ -267,21 +276,21 @@ def run_streaming_experiment(
         threshold = float(np.percentile(edge_scores.values, 95)) if len(edge_scores) > 0 else 0.5
         anomalous_paths = paths[paths["path_score"] > threshold] if len(paths) > 0 else pd.DataFrame()
 
-        detected_pairs: set[tuple[str, str]] = set()
+        # Extract all anomalous pairs from anomalous paths (pair-space)
+        anomalous_pairs: set[tuple[str, str]] = set()
         if len(anomalous_paths) > 0:
             for _, row in anomalous_paths.iterrows():
                 nodes = row["path_nodes"]
                 for i in range(len(nodes) - 1):
-                    pair = (nodes[i], nodes[i + 1])
-                    if pair in red_pairs:
-                        detected_pairs.add(pair)
+                    anomalous_pairs.add((nodes[i], nodes[i + 1]))
 
+        # Metrics in pair-space
+        detected_pairs = anomalous_pairs & rt_in_graph
         recall = len(detected_pairs) / len(red_pairs) if red_pairs else 0.0
-        anomalous_edge_count = int((edge_scores > threshold).sum())
-        n_edges = g.ecount()
-        red_edge_count = len(rt_in_graph)
-        fpr = max(anomalous_edge_count - red_edge_count, 0) / max(n_edges - red_edge_count, 1)
-        precision = len(detected_pairs) / max(anomalous_edge_count, 1)
+        true_negatives = len(graph_edges - anomalous_pairs - rt_in_graph)
+        false_positives = len(anomalous_pairs - rt_in_graph)
+        fpr = false_positives / max(false_positives + true_negatives, 1)
+        precision = len(detected_pairs) / max(len(anomalous_pairs), 1)
         f1 = 2 * recall * precision / (recall + precision) if (recall + precision) > 0 else 0.0
 
         total_events = n_auth + n_flow
@@ -296,8 +305,8 @@ def run_streaming_experiment(
             "throughput": round(total_events / (build_time + score_time), 1),
             "graph_nodes": g.vcount(),
             "graph_edges": g.ecount(),
-            "rt_pairs_in_graph": red_edge_count,
-            "anomalous_edges": anomalous_edge_count,
+            "rt_pairs_in_graph": len(rt_in_graph),
+            "anomalous_pairs": len(anomalous_pairs),
             "threshold": round(threshold, 4),
             "max_path_score": round(graph_result["max_path_score"], 4),
             "mean_edge_score": round(graph_result["mean_edge_score"], 4),

@@ -42,14 +42,13 @@ def _prepare_features(df: pd.DataFrame):
     return X_train, X_test, labels
 
 
-def _evaluate(y_true: np.ndarray, y_pred: np.ndarray, method_name: str) -> dict:
-    # y_pred: True = anomaly detected (predicted as attack)
-    auc = roc_auc_score(y_true, y_pred.astype(float))
+def _evaluate(y_true: np.ndarray, y_scores: np.ndarray, method_name: str, threshold: float = 0.0) -> dict:
+    auc = roc_auc_score(y_true, -y_scores)
+    y_pred = (y_scores < threshold).astype(int)
     f1 = f1_score(y_true, y_pred, zero_division=0)
     recall = recall_score(y_true, y_pred, zero_division=0)
     precision = precision_score(y_true, y_pred, zero_division=0)
 
-    # FPR: false positive rate = FP / (FP + TN)
     tn = np.sum((y_true == 0) & (y_pred == 0))
     fp = np.sum((y_true == 0) & (y_pred == 1))
     fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
@@ -65,11 +64,7 @@ def _evaluate(y_true: np.ndarray, y_pred: np.ndarray, method_name: str) -> dict:
 
 
 def run_oneclass_svm(df: pd.DataFrame) -> dict:
-    """Run OneClassSVM baseline for lateral movement detection.
-
-    Trains on normal traffic, predicts on all data.
-    OneClassSVM returns 1 for normal, -1 for anomaly.
-    """
+    """Run OneClassSVM baseline for lateral movement detection."""
     X_train, X_test, y_test = _prepare_features(df)
 
     with warnings.catch_warnings():
@@ -77,19 +72,12 @@ def run_oneclass_svm(df: pd.DataFrame) -> dict:
         model = OneClassSVM(kernel="rbf", gamma="scale", nu=0.05)
         model.fit(X_train)
 
-    # predict: 1 = normal, -1 = anomaly → convert to binary anomaly flag
-    predictions = model.predict(X_test)
-    y_pred = (predictions == -1).astype(int)
-
-    return _evaluate(y_test.values, y_pred, "oneclass_svm")
+    scores = model.decision_function(X_test)
+    return _evaluate(y_test.values, scores, "oneclass_svm", threshold=0.0)
 
 
 def run_isolation_forest(df: pd.DataFrame) -> dict:
-    """Run IsolationForest baseline for lateral movement detection.
-
-    Trains on normal traffic, predicts on all data.
-    IsolationForest returns 1 for normal, -1 for anomaly.
-    """
+    """Run IsolationForest baseline for lateral movement detection."""
     X_train, X_test, y_test = _prepare_features(df)
 
     model = IsolationForest(
@@ -100,11 +88,8 @@ def run_isolation_forest(df: pd.DataFrame) -> dict:
     )
     model.fit(X_train)
 
-    # predict: 1 = normal, -1 = anomaly → convert to binary anomaly flag
-    predictions = model.predict(X_test)
-    y_pred = (predictions == -1).astype(int)
-
-    return _evaluate(y_test.values, y_pred, "isolation_forest")
+    scores = model.score_samples(X_test)
+    return _evaluate(y_test.values, scores, "isolation_forest", threshold=-0.5)
 
 
 def run_dapt_baselines(data_dir: str = "data/DAPT2020") -> list[dict]:
