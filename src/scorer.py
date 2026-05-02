@@ -108,7 +108,7 @@ def _compute_edge_source_stats(g: ig.Graph) -> tuple[list[float], list[float]]:
     PARALLEL_THRESHOLD = 100_000
 
     if n > PARALLEL_THRESHOLD and (os.cpu_count() or 1) > 1:
-        n_workers = min(os.cpu_count() or 1, 6)
+        n_workers = min(os.cpu_count() or 1, 12)
         chunk_size = (n + n_workers - 1) // n_workers
         chunks = [edge_data[i * chunk_size : (i + 1) * chunk_size] for i in range(n_workers)]
 
@@ -196,7 +196,7 @@ def score_paths(
     Columns: source_node, path_score, path_nodes, path_edges, path_length.
     """
     total_nodes = g.vcount()
-    n_workers = min(os.cpu_count() or 1, 6)
+    n_workers = min(os.cpu_count() or 1, 12)
     edge_scores_arr = edge_scores.values
 
     node_names = [g.vs[i]["name"] for i in range(total_nodes)]

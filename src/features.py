@@ -84,7 +84,7 @@ def extract_node_features(g: ig.Graph) -> pd.DataFrame:
         return _build_node_df(names, in_deg, out_deg, total_deg, fan_out, betweenness,
                               inter_arr_mean, inter_arr_std, burst_score, active_duration)
 
-    n_workers = min(os.cpu_count() or 1, 6)
+    n_workers = min(os.cpu_count() or 1, 12)
     items = list(node_times.items())
 
     if n_workers <= 1 or len(items) < n_workers * 10:
