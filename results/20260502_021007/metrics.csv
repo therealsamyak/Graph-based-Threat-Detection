@@ -1,0 +1,4 @@
+method,dataset,recall,fpr,f1,auc,latency,throughput,graph_nodes,graph_edges,rt_pairs_in_graph,anomalous_pairs,threshold,max_path_score,mean_edge_score
+flow_only,LANL-2015,0.0,0.0,0.0,0.0,10.75,4.6,41,48,0,0,1.0,1.0,0.5507
+auth_only,LANL-2015,0.0,0.0,0.0,0.0,21.45,2.3,70,69,0,0,1.0,1.0,0.7977
+combined,LANL-2015,0.0,0.0,0.0,0.0,31.6,3.2,110,117,0,0,1.0,1.0,0.7465

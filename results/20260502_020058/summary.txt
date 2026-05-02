@@ -1,0 +1,18 @@
+LATERAL MOVEMENT DETECTION — KEY FINDINGS
+==================================================
+
+LANL-2015 Results:
+  flow_only: recall=0.0000, f1=0.0000, fpr=0.0000
+  auth_only: recall=0.0000, f1=0.0000, fpr=0.0000
+  combined: recall=0.0000, f1=0.0000, fpr=0.0000
+
+Combined method recall: 0.0000 (best single-source: 0.0000)
+
+DAPT2020 Baseline Results:
+  oneclass_svm: auc=nan, f1=0.0000
+  isolation_forest: auc=nan, f1=0.0000
+
+Key Takeaways:
+  - Run `uv run python run_experiment.py --sample 10000` to populate
+  - Combined auth+flow graph method vs single-source baselines
+  - Graph-based approach vs DAPT2020 ML baselines (OneClassSVM, IF)
