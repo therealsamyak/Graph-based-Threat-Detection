@@ -71,42 +71,81 @@ def _enumerate_paths_for_nodes(
     return all_paths
 
 
-def _compute_edge_source_stats(g: ig.Graph) -> tuple[list[float], list[float]]:
-    """Single-pass computation of auth_failure_rate and port_diversity per edge."""
-    n = g.ecount()
-
+def _compute_edge_source_stats_chunk(edge_data: list[tuple[int, str, str, str]]) -> tuple[dict[int, int], dict[int, int], dict[int, set[str]], dict[int, int]]:
+    """Process a chunk of edges, return partial counts."""
     src_auth_failures: dict[int, int] = {}
     src_auth_total: dict[int, int] = {}
     src_ports: dict[int, set[str]] = {}
     src_flow_total: dict[int, int] = {}
 
-    for i in range(n):
-        attrs = g.es[i].attributes()
-        src = g.es[i].source
-        edge_type = attrs.get("type", "")
-
+    for src, edge_type, success, dst_port in edge_data:
         if edge_type == "auth":
             src_auth_total[src] = src_auth_total.get(src, 0) + 1
-            if attrs.get("success") != "1":
+            if success != "1":
                 src_auth_failures[src] = src_auth_failures.get(src, 0) + 1
         elif edge_type == "flow":
             src_flow_total[src] = src_flow_total.get(src, 0) + 1
-            port = str(attrs.get("dst_port", ""))
             if src not in src_ports:
                 src_ports[src] = set()
-            src_ports[src].add(port)
+            src_ports[src].add(dst_port)
+
+    return src_auth_failures, src_auth_total, src_ports, src_flow_total
+
+
+def _compute_edge_source_stats(g: ig.Graph) -> tuple[list[float], list[float]]:
+    """Single-pass computation of auth_failure_rate and port_diversity per edge."""
+    n = g.ecount()
+
+    # Extract edge data to plain Python tuples (no igraph refs) for pickling
+    edge_data: list[tuple[int, str, str, str]] = []
+    for i in range(n):
+        attrs = g.es[i].attributes()
+        src = g.es[i].source
+        edge_data.append((src, attrs.get("type", ""), attrs.get("success", ""), str(attrs.get("dst_port", ""))))
+
+    sources = [ed[0] for ed in edge_data]
+
+    PARALLEL_THRESHOLD = 100_000
+
+    if n > PARALLEL_THRESHOLD and (os.cpu_count() or 1) > 1:
+        n_workers = min(os.cpu_count() or 1, 6)
+        chunk_size = (n + n_workers - 1) // n_workers
+        chunks = [edge_data[i * chunk_size : (i + 1) * chunk_size] for i in range(n_workers)]
+
+        src_auth_failures: dict[int, int] = {}
+        src_auth_total: dict[int, int] = {}
+        src_ports: dict[int, set[str]] = {}
+        src_flow_total: dict[int, int] = {}
+
+        with ProcessPoolExecutor(max_workers=n_workers) as pool:
+            results = pool.map(_compute_edge_source_stats_chunk, chunks)
+            for partial_af, partial_at, partial_p, partial_ft in results:
+                for k, v in partial_af.items():
+                    src_auth_failures[k] = src_auth_failures.get(k, 0) + v
+                for k, v in partial_at.items():
+                    src_auth_total[k] = src_auth_total.get(k, 0) + v
+                for k, v in partial_p.items():
+                    if k not in src_ports:
+                        src_ports[k] = set()
+                    src_ports[k].update(v)
+                for k, v in partial_ft.items():
+                    src_flow_total[k] = src_flow_total.get(k, 0) + v
+    else:
+        src_auth_failures, src_auth_total, src_ports, src_flow_total = _compute_edge_source_stats_chunk(edge_data)
 
     src_failure_rate = {src: src_auth_failures.get(src, 0) / total for src, total in src_auth_total.items()}
     src_diversity = {src: len(src_ports[src]) / total for src, total in src_flow_total.items() if total > 0}
 
-    auth_fail = [src_failure_rate.get(g.es[i].source, 0.0) for i in range(n)]
-    port_div = [src_diversity.get(g.es[i].source, 0.0) for i in range(n)]
+    auth_fail = [src_failure_rate.get(sources[i], 0.0) for i in range(n)]
+    port_div = [src_diversity.get(sources[i], 0.0) for i in range(n)]
 
     return auth_fail, port_div
 
 
 def _minmax_scale(values: list[float]) -> list[float]:
     """Min-max scale to [0,1]. Returns all 0s if all values identical."""
+    if not values:
+        return []
     arr = np.array(values, dtype=float)
     mn, mx = arr.min(), arr.max()
     if mx - mn < 1e-12:
@@ -231,7 +270,7 @@ def score_graph(
         "max_path_score": float(paths["path_score"].max()) if len(paths) > 0 else 0.0,
         "mean_path_score": float(paths["path_score"].mean()) if len(paths) > 0 else 0.0,
         "anomalous_path_count": int((paths["path_score"] > threshold).sum()) if len(paths) > 0 else 0,
-        "max_edge_score": float(edge_scores.max()),
-        "mean_edge_score": float(edge_scores.mean()),
+        "max_edge_score": float(edge_scores.max()) if len(edge_scores) > 0 else 0.0,
+        "mean_edge_score": float(edge_scores.mean()) if len(edge_scores) > 0 else 0.0,
         "high_rarity_edge_count": int((edge_features["edge_rarity"] > 0.5).sum()),
     }

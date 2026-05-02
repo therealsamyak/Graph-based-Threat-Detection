@@ -54,6 +54,10 @@ def plot_graph_snapshot(
     _apply_style()
     fig, ax = plt.subplots(figsize=FIG_SIZE, facecolor=BG_COLOR)
 
+    if g.vcount() == 0:
+        plt.close(fig)
+        return
+
     layout = g.layout("fruchterman_reingold") if g.vcount() < 500 else g.layout("auto")
     coords = np.array(layout.coords)
 
@@ -124,7 +128,7 @@ def plot_score_distribution(
     _apply_style()
     fig, ax = plt.subplots(figsize=FIG_SIZE, facecolor=BG_COLOR)
 
-    mask_red = labels.astype(int) == 1
+    mask_red = labels.fillna(0).astype(int) == 1
     mask_base = ~mask_red
 
     bins = np.linspace(0, 1, 40)
@@ -220,6 +224,7 @@ def plot_detection_timeline(
     threshold: float,
     output_path: str,
     title: str = "Detection Timeline",
+    redteam_edge_indices: set[int] | None = None,
 ) -> None:
     """Timeline showing scores over time with red team events and threshold line."""
     _apply_style()
@@ -236,21 +241,26 @@ def plot_detection_timeline(
     )
 
     # Red-team markers
-    if not redteam_times.empty:
+    if redteam_edge_indices is not None:
+        mask_rt = scores.index.isin(redteam_edge_indices)
+    elif not redteam_times.empty:
         rt_set = set(redteam_times.values)
         mask_rt = event_times.isin(rt_set)
-        if mask_rt.any():
-            ax.scatter(
-                event_times[mask_rt],
-                scores[mask_rt],
-                s=18,
-                alpha=0.8,
-                color=PALETTE[1],
-                marker="x",
-                linewidths=1.2,
-                label="Red team",
-                zorder=4,
-            )
+    else:
+        mask_rt = pd.Series(False, index=scores.index)
+
+    if mask_rt.any():
+        ax.scatter(
+            event_times[mask_rt],
+            scores[mask_rt],
+            s=18,
+            alpha=0.8,
+            color=PALETTE[1],
+            marker="x",
+            linewidths=1.2,
+            label="Red team",
+            zorder=4,
+        )
 
     ax.axhline(
         y=threshold,

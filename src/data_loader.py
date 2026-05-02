@@ -71,8 +71,8 @@ def _build_window_intervals(
     return merged
 
 
-def _time_in_any_window(time: int, windows: list[tuple[int, int]]) -> bool:
-    starts = [w[0] for w in windows]
+def _time_in_any_window(time: int, windows: list[tuple[int, int]], _starts: list[int] | None = None) -> bool:
+    starts = _starts if _starts is not None else [w[0] for w in windows]
     i = bisect.bisect_right(starts, time) - 1
     if i >= 0 and windows[i][0] <= time <= windows[i][1]:
         return True
@@ -99,6 +99,7 @@ def extract_windows(
 
     rows = []
     past_start = False
+    _starts = [w[0] for w in windows]
 
     with gzip.open(gz_path, "rt", encoding="utf-8") as f:
         for line in f:
@@ -116,7 +117,7 @@ def extract_windows(
             if time_val > last_window_end:
                 break
 
-            if _time_in_any_window(time_val, windows):
+            if _time_in_any_window(time_val, windows, _starts):
                 rows.append(dict(zip(columns, parts)))
                 if max_events is not None and len(rows) >= max_events:
                     break

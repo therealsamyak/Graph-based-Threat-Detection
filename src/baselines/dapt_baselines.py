@@ -89,19 +89,22 @@ def run_isolation_forest(df: pd.DataFrame) -> dict:
     model.fit(X_train)
 
     scores = model.score_samples(X_test)
-    return _evaluate(y_test.values, scores, "isolation_forest", threshold=-0.5)
+    return _evaluate(y_test.values, scores, "isolation_forest", threshold=0.0)
 
 
-def run_dapt_baselines(data_dir: str = "data/DAPT2020") -> list[dict]:
+def run_dapt_baselines(data_dir: str = "data/DAPT2020", max_rows: int | None = None) -> list[dict]:
     """Run all DAPT2020 sklearn baselines.
 
     Args:
         data_dir: Path to DAPT2020 directory.
+        max_rows: Limit number of rows for quick testing.
 
     Returns:
         List of result dicts with keys: method_name, auc, f1, recall, fpr, precision.
     """
     df = load_dapt2020(data_dir)
+    if max_rows is not None:
+        df = df.head(max_rows)
     logger.info(f"Loaded DAPT2020 data: {len(df)} rows")
 
     baselines = [

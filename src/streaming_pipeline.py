@@ -120,6 +120,7 @@ def _stream_gz_to_graph(
     graph: StreamingGraphBuilder,
     feed_fn,
     progress_every: int = 500000,
+    max_events: int | None = None,
 ) -> int:
     """Stream gz file through windows, feed events to graph, return row count."""
     if not windows:
@@ -130,6 +131,7 @@ def _stream_gz_to_graph(
 
     count = 0
     past_start = False
+    _starts = [w[0] for w in windows]
 
     with gzip.open(gz_path, "rt", encoding="utf-8") as f:
         for raw_line in f:
@@ -147,7 +149,7 @@ def _stream_gz_to_graph(
             if time_val > last_end:
                 break
 
-            if not _time_in_any_window(time_val, windows):
+            if not _time_in_any_window(time_val, windows, _starts):
                 continue
 
             row = dict(zip(columns, parts))
@@ -160,6 +162,8 @@ def _stream_gz_to_graph(
 
             feed_fn(row)
             count += 1
+            if max_events is not None and count >= max_events:
+                break
             if count % progress_every == 0:
                 logger.info(f"  {gz_path}: {count:,} events processed...")
 
@@ -170,6 +174,7 @@ def run_streaming_experiment(
     data_dir: str = "data/LANL-Dataset-2015",
     window_seconds: int = 3600,
     dapt_dir: str = "data/DAPT2020",
+    max_events: int | None = None,
 ) -> tuple[list[dict], dict, str]:
     """Run full experiment using streaming graph construction.
 
@@ -227,6 +232,7 @@ def run_streaming_experiment(
                 str(data_path / "auth.txt.gz"),
                 AUTH_COLUMNS, windows, AUTH_NUMERIC,
                 graph, graph.feed_auth_event,
+                max_events=max_events,
             )
         else:
             n_auth = 0
@@ -236,6 +242,7 @@ def run_streaming_experiment(
                 str(data_path / "flows.txt.gz"),
                 FLOW_COLUMNS, windows, FLOW_NUMERIC,
                 graph, graph.feed_flow_event,
+                max_events=max_events,
             )
         else:
             n_flow = 0
@@ -379,7 +386,7 @@ def run_streaming_experiment(
     logger.info("Running DAPT2020 baselines")
     try:
         from src.baselines.dapt_baselines import run_dapt_baselines
-        dapt_results = run_dapt_baselines(data_dir=dapt_dir)
+        dapt_results = run_dapt_baselines(data_dir=dapt_dir, max_rows=max_events)
         for r in dapt_results:
             all_results.append({
                 "method": r["method_name"],

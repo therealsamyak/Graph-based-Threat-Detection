@@ -2,13 +2,63 @@
 
 from __future__ import annotations
 
+import logging
+import os
+from concurrent.futures import ProcessPoolExecutor
+
+import igraph as ig
 import numpy as np
 import pandas as pd
-import igraph as ig
+
+logger = logging.getLogger(__name__)
+
+
+def _compute_node_temporal(args: tuple[int, list[float]]) -> tuple[int, float, float, float, float]:
+    node_idx, times = args
+    if len(times) < 2:
+        return node_idx, 0.0, 0.0, 0.0, 0.0
+
+    times.sort()
+    gaps = np.diff(times)
+    inter_arr_mean = float(np.mean(gaps))
+    inter_arr_std = float(np.std(gaps))
+
+    time_span = times[-1] - times[0]
+    if time_span <= 0:
+        return node_idx, inter_arr_mean, inter_arr_std, 0.0, 0.0
+
+    window_10pct = time_span * 0.1
+    max_in_window = 0
+    left = 0
+    for right in range(len(times)):
+        while times[right] - times[left] > window_10pct:
+            left += 1
+        count = right - left + 1
+        if count > max_in_window:
+            max_in_window = count
+
+    burst = max_in_window / len(times)
+    return node_idx, inter_arr_mean, inter_arr_std, burst, time_span
+
+
+def _extract_node_times(g: ig.Graph) -> dict[int, list[float]]:
+    n = g.vcount()
+    node_times: dict[int, list[float]] = {}
+    for i in range(n):
+        out_eids = g.incident(i, mode="out")
+        if not out_eids:
+            continue
+        times = []
+        for eid in out_eids:
+            t = g.es[eid].attributes().get("time")
+            if t is not None:
+                times.append(float(t))
+        if times:
+            node_times[i] = times
+    return node_times
 
 
 def extract_node_features(g: ig.Graph) -> pd.DataFrame:
-    """Per-node structural and temporal features."""
     n = g.vcount()
     names = [g.vs[i]["name"] for i in range(n)]
     in_deg = g.indegree()
@@ -24,45 +74,37 @@ def extract_node_features(g: ig.Graph) -> pd.DataFrame:
         else [0.0] * n
     )
 
-    # Temporal features: per-node outgoing edges
     inter_arr_mean = [0.0] * n
     inter_arr_std = [0.0] * n
     burst_score = [0.0] * n
     active_duration = [0.0] * n
 
-    for i in range(n):
-        out_eids = g.incident(i, mode="out")
-        if not out_eids:
-            continue
-        times = []
-        for eid in out_eids:
-            t = g.es[eid].attributes().get("time")
-            if t is not None:
-                times.append(float(t))
-        if len(times) < 2:
-            continue
-        times.sort()
-        gaps = np.diff(times)
-        inter_arr_mean[i] = float(np.mean(gaps))
-        inter_arr_std[i] = float(np.std(gaps))
+    node_times = _extract_node_times(g)
+    if not node_times:
+        return _build_node_df(names, in_deg, out_deg, total_deg, fan_out, betweenness,
+                              inter_arr_mean, inter_arr_std, burst_score, active_duration)
 
-        # Burst score: ratio of edges in busiest 10% of time window to total
-        time_span = times[-1] - times[0]
-        if time_span <= 0:
-            continue
-        window_10pct = time_span * 0.1
-        # Slide a window of size window_10pct and find max edges in any such window
-        max_in_window = 0
-        left = 0
-        for right in range(len(times)):
-            while times[right] - times[left] > window_10pct:
-                left += 1
-            count = right - left + 1
-            if count > max_in_window:
-                max_in_window = count
-        burst_score[i] = max_in_window / len(times) if len(times) > 0 else 0.0
-        active_duration[i] = time_span
+    n_workers = min(os.cpu_count() or 1, 6)
+    items = list(node_times.items())
 
+    if n_workers <= 1 or len(items) < n_workers * 10:
+        for idx, times in items:
+            _, inter_arr_mean[idx], inter_arr_std[idx], burst_score[idx], active_duration[idx] = _compute_node_temporal((idx, times))
+    else:
+        with ProcessPoolExecutor(max_workers=n_workers) as pool:
+            results = pool.map(_compute_node_temporal, items)
+            for idx, iam, ias, bs, ad in results:
+                inter_arr_mean[idx] = iam
+                inter_arr_std[idx] = ias
+                burst_score[idx] = bs
+                active_duration[idx] = ad
+
+    return _build_node_df(names, in_deg, out_deg, total_deg, fan_out, betweenness,
+                          inter_arr_mean, inter_arr_std, burst_score, active_duration)
+
+
+def _build_node_df(names, in_deg, out_deg, total_deg, fan_out, betweenness,
+                   inter_arr_mean, inter_arr_std, burst_score, active_duration) -> pd.DataFrame:
     df = pd.DataFrame(
         {
             "in_degree": in_deg,
@@ -83,7 +125,6 @@ def extract_node_features(g: ig.Graph) -> pd.DataFrame:
 
 
 def extract_edge_features(g: ig.Graph) -> pd.DataFrame:
-    """Per-edge statistical features."""
     n = g.ecount()
     edge_rarity = [0.0] * n
     src_out_deg = [0] * n
@@ -111,10 +152,20 @@ def extract_edge_features(g: ig.Graph) -> pd.DataFrame:
 
 
 def extract_graph_features(g: ig.Graph) -> dict:
-    """Global graph-level features."""
+    if g.vcount() == 0:
+        return {
+            "density": 0.0,
+            "avg_clustering": 0.0,
+            "component_count": 0,
+            "node_count": 0,
+            "edge_count": 0,
+        }
+    ug = g.copy()
+    ug.to_undirected()
+    clustering = ug.transitivity_local_undirected(mode="zero")
     return {
         "density": g.density(),
-        "avg_clustering": float(np.mean(g.to_undirected().transitivity_local_undirected(mode="zero"))),
+        "avg_clustering": float(np.mean(clustering)) if clustering else 0.0,
         "component_count": len(g.connected_components(mode="weak")),
         "node_count": g.vcount(),
         "edge_count": g.ecount(),
@@ -122,7 +173,6 @@ def extract_graph_features(g: ig.Graph) -> dict:
 
 
 def extract_all_features(g: ig.Graph) -> dict:
-    """Combine all features. Returns {'node_features': df, 'edge_features': df, 'graph_features': dict}."""
     return {
         "node_features": extract_node_features(g),
         "edge_features": extract_edge_features(g),

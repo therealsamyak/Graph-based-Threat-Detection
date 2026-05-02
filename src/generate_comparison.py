@@ -48,6 +48,8 @@ def generate_comparison(results_dir: str = "results") -> None:
         vals = []
         for m in avail:
             v = row.get(m, 0)
+            if pd.isna(v):
+                v = 0
             if m in ("latency",):
                 vals.append(f"{v:.2f}s")
             elif m in ("throughput",):
@@ -59,11 +61,11 @@ def generate_comparison(results_dir: str = "results") -> None:
     # Best per metric
     md += "\n## Best Method Per Metric\n\n"
     for m in ["recall", "f1", "auc"]:
-        if m in df.columns:
+        if m in df.columns and not df[m].dropna().empty:
             best_idx = df[m].idxmax()
             best = df.loc[best_idx]
             md += f"- **Best {m}**: {best['method']} ({best.get('dataset', 'N/A')} — {best[m]:.4f})\n"
-    if "fpr" in df.columns:
+    if "fpr" in df.columns and not df["fpr"].dropna().empty:
         best_idx = df["fpr"].idxmin()
         best = df.loc[best_idx]
         md += f"- **Lowest FPR**: {best['method']} ({best.get('dataset', 'N/A')} — {best['fpr']:.4f})\n"
@@ -97,8 +99,8 @@ def generate_comparison(results_dir: str = "results") -> None:
             lines.append("LANL-2015 Results:")
             for _, row in lanl.iterrows():
                 lines.append(
-                    f"  {row['method']}: recall={row['recall']:.4f}, "
-                    f"f1={row['f1']:.4f}, fpr={row['fpr']:.4f}"
+                    f"  {row['method']}: recall={row.get('recall', 0):.4f}, "
+                    f"f1={row.get('f1', 0):.4f}, fpr={row.get('fpr', 0):.4f}"
                 )
             lines.append("")
             if "combined" in lanl["method"].values:
@@ -115,9 +117,12 @@ def generate_comparison(results_dir: str = "results") -> None:
         if not dapt.empty:
             lines.append("\nDAPT2020 Baseline Results:")
             for _, row in dapt.iterrows():
+                auc_val = row.get('auc', 0)
+                if pd.isna(auc_val):
+                    auc_val = 0
                 lines.append(
-                    f"  {row['method']}: auc={row.get('auc', 0):.4f}, "
-                    f"f1={row['f1']:.4f}"
+                    f"  {row['method']}: auc={auc_val:.4f}, "
+                    f"f1={row.get('f1', 0):.4f}"
                 )
     else:
         lines.append("All results:")
