@@ -63,27 +63,33 @@ def _evaluate(y_true: np.ndarray, y_scores: np.ndarray, method_name: str, thresh
     }
 
 
-def run_oneclass_svm(df: pd.DataFrame) -> dict:
+def run_oneclass_svm(df: pd.DataFrame, config: dict | None = None) -> dict:
     """Run OneClassSVM baseline for lateral movement detection."""
     X_train, X_test, y_test = _prepare_features(df)
 
+    svm_cfg = (config or {}).get("baselines", {}).get("oneclass_svm", {})
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        model = OneClassSVM(kernel="rbf", gamma="scale", nu=0.05)
+        model = OneClassSVM(
+            kernel=svm_cfg.get("kernel", "rbf"),
+            gamma=svm_cfg.get("gamma", "scale"),
+            nu=svm_cfg.get("nu", 0.05),
+        )
         model.fit(X_train)
 
     scores = model.decision_function(X_test)
     return _evaluate(y_test.values, scores, "oneclass_svm", threshold=0.0)
 
 
-def run_isolation_forest(df: pd.DataFrame) -> dict:
+def run_isolation_forest(df: pd.DataFrame, config: dict | None = None) -> dict:
     """Run IsolationForest baseline for lateral movement detection."""
     X_train, X_test, y_test = _prepare_features(df)
 
+    if_cfg = (config or {}).get("baselines", {}).get("isolation_forest", {})
     model = IsolationForest(
-        n_estimators=100,
-        contamination=0.05,
-        random_state=42,
+        n_estimators=if_cfg.get("n_estimators", 100),
+        contamination=if_cfg.get("contamination", 0.05),
+        random_state=if_cfg.get("random_state", 42),
         n_jobs=-1,
     )
     model.fit(X_train)
@@ -92,12 +98,13 @@ def run_isolation_forest(df: pd.DataFrame) -> dict:
     return _evaluate(y_test.values, scores, "isolation_forest", threshold=0.0)
 
 
-def run_dapt_baselines(data_dir: str = "data/DAPT2020", max_rows: int | None = None) -> list[dict]:
+def run_dapt_baselines(data_dir: str = "data/DAPT2020", max_rows: int | None = None, config: dict | None = None) -> list[dict]:
     """Run all DAPT2020 sklearn baselines.
 
     Args:
         data_dir: Path to DAPT2020 directory.
         max_rows: Limit number of rows for quick testing.
+        config: Optional pipeline config dict.
 
     Returns:
         List of result dicts with keys: method_name, auc, f1, recall, fpr, precision.
@@ -108,8 +115,8 @@ def run_dapt_baselines(data_dir: str = "data/DAPT2020", max_rows: int | None = N
     logger.info(f"Loaded DAPT2020 data: {len(df)} rows")
 
     baselines = [
-        ("OneClassSVM", run_oneclass_svm),
-        ("IsolationForest", run_isolation_forest),
+        ("OneClassSVM", lambda d: run_oneclass_svm(d, config=config)),
+        ("IsolationForest", lambda d: run_isolation_forest(d, config=config)),
     ]
 
     results = []

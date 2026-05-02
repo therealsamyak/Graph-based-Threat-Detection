@@ -13,7 +13,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _compute_node_temporal(args: tuple[int, list[float]]) -> tuple[int, float, float, float, float]:
+def _compute_node_temporal(args: tuple[int, list[float]], burst_window_pct: float = 0.1) -> tuple[int, float, float, float, float]:
     node_idx, times = args
     if len(times) < 2:
         return node_idx, 0.0, 0.0, 0.0, 0.0
@@ -27,7 +27,7 @@ def _compute_node_temporal(args: tuple[int, list[float]]) -> tuple[int, float, f
     if time_span <= 0:
         return node_idx, inter_arr_mean, inter_arr_std, 0.0, 0.0
 
-    window_10pct = time_span * 0.1
+    window_10pct = time_span * burst_window_pct
     max_in_window = 0
     left = 0
     for right in range(len(times)):
@@ -58,7 +58,12 @@ def _extract_node_times(g: ig.Graph) -> dict[int, list[float]]:
     return node_times
 
 
-def extract_node_features(g: ig.Graph) -> pd.DataFrame:
+def extract_node_features(g: ig.Graph, config: dict | None = None) -> pd.DataFrame:
+    feat_cfg = (config or {}).get("features", {})
+    betweenness_node_limit = feat_cfg.get("betweenness_node_limit", 5000)
+    burst_window_pct = feat_cfg.get("temporal_burst_window_pct", 0.1)
+    max_workers = feat_cfg.get("max_workers", 12)
+
     n = g.vcount()
     names = [g.vs[i]["name"] for i in range(n)]
     in_deg = g.indegree()
@@ -70,7 +75,7 @@ def extract_node_features(g: ig.Graph) -> pd.DataFrame:
     ]
     betweenness = (
         g.betweenness(directed=True, normalized=True)
-        if n <= 5000
+        if n <= betweenness_node_limit
         else [0.0] * n
     )
 
@@ -84,15 +89,17 @@ def extract_node_features(g: ig.Graph) -> pd.DataFrame:
         return _build_node_df(names, in_deg, out_deg, total_deg, fan_out, betweenness,
                               inter_arr_mean, inter_arr_std, burst_score, active_duration)
 
-    n_workers = min(os.cpu_count() or 1, 12)
+    n_workers = min(os.cpu_count() or 1, max_workers)
     items = list(node_times.items())
 
     if n_workers <= 1 or len(items) < n_workers * 10:
         for idx, times in items:
-            _, inter_arr_mean[idx], inter_arr_std[idx], burst_score[idx], active_duration[idx] = _compute_node_temporal((idx, times))
+            _, inter_arr_mean[idx], inter_arr_std[idx], burst_score[idx], active_duration[idx] = _compute_node_temporal((idx, times), burst_window_pct=burst_window_pct)
     else:
+        from functools import partial
+        _compute_fn = partial(_compute_node_temporal, burst_window_pct=burst_window_pct)
         with ProcessPoolExecutor(max_workers=n_workers) as pool:
-            results = pool.map(_compute_node_temporal, items)
+            results = pool.map(_compute_fn, items)
             for idx, iam, ias, bs, ad in results:
                 inter_arr_mean[idx] = iam
                 inter_arr_std[idx] = ias
@@ -205,9 +212,9 @@ def extract_graph_features(g: ig.Graph) -> dict:
     }
 
 
-def extract_all_features(g: ig.Graph) -> dict:
+def extract_all_features(g: ig.Graph, config: dict | None = None) -> dict:
     return {
-        "node_features": extract_node_features(g),
+        "node_features": extract_node_features(g, config=config),
         "edge_features": extract_edge_features(g),
         "graph_features": extract_graph_features(g),
     }

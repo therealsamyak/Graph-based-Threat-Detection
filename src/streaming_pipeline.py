@@ -175,6 +175,7 @@ def run_streaming_experiment(
     window_seconds: int = 3600,
     dapt_dir: str = "data/DAPT2020",
     max_events: int | None = None,
+    config: dict | None = None,
 ) -> tuple[list[dict], dict, str]:
     """Run full experiment using streaming graph construction.
 
@@ -190,6 +191,19 @@ def run_streaming_experiment(
     """
     from datetime import datetime, timezone
 
+    _cfg = config or {}
+    scoring_cfg = _cfg.get("scoring", {})
+    graph_cfg = _cfg.get("graph", {})
+    feat_cfg = _cfg.get("features", {})
+
+    threshold_percentile = scoring_cfg.get("threshold_percentile", 90)
+    progress_every = graph_cfg.get("progress_every", 500000)
+    max_hops = scoring_cfg.get("max_hops", 4)
+    top_k_paths = scoring_cfg.get("top_k_paths", 50)
+    top_outgoing = scoring_cfg.get("top_outgoing_per_node", 10)
+    max_workers = feat_cfg.get("max_workers", 12)
+    weights = scoring_cfg.get("weights", {"is_ntlm": 0.4, "is_network_logon": 0.3, "edge_rarity": 0.3})
+
     data_path = Path(data_dir)
     all_results: list[dict] = []
     viz_data: dict = {}
@@ -198,6 +212,11 @@ def run_streaming_experiment(
     results_base = Path("results") / run_id
     results_base.mkdir(parents=True, exist_ok=True)
     logger.info(f"Run ID: {run_id}, output dir: {results_base}")
+
+    # Save config copy alongside results
+    with open(results_base / "pipeline_config.json", "w") as f:
+        json.dump(_cfg, f, indent=2)
+    logger.info(f"  Saved pipeline_config.json to {results_base}")
 
     rt = load_redteam(str(data_path / "redteam.txt.gz"))
     red_pairs = set(zip(rt["src_comp"].astype(str), rt["dst_comp"].astype(str)))
@@ -232,6 +251,7 @@ def run_streaming_experiment(
                 str(data_path / "auth.txt.gz"),
                 AUTH_COLUMNS, windows, AUTH_NUMERIC,
                 graph, graph.feed_auth_event,
+                progress_every=progress_every,
                 max_events=max_events,
             )
         else:
@@ -242,6 +262,7 @@ def run_streaming_experiment(
                 str(data_path / "flows.txt.gz"),
                 FLOW_COLUMNS, windows, FLOW_NUMERIC,
                 graph, graph.feed_flow_event,
+                progress_every=progress_every,
                 max_events=max_events,
             )
         else:
@@ -270,11 +291,11 @@ def run_streaming_experiment(
 
         t1 = time.perf_counter()
         logger.info(f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)...")
-        all_feat = extract_all_features(g)
+        all_feat = extract_all_features(g, config=_cfg)
         logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
-        edge_scores = score_edges(g, all_feat["edge_features"])
+        edge_scores = score_edges(g, all_feat["edge_features"], weights=weights)
         logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
-        paths = score_paths(g, edge_scores)
+        paths = score_paths(g, edge_scores, max_hops=max_hops, top_k=top_k_paths, top_outgoing=top_outgoing, max_workers=max_workers)
         logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
         graph_result = score_graph(g, all_feat, edge_scores, paths=paths)
         score_time = time.perf_counter() - t1
@@ -287,7 +308,7 @@ def run_streaming_experiment(
             & (ef["is_user_edge"].values == 0.0)
         )
         scoring_scores = edge_scores[mask_valid]
-        threshold = float(np.percentile(scoring_scores.values, 90)) if len(scoring_scores) > 0 else 0.5
+        threshold = float(np.percentile(scoring_scores.values, threshold_percentile)) if len(scoring_scores) > 0 else 0.5
         if len(scoring_scores) > 0 and scoring_scores.std() < 1e-10:
             logger.warning("  All edge scores identical — no anomalies detectable")
             threshold = float(scoring_scores.max()) + 0.01
@@ -387,7 +408,7 @@ def run_streaming_experiment(
     logger.info("Running DAPT2020 baselines")
     try:
         from src.baselines.dapt_baselines import run_dapt_baselines
-        dapt_results = run_dapt_baselines(data_dir=dapt_dir, max_rows=max_events)
+        dapt_results = run_dapt_baselines(data_dir=dapt_dir, max_rows=max_events, config=_cfg)
         for r in dapt_results:
             all_results.append({
                 "method": r["method_name"],

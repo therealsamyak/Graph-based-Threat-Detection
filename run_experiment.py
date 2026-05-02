@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.config import load_config
 from src.generate_comparison import generate_comparison
 
 logging.basicConfig(
@@ -71,21 +72,34 @@ def _print_summary(df: pd.DataFrame) -> None:
 def run(argv: list[str] | None = None) -> pd.DataFrame:
     """Execute the full experiment pipeline and return results DataFrame."""
     args = _parse_args(argv)
+    config = load_config()
+
+    if args.data_dir != "data/LANL-Dataset-2015":
+        config.setdefault("data", {})["lanl_dir"] = args.data_dir
+    if args.window_size != 3600:
+        config.setdefault("data", {})["window_size"] = args.window_size
+    if args.dapt_dir != "data/DAPT2020":
+        config.setdefault("data", {})["dapt_dir"] = args.dapt_dir
 
     all_results: list[dict] = []
     viz_data: dict = {}
     lanl_results: list[dict] = []
     results_base = "results/pending"
 
-    # --- LANL methods (streaming) ---
-    logger.info(f"Loading LANL data from {args.data_dir} (window={args.window_size}s)")
+    data_cfg = config.get("data", {})
+    data_dir = args.data_dir
+    window_size = args.window_size
+    dapt_dir = args.dapt_dir
+
+    logger.info(f"Loading LANL data from {data_dir} (window={window_size}s)")
     try:
         from src.streaming_pipeline import run_streaming_experiment
         lanl_results, viz_data, results_base = run_streaming_experiment(
-            data_dir=args.data_dir,
-            window_seconds=args.window_size,
-            dapt_dir=args.dapt_dir,
+            data_dir=data_dir,
+            window_seconds=window_size,
+            dapt_dir=dapt_dir,
             max_events=args.sample,
+            config=config,
         )
         all_results.extend(lanl_results)
     except Exception as e:

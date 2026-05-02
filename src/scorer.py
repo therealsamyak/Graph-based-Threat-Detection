@@ -125,6 +125,8 @@ def score_paths(
     edge_scores: pd.Series,
     max_hops: int = 4,
     top_k: int = 50,
+    top_outgoing: int = 10,
+    max_workers: int = 12,
 ) -> pd.DataFrame:
     """BFS path enumeration with anomaly scoring.
 
@@ -133,7 +135,7 @@ def score_paths(
     Columns: source_node, path_score, path_nodes, path_edges, path_length.
     """
     total_nodes = g.vcount()
-    n_workers = min(os.cpu_count() or 1, 12)
+    n_workers = min(os.cpu_count() or 1, max_workers)
     edge_scores_arr = edge_scores.values
 
     node_names = [g.vs[i]["name"] for i in range(total_nodes)]
@@ -141,7 +143,7 @@ def score_paths(
     for src in range(total_nodes):
         out_eids = g.incident(src, mode="out")
         if out_eids:
-            scored = sorted(out_eids, key=lambda eid: edge_scores_arr[eid], reverse=True)[:10]
+            scored = sorted(out_eids, key=lambda eid: edge_scores_arr[eid], reverse=True)[:top_outgoing]
             adjacency[src] = [(eid, g.es[eid].target) for eid in scored]
 
     edge_targets = np.array([g.es[i].target for i in range(g.ecount())])
