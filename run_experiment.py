@@ -134,11 +134,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     combined_g = viz_data.get("combined_graph")
     if edge_scores is not None and not edge_scores.empty and combined_g is not None:
         rt = viz_data.get("redteam_times")
-        red_pairs = set()
-        if rt is not None:
-            from src.data_loader import load_redteam
-            rt_df = load_redteam(str(Path(args.data_dir) / "redteam.txt.gz"))
-            red_pairs = set(zip(rt_df["src_comp"].astype(str), rt_df["dst_comp"].astype(str)))
+        red_pairs = viz_data.get("red_pairs", set())
 
         labels = pd.Series([
             1.0 if (combined_g.vs[e.source]["name"], combined_g.vs[e.target]["name"]) in red_pairs else 0.0

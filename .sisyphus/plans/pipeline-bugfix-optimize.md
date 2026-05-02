@@ -1022,7 +1022,7 @@ print('Precomputed degrees OK')
   - Message: `fix(features): use undirected copy for clustering coefficient`
   - Files: `src/features.py`
 
-- [ ] 12. Fix double red-team load in run_experiment.py
+- [x] 12. Fix double red-team load in run_experiment.py
 
   **What to do**:
   - `run_experiment.py:142-144`: Loads redteam data AGAIN (via `load_redteam()`) even though it was already loaded inside `run_streaming_experiment()`. Redundant I/O.
@@ -1066,7 +1066,7 @@ print('Precomputed degrees OK')
   - Message: `fix(experiment): remove duplicate red-team load`
   - Files: `run_experiment.py, src/streaming_pipeline.py`
 
-- [ ] 13. Handle degenerate threshold case
+- [x] 13. Handle degenerate threshold case
 
   **What to do**:
   - `streaming_pipeline.py:266`: `np.percentile(edge_scores.values, 95)` — if all edge scores identical, threshold equals score, flags everything.

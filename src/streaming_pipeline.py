@@ -199,6 +199,7 @@ def run_streaming_experiment(
     windows = _build_window_intervals(rt, window_seconds)
     logger.info(f"Red team: {len(rt)} events, {len(windows)} merged windows")
     viz_data["redteam_times"] = rt["time"]
+    viz_data["red_pairs"] = red_pairs
     method_graphs: dict[str, ig.Graph | None] = {}
 
     redteam_dir = results_base / "redteam"
@@ -274,6 +275,9 @@ def run_streaming_experiment(
 
         # Detection
         threshold = float(np.percentile(edge_scores.values, 95)) if len(edge_scores) > 0 else 0.5
+        if len(edge_scores) > 0 and edge_scores.std() < 1e-10:
+            logger.warning("  All edge scores identical — no anomalies detectable")
+            threshold = float(edge_scores.max()) + 0.01
         anomalous_paths = paths[paths["path_score"] > threshold] if len(paths) > 0 else pd.DataFrame()
 
         # Extract all anomalous pairs from anomalous paths (pair-space)
