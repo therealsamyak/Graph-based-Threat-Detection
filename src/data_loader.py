@@ -1,4 +1,4 @@
-"""Streaming gz reader and window extraction for LANL-2015 data."""
+"""Streaming reader and window extraction for LANL-2015 data."""
 
 from __future__ import annotations
 
@@ -26,13 +26,20 @@ REDTEAM_NUMERIC = {"time"}
 CACHE_DIR = Path("results/cache")
 
 
+def _open_file(filepath: str):
+    """Open file transparently: handle both .gz and plain .txt."""
+    if filepath.endswith(".gz"):
+        return gzip.open(filepath, "rt", encoding="utf-8")
+    return open(filepath, "r", encoding="utf-8")
+
+
 def stream_gz_lines(
     filepath: str,
     columns: list[str],
     max_lines: int | None = None,
 ) -> Iterator[dict]:
-    """Yield parsed lines from a gz file one at a time."""
-    with gzip.open(filepath, "rt", encoding="utf-8") as f:
+    """Yield parsed lines from a file one at a time."""
+    with _open_file(filepath) as f:
         for i, line in enumerate(f):
             if max_lines is not None and i >= max_lines:
                 break
@@ -43,8 +50,11 @@ def stream_gz_lines(
 
 
 def load_redteam(path: str) -> pd.DataFrame:
-    """Load and parse redteam.txt.gz (small file, safe to load fully)."""
-    rows = list(stream_gz_lines(path, REDTEAM_COLUMNS))
+    """Load and parse redteam.txt (small file, safe to load fully)."""
+    # Try .txt first, fall back to .gz
+    txt_path = path.replace(".gz", "") if path.endswith(".gz") else path
+    actual_path = txt_path if Path(txt_path).exists() else path
+    rows = list(stream_gz_lines(actual_path, REDTEAM_COLUMNS))
     df = pd.DataFrame(rows)
     df["time"] = pd.to_numeric(df["time"], errors="coerce")
     df = df.dropna(subset=["time"])
@@ -101,7 +111,11 @@ def extract_windows(
     past_start = False
     _starts = [w[0] for w in windows]
 
-    with gzip.open(gz_path, "rt", encoding="utf-8") as f:
+    # Try .txt first, fall back to .gz
+    txt_path = gz_path.replace(".gz", "") if gz_path.endswith(".gz") else gz_path
+    actual_path = txt_path if Path(txt_path).exists() else gz_path
+
+    with _open_file(actual_path) as f:
         for line in f:
             parts = line.strip().split(",")
             if len(parts) != len(columns):
@@ -156,7 +170,8 @@ def load_lanl_data(
     auth_cache = CACHE_DIR / f"auth_{cache_key}.parquet"
     flow_cache = CACHE_DIR / f"flows_{cache_key}.parquet"
 
-    redteam_df = load_redteam(str(data_path / "redteam.txt.gz"))
+    redteam_path = str(data_path / "redteam.txt.gz")
+    redteam_df = load_redteam(redteam_path)
 
     if auth_cache.exists() and flow_cache.exists():
         auth_df = pd.read_parquet(auth_cache)
@@ -165,11 +180,17 @@ def load_lanl_data(
 
     windows = _build_window_intervals(redteam_df, window_seconds)
 
+    # Try .txt first, fall back to .gz
+    auth_path = str(data_path / "auth.txt.gz")
+    auth_actual = auth_path.replace(".gz", "") if Path(auth_path.replace(".gz", "")).exists() else auth_path
+    flow_path = str(data_path / "flows.txt.gz")
+    flow_actual = flow_path.replace(".gz", "") if Path(flow_path.replace(".gz", "")).exists() else flow_path
+
     auth_df = extract_windows(
-        str(data_path / "auth.txt.gz"), AUTH_COLUMNS, windows, max_events, AUTH_NUMERIC
+        auth_actual, AUTH_COLUMNS, windows, max_events, AUTH_NUMERIC
     )
     flow_df = extract_windows(
-        str(data_path / "flows.txt.gz"), FLOW_COLUMNS, windows, max_events, FLOW_NUMERIC
+        flow_actual, FLOW_COLUMNS, windows, max_events, FLOW_NUMERIC
     )
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)

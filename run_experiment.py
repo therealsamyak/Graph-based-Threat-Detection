@@ -25,8 +25,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--data-dir",
-        default="data/LANL-Dataset-2015",
-        help="Path to LANL-2015 data directory (default: data/LANL-Dataset-2015)",
+        default="datasets/LANL-Dataset-2015",
+        help="Path to LANL-2015 data directory (default: datasets/LANL-Dataset-2015)",
     )
     parser.add_argument(
         "--window-size",
@@ -42,8 +42,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--dapt-dir",
-        default="data/DAPT2020",
-        help="Path to DAPT2020 data directory (default: data/DAPT2020)",
+        default="datasets/dapt2020",
+        help="Path to DAPT2020 data directory (default: datasets/dapt2020)",
     )
     return parser.parse_args(argv)
 
@@ -54,18 +54,19 @@ def _print_summary(df: pd.DataFrame) -> None:
         print("\nNo results to display.")
         return
 
-    cols = ["method", "dataset", "recall", "fpr", "f1", "auc", "latency", "throughput"]
+    cols = ["method", "dataset", "recall", "edge_recall", "fpr", "f1", "auc", "latency", "throughput",
+            "rt_edges_in_graph", "rt_edges_detected", "anomalous_edges"]
     display_df = df[cols].copy()
-    for c in ["recall", "fpr", "f1", "auc"]:
+    for c in ["recall", "edge_recall", "fpr", "f1", "auc"]:
         display_df[c] = display_df[c].map(lambda v: f"{v:.4f}")
     display_df["latency"] = display_df["latency"].map(lambda v: f"{v:.2f}s")
     display_df["throughput"] = display_df["throughput"].map(lambda v: f"{v:.0f}/s")
 
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 120)
     print("EXPERIMENT RESULTS SUMMARY")
-    print("=" * 80)
+    print("=" * 120)
     print(display_df.to_string(index=False))
-    print("=" * 80 + "\n")
+    print("=" * 120 + "\n")
 
 
 def run(argv: list[str] | None = None) -> pd.DataFrame:
