@@ -280,20 +280,23 @@ def run_streaming_experiment(
         score_time = time.perf_counter() - t1
         logger.info(f"  Scoring completed in {score_time:.1f}s")
 
-        # Detection
-        threshold = float(np.percentile(edge_scores.values, 95)) if len(edge_scores) > 0 else 0.5
-        if len(edge_scores) > 0 and edge_scores.std() < 1e-10:
+        # Detection — edge-level (not path-based)
+        ef = all_feat["edge_features"]
+        mask_valid = (
+            (ef["is_self_loop"].values == 0.0)
+            & (ef["is_user_edge"].values == 0.0)
+        )
+        scoring_scores = edge_scores[mask_valid]
+        threshold = float(np.percentile(scoring_scores.values, 90)) if len(scoring_scores) > 0 else 0.5
+        if len(scoring_scores) > 0 and scoring_scores.std() < 1e-10:
             logger.warning("  All edge scores identical — no anomalies detectable")
-            threshold = float(edge_scores.max()) + 0.01
-        anomalous_paths = paths[paths["path_score"] > threshold] if len(paths) > 0 else pd.DataFrame()
+            threshold = float(scoring_scores.max()) + 0.01
 
-        # Extract all anomalous pairs from anomalous paths (pair-space)
+        # Edge-level anomalous pairs
+        anomalous_mask = mask_valid & (edge_scores > threshold)
         anomalous_pairs: set[tuple[str, str]] = set()
-        if len(anomalous_paths) > 0:
-            for _, row in anomalous_paths.iterrows():
-                nodes = row["path_nodes"]
-                for i in range(len(nodes) - 1):
-                    anomalous_pairs.add((nodes[i], nodes[i + 1]))
+        for idx in edge_scores.index[anomalous_mask]:
+            anomalous_pairs.add((g.vs[g.es[idx].source]["name"], g.vs[g.es[idx].target]["name"]))
 
         # Metrics in pair-space
         detected_pairs = anomalous_pairs & rt_in_graph
@@ -340,12 +343,10 @@ def run_streaming_experiment(
             paths_save.to_csv(method_dir / "paths.csv", index=False)
             logger.info(f"  Saved paths.csv ({len(paths_save):,} paths)")
 
-        if len(anomalous_paths) > 0:
-            ap_save = anomalous_paths.copy()
-            ap_save["path_nodes"] = ap_save["path_nodes"].apply(lambda x: " -> ".join(x) if isinstance(x, list) else str(x))
-            ap_save["path_edges"] = ap_save["path_edges"].apply(lambda x: ",".join(str(i) for i in x) if isinstance(x, list) else str(x))
-            ap_save.to_csv(method_dir / "anomalous_paths.csv", index=False)
-            logger.info(f"  Saved anomalous_paths.csv ({len(ap_save):,} paths)")
+        if len(anomalous_pairs) > 0:
+            ap_rows = [{"src": s, "dst": d} for s, d in anomalous_pairs]
+            pd.DataFrame(ap_rows).to_csv(method_dir / "anomalous_paths.csv", index=False)
+            logger.info(f"  Saved anomalous_paths.csv ({len(ap_rows):,} anomalous edges)")
 
         all_feat["node_features"].to_csv(method_dir / "node_features.csv")
         all_feat["edge_features"].to_csv(method_dir / "edge_features.csv")

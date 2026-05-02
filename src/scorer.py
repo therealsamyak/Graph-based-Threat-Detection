@@ -6,14 +6,10 @@ import logging
 import os
 from collections import deque
 from concurrent.futures import ProcessPoolExecutor
-from typing import TYPE_CHECKING
 
 import igraph as ig
 import numpy as np
 import pandas as pd
-
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +41,14 @@ def _enumerate_paths_for_nodes(
                 continue
 
             escores = [edge_scores_arr[eid] for eid in path_edges]
-            product = float(np.prod(escores)) if escores else 0.0
-            max_s = float(np.max(escores)) if escores else 0.0
-            mean_s = float(np.mean(escores)) if escores else 0.0
-            path_score = (product + max_s + mean_s) / 3.0
+            if escores:
+                log_scores = np.log(np.clip(escores, 1e-10, None))
+                geo_mean = float(np.exp(np.mean(log_scores)))
+                max_s = float(np.max(escores))
+                mean_s = float(np.mean(escores))
+            else:
+                geo_mean = max_s = mean_s = 0.0
+            path_score = (geo_mean + max_s + mean_s) / 3.0
 
             path_nodes = [node_names[src_idx]]
             for eid in path_edges:
@@ -71,116 +71,53 @@ def _enumerate_paths_for_nodes(
     return all_paths
 
 
-def _compute_edge_source_stats_chunk(edge_data: list[tuple[int, str, str, str]]) -> tuple[dict[int, int], dict[int, int], dict[int, set[str]], dict[int, int]]:
-    """Process a chunk of edges, return partial counts."""
-    src_auth_failures: dict[int, int] = {}
-    src_auth_total: dict[int, int] = {}
-    src_ports: dict[int, set[str]] = {}
-    src_flow_total: dict[int, int] = {}
-
-    for src, edge_type, success, dst_port in edge_data:
-        if edge_type == "auth":
-            src_auth_total[src] = src_auth_total.get(src, 0) + 1
-            if success != "1":
-                src_auth_failures[src] = src_auth_failures.get(src, 0) + 1
-        elif edge_type == "flow":
-            src_flow_total[src] = src_flow_total.get(src, 0) + 1
-            if src not in src_ports:
-                src_ports[src] = set()
-            src_ports[src].add(dst_port)
-
-    return src_auth_failures, src_auth_total, src_ports, src_flow_total
-
-
-def _compute_edge_source_stats(g: ig.Graph) -> tuple[list[float], list[float]]:
-    """Single-pass computation of auth_failure_rate and port_diversity per edge."""
-    n = g.ecount()
-
-    # Extract edge data to plain Python tuples (no igraph refs) for pickling
-    edge_data: list[tuple[int, str, str, str]] = []
-    for i in range(n):
-        attrs = g.es[i].attributes()
-        src = g.es[i].source
-        edge_data.append((src, attrs.get("type", ""), attrs.get("success", ""), str(attrs.get("dst_port", ""))))
-
-    sources = [ed[0] for ed in edge_data]
-
-    PARALLEL_THRESHOLD = 100_000
-
-    if n > PARALLEL_THRESHOLD and (os.cpu_count() or 1) > 1:
-        n_workers = min(os.cpu_count() or 1, 12)
-        chunk_size = (n + n_workers - 1) // n_workers
-        chunks = [edge_data[i * chunk_size : (i + 1) * chunk_size] for i in range(n_workers)]
-
-        src_auth_failures: dict[int, int] = {}
-        src_auth_total: dict[int, int] = {}
-        src_ports: dict[int, set[str]] = {}
-        src_flow_total: dict[int, int] = {}
-
-        with ProcessPoolExecutor(max_workers=n_workers) as pool:
-            results = pool.map(_compute_edge_source_stats_chunk, chunks)
-            for partial_af, partial_at, partial_p, partial_ft in results:
-                for k, v in partial_af.items():
-                    src_auth_failures[k] = src_auth_failures.get(k, 0) + v
-                for k, v in partial_at.items():
-                    src_auth_total[k] = src_auth_total.get(k, 0) + v
-                for k, v in partial_p.items():
-                    if k not in src_ports:
-                        src_ports[k] = set()
-                    src_ports[k].update(v)
-                for k, v in partial_ft.items():
-                    src_flow_total[k] = src_flow_total.get(k, 0) + v
-    else:
-        src_auth_failures, src_auth_total, src_ports, src_flow_total = _compute_edge_source_stats_chunk(edge_data)
-
-    src_failure_rate = {src: src_auth_failures.get(src, 0) / total for src, total in src_auth_total.items()}
-    src_diversity = {src: len(src_ports[src]) / total for src, total in src_flow_total.items() if total > 0}
-
-    auth_fail = [src_failure_rate.get(sources[i], 0.0) for i in range(n)]
-    port_div = [src_diversity.get(sources[i], 0.0) for i in range(n)]
-
-    return auth_fail, port_div
-
-
-def _minmax_scale(values: list[float]) -> list[float]:
-    """Min-max scale to [0,1]. Returns all 0s if all values identical."""
-    if not values:
-        return []
-    arr = np.array(values, dtype=float)
-    mn, mx = arr.min(), arr.max()
-    if mx - mn < 1e-12:
-        return [0.0] * len(values)
-    return ((arr - mn) / (mx - mn)).tolist()
-
-
 def score_edges(
     g: ig.Graph,
     edge_features: pd.DataFrame,
     weights: dict[str, float] | None = None,
 ) -> pd.Series:
-    """Score edges via weighted combo of rarity, auth failure, port diversity.
+    """Score edges via discriminative features: NTLM, network logon, edge rarity.
 
+    Edges where either endpoint contains "@" (user edges) or where src == dst
+    (self-loops) receive score 0.0 — these have zero red-team signal.
+    Auth edges use weighted combo of NTLM, network logon, and rarity rank;
+    flow edges use rarity rank only.
     Returns pd.Series indexed by edge index (int), values in [0,1].
     """
     if weights is None:
-        weights = {"edge_rarity": 1 / 3, "auth_failure_rate": 1 / 3, "port_diversity": 1 / 3}
+        weights = {"is_ntlm": 0.4, "is_network_logon": 0.3, "edge_rarity": 0.3}
 
     n = g.ecount()
-    edge_rarity = edge_features["edge_rarity"].tolist()
-    auth_fail, port_div = _compute_edge_source_stats(g)
+    if n == 0:
+        return pd.Series([], index=pd.Index([], name="edge_index"), dtype=float)
 
-    w_r = weights.get("edge_rarity", 1 / 3)
-    w_a = weights.get("auth_failure_rate", 1 / 3)
-    w_p = weights.get("port_diversity", 1 / 3)
-    w_total = w_r + w_a + w_p
+    rarity_rank = edge_features["edge_rarity"].rank(pct=True).values
 
-    raw = [
-        (w_r * edge_rarity[i] + w_a * auth_fail[i] + w_p * port_div[i]) / w_total
-        for i in range(n)
-    ]
+    mask_valid = (
+        (edge_features["is_self_loop"].values == 0.0)
+        & (edge_features["is_user_edge"].values == 0.0)
+    )
 
-    scaled = _minmax_scale(raw)
-    return pd.Series(scaled, index=pd.Index(range(n), name="edge_index"))
+    is_auth = np.array([
+        g.es[i].attributes().get("type", "flow") == "auth" for i in range(n)
+    ])
+
+    w_ntlm = weights.get("is_ntlm", 0.4)
+    w_net = weights.get("is_network_logon", 0.3)
+    w_rar = weights.get("edge_rarity", 0.3)
+
+    is_ntlm = edge_features["is_ntlm"].values
+    is_network = edge_features["is_network_logon"].values
+
+    raw = np.where(
+        is_auth,
+        w_ntlm * is_ntlm + w_net * is_network + w_rar * rarity_rank,
+        rarity_rank,
+    )
+
+    raw = np.where(mask_valid, raw, 0.0)
+
+    return pd.Series(raw, index=pd.Index(range(n), name="edge_index"))
 
 
 def score_paths(

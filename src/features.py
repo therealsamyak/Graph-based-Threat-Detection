@@ -129,21 +129,54 @@ def extract_edge_features(g: ig.Graph) -> pd.DataFrame:
     edge_rarity = [0.0] * n
     src_out_deg = [0] * n
     dst_in_deg = [0] * n
+    is_ntlm = [0.0] * n
+    is_network_logon = [0.0] * n
+    is_success_auth = [0.0] * n
+    source_fan_out = [0] * n
+    weight_norm = [0.0] * n
+    is_self_loop = [0.0] * n
+    is_user_edge = [0.0] * n
 
     out_deg_arr = g.outdegree()
     in_deg_arr = g.indegree()
 
     for i in range(n):
-        weight = g.es[i].attributes().get("weight", 1)
+        attrs = g.es[i].attributes()
+        src_name = g.vs[g.es[i].source]["name"]
+        dst_name = g.vs[g.es[i].target]["name"]
+
+        weight = attrs.get("weight", 1)
         edge_rarity[i] = 1.0 / weight
+        weight_norm[i] = 1.0 / weight
         src_out_deg[i] = out_deg_arr[g.es[i].source]
         dst_in_deg[i] = in_deg_arr[g.es[i].target]
+        source_fan_out[i] = out_deg_arr[g.es[i].source]
+
+        auth_type = attrs.get("auth_type", "")
+        is_ntlm[i] = 1.0 if auth_type == "NTLM" else 0.0
+
+        logon_type = attrs.get("logon_type", "")
+        is_network_logon[i] = 1.0 if logon_type == "Network" else 0.0
+
+        success = attrs.get("success", "")
+        is_success_auth[i] = 1.0 if success == "Success" else 0.0
+
+        is_self_loop[i] = 1.0 if g.es[i].source == g.es[i].target else 0.0
+
+        is_user_edge[i] = 1.0 if ("@" in src_name or "@" in dst_name) else 0.0
 
     df = pd.DataFrame(
         {
             "edge_rarity": edge_rarity,
             "src_out_degree": src_out_deg,
             "dst_in_degree": dst_in_deg,
+            "is_ntlm": is_ntlm,
+            "is_network_logon": is_network_logon,
+            "is_success_auth": is_success_auth,
+            "source_fan_out": source_fan_out,
+            "weight_norm": weight_norm,
+            "is_self_loop": is_self_loop,
+            "is_user_edge": is_user_edge,
         },
         index=pd.Index(range(n), name="edge_index"),
     )
