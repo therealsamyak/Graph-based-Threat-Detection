@@ -252,7 +252,7 @@ def run_streaming_experiment(
         logger.info(f"  Edge scores computed, enumerating paths (this may take a while)...")
         paths = score_paths(g, edge_scores)
         logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
-        graph_result = score_graph(g, all_feat, edge_scores)
+        graph_result = score_graph(g, all_feat, edge_scores, paths=paths)
         score_time = time.perf_counter() - t1
         logger.info(f"  Scoring completed in {score_time:.1f}s")
 

@@ -178,6 +178,7 @@ def score_graph(
     g: ig.Graph,
     all_features: dict,
     edge_scores: pd.Series | None = None,
+    paths: pd.DataFrame | None = None,
     threshold: float = 0.5,
 ) -> dict:
     """Aggregate graph-level anomaly scores."""
@@ -186,7 +187,8 @@ def score_graph(
     if edge_scores is None:
         edge_scores = score_edges(g, edge_features)
 
-    paths = score_paths(g, edge_scores)
+    if paths is None:
+        paths = score_paths(g, edge_scores)
 
     return {
         "max_path_score": float(paths["path_score"].max()) if len(paths) > 0 else 0.0,
