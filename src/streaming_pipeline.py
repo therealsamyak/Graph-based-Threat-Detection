@@ -255,7 +255,7 @@ def run_streaming_experiment(
         all_feat = extract_all_features(g)
         logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
         edge_scores = score_edges(g, all_feat["edge_features"])
-        logger.info(f"  Edge scores computed, enumerating paths (this may take a while)...")
+        logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
         paths = score_paths(g, edge_scores)
         logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
         graph_result = score_graph(g, all_feat, edge_scores, paths=paths)
@@ -330,7 +330,7 @@ def run_streaming_experiment(
         all_feat["edge_features"].to_csv(method_dir / "edge_features.csv")
         with open(method_dir / "graph_features.json", "w") as f:
             json.dump(all_feat["graph_features"], f, indent=2)
-        logger.info(f"  Saved node_features.csv, edge_features.csv, graph_features.json")
+        logger.info("  Saved node_features.csv, edge_features.csv, graph_features.json")
 
         edge_rows = []
         for e in g.es:
