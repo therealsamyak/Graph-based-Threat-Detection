@@ -23,15 +23,9 @@ University of California, Los Angeles
 
 \thispagestyle{empty}
 
-
 \subsection*{Abstract}
-\begin{itemize}
-\item Problem: lateral movement in cloud VPCs is hard to detect because internal traffic is trusted by default and individual log sources provide incomplete visibility.
-\item Approach: build a streaming graph from combined network flow logs and authentication logs, extract structural, temporal, and statistical features, and score nodes/edges for lateral movement likelihood.
-\item Key question: does combining both log sources via graph analysis improve detection accuracy and latency compared to single-source baselines?
-\item Setup: analysis of two public datasets: LANL-Dataset-2015 (58 days of cloud VPC network events from Los Alamos National Laboratory with red-team ground truth) and DAPT2020 (simulated APT attack scenarios with labeled attack stages).
-\item Expected contributions: graph construction pipeline from multi-source logs, combined detection method outperforming single-source baselines, analysis of which graph features best separate attack traffic from normal operations.
-\end{itemize}
+
+Lateral movement in cloud VPC networks is notoriously difficult to detect because internal traffic is trusted by default and no single log source provides complete visibility into attacker behavior. We present a graph-based detection system that combines network flow logs and authentication logs into a unified streaming graph, extracts structural, temporal, and statistical features, and scores nodes and edges for lateral movement likelihood. Our evaluation on the LANL-Dataset-2015 (58 days, 1.6B+ events, 749 labeled red-team attacks) and DAPT2020 (simulated APT with labeled kill-chain stages) demonstrates that the combined method achieves the highest AUC (0.9456) and lowest false positive rate (0.0005) compared to single-source baselines. We identify three key detection signals: attack traffic is overwhelmingly TCP (99.82\% vs. 50\% benign), the fan-out ratio follows a predictable arc across the kill chain (2.5 $\rightarrow$ 6.0 $\rightarrow$ 1.0), and attackers exhibit 35.7$\times$ longer inter-arrival times than normal users. Feature importance analysis reveals that active duration (5.5$\times$ higher for attackers), inter-arrival variance (4.5$\times$), and in-degree (3.3$\times$) are the strongest discriminators. These findings confirm that multi-log graph analysis provides richer detection signal than single-source methods, though low pair-space recall highlights the challenge of isolating rare attack edges in massive enterprise graphs.
 
 \section{Introduction}
 
@@ -97,7 +91,7 @@ Before presenting detection results, we report three key findings from our analy
 
 \textbf{Finding 1: Attack traffic is overwhelmingly TCP.} Figure~\ref{fig:protocol} shows the protocol distribution for red-team versus benign traffic. In the LANL dataset, 99.82\% of red-team flows use TCP, compared to approximately 50\% for benign traffic. In DAPT2020, attack traffic is 100\% TCP. This pattern exists because the primary lateral movement services --- SMB (port 445), SSH (port 22), and RDP (port 3389) --- are all TCP-only protocols. Attackers require reliable, in-order delivery for command execution and file transfers, making TCP dominance a strong structural detection signal.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{protocol_distribution.png}
 \caption{Protocol distribution: red-team flows are 99.82\% TCP (LANL) and 100\% TCP (DAPT2020), while benign traffic is roughly 50\% TCP. This structural difference provides a strong detection signal. \textit{(Figure by: Ibrahim Pehlivan)}}
@@ -106,7 +100,7 @@ Before presenting detection results, we report three key findings from our analy
 
 \textbf{Finding 2: Kill-chain progression has predictable fan-out patterns.} The fan-out ratio --- unique destination ports per source computer --- follows a characteristic arc across the attack lifecycle (Figure~\ref{fig:fanout}). During reconnaissance, the mean fan-out is 2.50 as attackers scan broadly. It remains at 2.70 during foothold establishment. During lateral movement, it jumps to 6.00 as attackers spread from compromised hosts. Finally, it drops to 1.00 during exfiltration as traffic concentrates on a single target. This 2.5-to-6.0 transition maps directly to the shift from scanning to spreading and provides a reliable indicator of lateral movement onset.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{fan_out_ratio.png}
 \caption{Fan-out ratio across kill-chain stages: reconnaissance (2.50), foothold (2.70), lateral movement (6.00), exfiltration (1.00). The jump from 2.5 to 6.0 signals the transition to lateral movement. \textit{(Figure by: Ibrahim Pehlivan)}}
@@ -141,7 +135,7 @@ The AUC values reveal the underlying discriminative power of each method even wh
 
 Figure~\ref{fig:roc} visualizes the ROC curves for the three LANL methods. The combined method's curve dominates the auth-only curve across most of the false positive range, confirming that adding flow edges to the authentication graph improves detection at every operating point. The flow-only curve hugs the diagonal, consistent with its near-zero AUC.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{roc_curves.png}
 \caption{ROC curves comparing detection performance of flow-only, auth-only, and combined methods on LANL-2015. The combined method (AUC = 0.9456) dominates both single-source baselines, demonstrating that multi-log integration improves the trade-off between true positive rate and false positive rate. \textit{(Figure by: Wesley Gunawan)}}
@@ -175,7 +169,7 @@ Fan-Out Ratio & 0.541 & 0.540 & 1.00 \\
 
 Figure~\ref{fig:featimp} further illustrates the relative importance of each feature. The edge rarity feature shows the strongest correlation with anomaly scores (0.63), confirming that uncommon connections are the primary driver of detection. Source out-degree and destination in-degree also correlate positively with scores (0.29 and 0.32, respectively), indicating that the scoring algorithm correctly identifies connections from high-degree sources to high-degree destinations as more suspicious.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{feature_importance.png}
 \caption{Feature importance visualization showing the relative contribution of each graph feature to detection. Edge rarity dominates the scoring function, followed by degree-based features. \textit{(Figure by: Samyak Kakatur)}}
@@ -186,7 +180,7 @@ Figure~\ref{fig:featimp} further illustrates the relative importance of each fea
 
 Our composite edge scoring function combines four signals: (1) \textbf{source node suspiciousness} (50\% weight) --- combining fan-out ratio, inter-arrival timing, betweenness centrality, and degree; (2) \textbf{edge rarity} (20\%) --- how uncommon the source-destination pair is; (3) \textbf{TCP protocol signal} (15\%) --- leveraging Finding 1 that attack traffic is overwhelmingly TCP; and (4) \textbf{lateral movement port detection} (15\%) --- flagging connections to known lateral movement ports (445, 22, 3389). Figure~\ref{fig:scoring} shows the resulting score distribution: red-team edges score 1.59$\times$ higher than baseline edges on average (0.85 vs. 0.53), confirming that the composite scoring separates attack traffic from normal operations.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{score_comparison.png}
 \caption{Composite anomaly scores: red-team edges score 1.59$\times$ higher than baseline (mean 0.85 vs. 0.53). The four-component scoring function (source suspiciousness, edge rarity, TCP signal, lateral movement ports) successfully differentiates attack traffic. \textit{(Figure by: Samyak Kakatur)}}
@@ -197,7 +191,7 @@ Our composite edge scoring function combines four signals: (1) \textbf{source no
 
 Figure~\ref{fig:scores} shows the distribution of anomaly scores for red-team edges versus baseline edges. Red-team edges receive systematically higher scores (mean = 0.85) compared to baseline edges (mean = 0.53), confirming that the scoring function successfully differentiates attack traffic. However, the overlap between the two distributions explains the low recall at the 95th percentile threshold: some red-team edges receive scores below the threshold, particularly those that resemble normal traffic patterns.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{score_distribution.png}
 \caption{Anomaly score distribution for red-team edges (orange) versus baseline edges (blue). Red-team edges cluster at higher scores (mean = 0.85 vs. 0.53), but distribution overlap limits threshold-based recall. \textit{(Figure by: Wesley Gunawan)}}
@@ -208,17 +202,18 @@ Figure~\ref{fig:scores} shows the distribution of anomaly scores for red-team ed
 
 Figure~\ref{fig:timeline} plots the detection events over time relative to red-team activity windows. The timeline reveals that detections cluster around periods of intense red-team activity, with gaps during quieter periods. This temporal alignment confirms that the graph-based method is responsive to the dynamic nature of lateral movement, detecting attacks when they are actively occurring rather than flagging historical connections.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{detection_timeline.png}
 \caption{Detection timeline showing anomalous edges (blue) overlaid with red-team activity windows (orange). Detections cluster around active attack periods, confirming temporal responsiveness of the graph-based method. \textit{(Figure by: Ibrahim Pehlivan)}}
+\label{fig:timeline}
 \end{figure}
 
 \subsection{Graph Structure Visualization}
 
 Figure~\ref{fig:graph} provides a visual snapshot of the combined graph, with nodes representing computers and edges representing both flow and authentication connections. The graph reveals the hub-and-spoke structure typical of enterprise networks, with a small number of high-degree nodes (domain controllers, file servers) connected to many low-degree endpoints. Red-team edges, when present, tend to connect high-degree jump boxes to previously unconnected destinations, creating structural anomalies that the scoring function can identify.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{graph_snapshot.png}
 \caption{Graph snapshot of the combined flow + authentication network. High-degree hub nodes (domain controllers, file servers) are visible as central clusters. Red-team edges create structural anomalies by connecting hubs to previously unseen destinations. \textit{(Figure by: Wesley Gunawan)}}
@@ -231,7 +226,7 @@ The results demonstrate that combining network flow logs and authentication logs
 
 However, the low pair-space recall across all methods highlights a significant challenge: the red-team edges represent a tiny fraction of total graph edges (4 out of 110,154), making them difficult to isolate with a fixed threshold. Figure~\ref{fig:scatter} illustrates this: while red-team edges cluster at higher scores, the overlap with the dense baseline cloud means a fixed percentile threshold misses many attack edges. The edge-level recall is higher, suggesting that the scoring function does identify some red-team edges, but the path-based aggregation dilutes the signal. Future work should explore adaptive thresholding, per-node baselines, and machine learning classifiers trained on the extracted features to improve recall without sacrificing the low false positive rate.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{detection_scatter.png}
 \caption{Detection scatter plot: each point is an edge scored by the combined method. Red-team edges (orange) cluster at higher scores but overlap with the dense baseline cloud (blue), explaining the low recall at fixed thresholds. \textit{(Figure by: Samyak Kakatur)}}
