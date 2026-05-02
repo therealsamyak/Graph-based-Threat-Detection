@@ -1,0 +1,70 @@
+{
+  "node_feature_importance": {
+    "in_degree": {
+      "redteam_mean": 12.6,
+      "baseline_mean": 3.8476,
+      "ratio": 3.2748
+    },
+    "out_degree": {
+      "redteam_mean": 9.0,
+      "baseline_mean": 3.8482,
+      "ratio": 2.3387
+    },
+    "total_degree": {
+      "redteam_mean": 21.6,
+      "baseline_mean": 7.6958,
+      "ratio": 2.8067
+    },
+    "fan_out_ratio": {
+      "redteam_mean": 0.5407,
+      "baseline_mean": 0.5395,
+      "ratio": 1.0022
+    },
+    "betweenness_centrality": {
+      "redteam_mean": 0.0,
+      "baseline_mean": 0.0,
+      "ratio": "inf"
+    },
+    "inter_arrival_mean": {
+      "redteam_mean": 730.68,
+      "baseline_mean": 233.6797,
+      "ratio": 3.1268
+    },
+    "inter_arrival_std": {
+      "redteam_mean": 924.7451,
+      "baseline_mean": 206.1324,
+      "ratio": 4.4862
+    },
+    "burst_score": {
+      "redteam_mean": 0.4528,
+      "baseline_mean": 0.1959,
+      "ratio": 2.3111
+    },
+    "active_duration": {
+      "redteam_mean": 5423.2,
+      "baseline_mean": 993.5992,
+      "ratio": 5.4581
+    }
+  },
+  "edge_feature_importance": {
+    "edge_rarity": {
+      "score_correlation": 0.6326
+    },
+    "src_out_degree": {
+      "score_correlation": 0.2908
+    },
+    "dst_in_degree": {
+      "score_correlation": 0.3199
+    }
+  },
+  "redteam_vs_baseline_stats": {
+    "redteam_mean_score": 0.8506,
+    "baseline_mean_score": 0.5343,
+    "redteam_std_score": 0.0,
+    "baseline_std_score": 0.1928,
+    "redteam_max_score": 0.8506,
+    "baseline_max_score": 1.0,
+    "redteam_count": 4,
+    "baseline_count": 110150
+  }
+}

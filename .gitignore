@@ -1,10 +1,17 @@
-data/
+# Virtual environment
 .venv/
+
+# Python caches
 __pycache__/
-.ruff_cache/
-.DS_Store
 *.pyc
-results/*.csv
-results/*.parquet
-results/figures/*.png
+.ruff_cache/
+
+# OS files
+.DS_Store
+
+# Heavy data (not tracked in git)
+data/
+datasets/
+
+# Cache directory (parquet intermediates)
 results/cache/

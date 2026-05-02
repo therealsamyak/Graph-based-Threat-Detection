@@ -1,6 +1,0 @@
-method,dataset,recall,fpr,f1,auc,latency,throughput,graph_nodes,graph_edges,rt_pairs_in_graph,anomalous_pairs,threshold,max_path_score,mean_edge_score
-flow_only,LANL-2015,0.0,0.0,0.0,0.0,10.53,4.7,41.0,48.0,0.0,0.0,1.0,1.0,0.5507
-auth_only,LANL-2015,0.0,0.0,0.0,0.0,21.16,2.4,70.0,69.0,0.0,0.0,1.0,1.0,0.7977
-combined,LANL-2015,0.0,0.0,0.0,0.0,32.07,3.1,110.0,117.0,0.0,0.0,1.0,1.0,0.7465
-oneclass_svm,DAPT2020,0.0,0.14,0.0,,0.0,0.0,,,,,,,
-isolation_forest,DAPT2020,0.0,0.22,0.0,,0.0,0.0,,,,,,,

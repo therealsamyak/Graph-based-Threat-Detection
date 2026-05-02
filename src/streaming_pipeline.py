@@ -1,6 +1,6 @@
-"""Streaming pipeline: build graph directly from gz stream, never materialize full DataFrames.
+"""Streaming pipeline: build graph directly from data files, never materialize full DataFrames.
 
-Streams auth.txt.gz and flows.txt.gz line-by-line through the time windows,
+Streams auth.txt and flows.txt line-by-line through the time windows,
 adds edges to an igraph incrementally, and discards raw rows immediately.
 """
 
@@ -112,6 +112,13 @@ class StreamingGraphBuilder:
         return self._g
 
 
+def _open_file(filepath: str):
+    """Open file transparently: handle both .gz and plain .txt."""
+    if filepath.endswith(".gz"):
+        return gzip.open(filepath, "rt", encoding="utf-8")
+    return open(filepath, "r", encoding="utf-8")
+
+
 def _stream_gz_to_graph(
     gz_path: str,
     columns: list[str],
@@ -122,9 +129,13 @@ def _stream_gz_to_graph(
     progress_every: int = 500000,
     max_events: int | None = None,
 ) -> int:
-    """Stream gz file through windows, feed events to graph, return row count."""
+    """Stream file through windows, feed events to graph, return row count."""
     if not windows:
         return 0
+
+    # Try .txt first, fall back to .gz
+    txt_path = gz_path.replace(".gz", "") if gz_path.endswith(".gz") else gz_path
+    actual_path = txt_path if Path(txt_path).exists() else gz_path
 
     first_start = windows[0][0]
     last_end = windows[-1][1]
@@ -133,7 +144,7 @@ def _stream_gz_to_graph(
     past_start = False
     _starts = [w[0] for w in windows]
 
-    with gzip.open(gz_path, "rt", encoding="utf-8") as f:
+    with _open_file(actual_path) as f:
         for raw_line in f:
             parts = raw_line.strip().split(",")
             if len(parts) != len(columns):
@@ -165,15 +176,15 @@ def _stream_gz_to_graph(
             if max_events is not None and count >= max_events:
                 break
             if count % progress_every == 0:
-                logger.info(f"  {gz_path}: {count:,} events processed...")
+                logger.info(f"  {actual_path}: {count:,} events processed...")
 
     return count
 
 
 def run_streaming_experiment(
-    data_dir: str = "data/LANL-Dataset-2015",
+    data_dir: str = "datasets/LANL-Dataset-2015",
     window_seconds: int = 3600,
-    dapt_dir: str = "data/DAPT2020",
+    dapt_dir: str = "datasets/dapt2020",
     max_events: int | None = None,
 ) -> tuple[list[dict], dict, str]:
     """Run full experiment using streaming graph construction.
@@ -199,7 +210,10 @@ def run_streaming_experiment(
     results_base.mkdir(parents=True, exist_ok=True)
     logger.info(f"Run ID: {run_id}, output dir: {results_base}")
 
-    rt = load_redteam(str(data_path / "redteam.txt.gz"))
+    # Try .txt first, fall back to .gz for redteam
+    rt_path = str(data_path / "redteam.txt.gz")
+    rt_path_actual = rt_path.replace(".gz", "") if Path(rt_path.replace(".gz", "")).exists() else rt_path
+    rt = load_redteam(rt_path_actual)
     red_pairs = set(zip(rt["src_comp"].astype(str), rt["dst_comp"].astype(str)))
     windows = _build_window_intervals(rt, window_seconds)
     logger.info(f"Red team: {len(rt)} events, {len(windows)} merged windows")
@@ -227,9 +241,15 @@ def run_streaming_experiment(
 
         graph = StreamingGraphBuilder()
 
+        # Try .txt first, fall back to .gz
+        auth_path = str(data_path / "auth.txt.gz")
+        auth_actual = auth_path.replace(".gz", "") if Path(auth_path.replace(".gz", "")).exists() else auth_path
+        flow_path = str(data_path / "flows.txt.gz")
+        flow_actual = flow_path.replace(".gz", "") if Path(flow_path.replace(".gz", "")).exists() else flow_path
+
         if feed_auth:
             n_auth = _stream_gz_to_graph(
-                str(data_path / "auth.txt.gz"),
+                auth_actual,
                 AUTH_COLUMNS, windows, AUTH_NUMERIC,
                 graph, graph.feed_auth_event,
                 max_events=max_events,
@@ -239,7 +259,7 @@ def run_streaming_experiment(
 
         if feed_flow:
             n_flow = _stream_gz_to_graph(
-                str(data_path / "flows.txt.gz"),
+                flow_actual,
                 FLOW_COLUMNS, windows, FLOW_NUMERIC,
                 graph, graph.feed_flow_event,
                 max_events=max_events,
@@ -266,13 +286,19 @@ def run_streaming_experiment(
 
         # Score
         from src.features import extract_all_features
-        from src.scorer import score_edges, score_paths, score_graph
+        from src.scorer import (
+            compute_auc,
+            compute_feature_importance,
+            score_edges,
+            score_graph,
+            score_paths,
+        )
 
         t1 = time.perf_counter()
         logger.info(f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)...")
         all_feat = extract_all_features(g)
         logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
-        edge_scores = score_edges(g, all_feat["edge_features"])
+        edge_scores = score_edges(g, all_feat["edge_features"], node_features=all_feat["node_features"])
         logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
         paths = score_paths(g, edge_scores)
         logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
@@ -280,17 +306,17 @@ def run_streaming_experiment(
         score_time = time.perf_counter() - t1
         logger.info(f"  Scoring completed in {score_time:.1f}s")
 
-        # Detection
+        # Detection threshold
         threshold = float(np.percentile(edge_scores.values, 95)) if len(edge_scores) > 0 else 0.5
         if len(edge_scores) > 0 and edge_scores.std() < 1e-10:
-            logger.warning("  All edge scores identical — no anomalies detectable")
-            threshold = float(edge_scores.max()) + 0.01
-        anomalous_paths = paths[paths["path_score"] > threshold] if len(paths) > 0 else pd.DataFrame()
+            logger.warning("  Edge scores have very low variance — detection may be limited")
+            threshold = float(edge_scores.mean()) + 0.1 * max(float(edge_scores.std()), 0.01)
+        anomalous_paths_df = paths[paths["path_score"] > threshold] if len(paths) > 0 else pd.DataFrame()
 
         # Extract all anomalous pairs from anomalous paths (pair-space)
         anomalous_pairs: set[tuple[str, str]] = set()
-        if len(anomalous_paths) > 0:
-            for _, row in anomalous_paths.iterrows():
+        if len(anomalous_paths_df) > 0:
+            for _, row in anomalous_paths_df.iterrows():
                 nodes = row["path_nodes"]
                 for i in range(len(nodes) - 1):
                     anomalous_pairs.add((nodes[i], nodes[i + 1]))
@@ -304,6 +330,53 @@ def run_streaming_experiment(
         precision = len(detected_pairs) / max(len(anomalous_pairs), 1)
         f1 = 2 * recall * precision / (recall + precision) if (recall + precision) > 0 else 0.0
 
+        # AUC: use edge scores vs redteam pair labels
+        auc = compute_auc(g, edge_scores, rt_in_graph)
+
+        # Edge-level detection: flag individual edges above threshold
+        anomalous_edge_indices = set()
+        for i in range(g.ecount()):
+            if i in edge_scores.index and edge_scores.loc[i] > threshold:
+                anomalous_edge_indices.add(i)
+
+        # Edge-level recall: how many redteam edges are above threshold?
+        rt_edge_indices = set()
+        rt_edge_scores = []
+        baseline_edge_scores = []
+        for i in range(g.ecount()):
+            e = g.es[i]
+            pair = (g.vs[e.source]["name"], g.vs[e.target]["name"])
+            score = float(edge_scores.loc[i]) if i in edge_scores.index else 0.0
+            if pair in rt_in_graph:
+                rt_edge_indices.add(i)
+                rt_edge_scores.append(score)
+            else:
+                baseline_edge_scores.append(score)
+
+        rt_detected = rt_edge_indices & anomalous_edge_indices
+        edge_recall = len(rt_detected) / len(rt_edge_indices) if rt_edge_indices else 0.0
+        edge_precision = len(rt_detected) / len(anomalous_edge_indices) if anomalous_edge_indices else 0.0
+        edge_f1 = 2 * edge_recall * edge_precision / (edge_recall + edge_precision) if (edge_recall + edge_precision) > 0 else 0.0
+
+        # Detection latency: time from earliest redteam event to detection
+        # Measured as the time difference between first anomalous edge and first redteam event
+        detection_latency = 0.0
+        if rt_edge_indices and anomalous_edge_indices:
+            rt_times_list = []
+            for i in rt_edge_indices:
+                t_val = g.es[i].attributes().get("first_time", g.es[i].attributes().get("time", 0))
+                rt_times_list.append(float(t_val))
+            
+            alert_times_list = []
+            for i in anomalous_edge_indices:
+                t_val = g.es[i].attributes().get("first_time", g.es[i].attributes().get("time", 0))
+                alert_times_list.append(float(t_val))
+            
+            if rt_times_list and alert_times_list:
+                earliest_rt = min(rt_times_list)
+                earliest_alert = min(alert_times_list)
+                detection_latency = max(0, earliest_alert - earliest_rt)
+
         total_events = n_auth + n_flow
         result = {
             "method": method_name,
@@ -311,20 +384,28 @@ def run_streaming_experiment(
             "recall": round(recall, 4),
             "fpr": round(fpr, 4),
             "f1": round(f1, 4),
-            "auc": 0.0,
+            "edge_recall": round(edge_recall, 4),
+            "edge_f1": round(edge_f1, 4),
+            "auc": round(auc, 4),
             "latency": round(build_time + score_time, 2),
-            "throughput": round(total_events / (build_time + score_time), 1),
+            "detection_latency_sec": round(detection_latency, 2),
+            "throughput": round(total_events / max(build_time + score_time, 0.01), 1),
             "graph_nodes": g.vcount(),
             "graph_edges": g.ecount(),
             "rt_pairs_in_graph": len(rt_in_graph),
+            "rt_edges_in_graph": len(rt_edge_indices),
+            "rt_edges_detected": len(rt_detected),
+            "anomalous_edges": len(anomalous_edge_indices),
             "anomalous_pairs": len(anomalous_pairs),
             "threshold": round(threshold, 4),
             "max_path_score": round(graph_result["max_path_score"], 4),
             "mean_edge_score": round(graph_result["mean_edge_score"], 4),
+            "redteam_mean_score": round(float(np.mean(rt_edge_scores)), 4) if rt_edge_scores else 0.0,
+            "baseline_mean_score": round(float(np.mean(baseline_edge_scores)), 4) if baseline_edge_scores else 0.0,
         }
         all_results.append(result)
         logger.info(
-            f"  {method_name}: recall={recall:.4f}, fpr={fpr:.4f}, f1={f1:.4f}"
+            f"  {method_name}: recall={recall:.4f}, edge_recall={edge_recall:.4f}, fpr={fpr:.4f}, auc={auc:.4f}"
         )
 
         method_dir = results_base / method_name
@@ -340,8 +421,8 @@ def run_streaming_experiment(
             paths_save.to_csv(method_dir / "paths.csv", index=False)
             logger.info(f"  Saved paths.csv ({len(paths_save):,} paths)")
 
-        if len(anomalous_paths) > 0:
-            ap_save = anomalous_paths.copy()
+        if len(anomalous_paths_df) > 0:
+            ap_save = anomalous_paths_df.copy()
             ap_save["path_nodes"] = ap_save["path_nodes"].apply(lambda x: " -> ".join(x) if isinstance(x, list) else str(x))
             ap_save["path_edges"] = ap_save["path_edges"].apply(lambda x: ",".join(str(i) for i in x) if isinstance(x, list) else str(x))
             ap_save.to_csv(method_dir / "anomalous_paths.csv", index=False)
@@ -352,6 +433,12 @@ def run_streaming_experiment(
         with open(method_dir / "graph_features.json", "w") as f:
             json.dump(all_feat["graph_features"], f, indent=2)
         logger.info("  Saved node_features.csv, edge_features.csv, graph_features.json")
+
+        # Feature importance analysis
+        feat_imp = compute_feature_importance(g, all_feat["node_features"], all_feat["edge_features"], edge_scores, rt_in_graph)
+        with open(method_dir / "feature_importance.json", "w") as f:
+            json.dump(feat_imp, f, indent=2, default=str)
+        logger.info("  Saved feature_importance.json")
 
         edge_rows = []
         for e in g.es:

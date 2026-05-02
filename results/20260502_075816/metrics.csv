@@ -1,0 +1,6 @@
+method,dataset,recall,fpr,f1,edge_recall,edge_f1,auc,latency,detection_latency_sec,throughput,graph_nodes,graph_edges,rt_pairs_in_graph,rt_edges_in_graph,rt_edges_detected,anomalous_edges,anomalous_pairs,threshold,max_path_score,mean_edge_score,redteam_mean_score,baseline_mean_score
+flow_only,LANL-2015,0.0,0.0014,0.0,0.0,0.0,0.0,50.64,0.0,19748.8,6337.0,36809.0,0.0,0.0,0.0,1831.0,50.0,0.7426,1.0,0.5246,0.0,0.5246
+auth_only,LANL-2015,0.0,0.0006,0.0,0.0,0.0,0.9094,110.05,0.0,9086.9,27125.0,78041.0,4.0,4.0,0.0,2014.0,50.0,0.8741,1.0,0.5617,0.8409,0.5617
+combined,LANL-2015,0.0,0.0005,0.0,0.0,0.0,0.9456,294.93,0.0,6781.2,28618.0,110154.0,4.0,4.0,0.0,5508.0,50.0,0.8641,1.0,0.5343,0.8506,0.5343
+oneclass_svm,DAPT2020,0.1612,0.0543,0.1065,,,0.6353,0.0,,0.0,,,,,,,,,,,,
+isolation_forest,DAPT2020,1.0,1.0,0.055,,,0.4487,0.0,,0.0,,,,,,,,,,,,
