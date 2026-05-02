@@ -1,0 +1,56 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{hopper2021}
+\citation{euler2023}
+\citation{poirot2019}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{1}{section.2}\protected@file@percent }
+\citation{holmes2019}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Methods and Approach}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Streaming Graph Construction}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Feature Extraction}{2}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Detection Scoring}{2}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Data and Experimental Setup}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}LANL-Dataset-2015}{3}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}DAPT2020}{3}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Experimental Configuration}{3}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{3}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Protocol and Temporal Analysis}{3}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Protocol distribution: red-team flows are 99.82\% TCP (LANL) and 100\% TCP (DAPT2020), while benign traffic is roughly 50\% TCP. This structural difference provides a strong detection signal. \textit  {(Figure by: Ibrahim Pehlivan)}}}{3}{figure.1}\protected@file@percent }
+\newlabel{fig:protocol}{{1}{3}{Protocol distribution: red-team flows are 99.82\% TCP (LANL) and 100\% TCP (DAPT2020), while benign traffic is roughly 50\% TCP. This structural difference provides a strong detection signal. \textit {(Figure by: Ibrahim Pehlivan)}}{figure.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Fan-out ratio across kill-chain stages: reconnaissance (2.50), foothold (2.70), lateral movement (6.00), exfiltration (1.00). The jump from 2.5 to 6.0 signals the transition to lateral movement. \textit  {(Figure by: Ibrahim Pehlivan)}}}{4}{figure.2}\protected@file@percent }
+\newlabel{fig:fanout}{{2}{4}{Fan-out ratio across kill-chain stages: reconnaissance (2.50), foothold (2.70), lateral movement (6.00), exfiltration (1.00). The jump from 2.5 to 6.0 signals the transition to lateral movement. \textit {(Figure by: Ibrahim Pehlivan)}}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Method Comparison}{4}{subsection.5.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces ROC curves comparing detection performance of flow-only, auth-only, and combined methods on LANL-2015. The combined method (AUC = 0.9456) dominates both single-source baselines, demonstrating that multi-log integration improves the trade-off between true positive rate and false positive rate. \textit  {(Figure by: Wesley Gunawan)}}}{4}{figure.3}\protected@file@percent }
+\newlabel{fig:roc}{{3}{4}{ROC curves comparing detection performance of flow-only, auth-only, and combined methods on LANL-2015. The combined method (AUC = 0.9456) dominates both single-source baselines, demonstrating that multi-log integration improves the trade-off between true positive rate and false positive rate. \textit {(Figure by: Wesley Gunawan)}}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Feature Importance Analysis}{4}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Scoring Methodology Details}{4}{subsection.5.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Detection performance comparison across all methods. The combined method achieves the lowest FPR and highest AUC on LANL-2015. On DAPT2020, the Isolation Forest achieves perfect recall but at the cost of a 100\% false positive rate. \textit  {(Table by: Samyak Kakatur)}}}{5}{table.1}\protected@file@percent }
+\newlabel{tab:comparison}{{1}{5}{Detection performance comparison across all methods. The combined method achieves the lowest FPR and highest AUC on LANL-2015. On DAPT2020, the Isolation Forest achieves perfect recall but at the cost of a 100\% false positive rate. \textit {(Table by: Samyak Kakatur)}}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Feature importance: red-team vs. baseline node feature means. Active duration and inter-arrival variability are the strongest discriminators. \textit  {(Table by: Ibrahim Pehlivan)}}}{5}{table.2}\protected@file@percent }
+\newlabel{tab:features}{{2}{5}{Feature importance: red-team vs. baseline node feature means. Active duration and inter-arrival variability are the strongest discriminators. \textit {(Table by: Ibrahim Pehlivan)}}{table.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Feature importance visualization showing the relative contribution of each graph feature to detection. Edge rarity dominates the scoring function, followed by degree-based features. \textit  {(Figure by: Samyak Kakatur)}}}{5}{figure.4}\protected@file@percent }
+\newlabel{fig:featimp}{{4}{5}{Feature importance visualization showing the relative contribution of each graph feature to detection. Edge rarity dominates the scoring function, followed by degree-based features. \textit {(Figure by: Samyak Kakatur)}}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Score Distribution Analysis}{5}{subsection.5.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Composite anomaly scores: red-team edges score 1.59$\times $ higher than baseline (mean 0.85 vs. 0.53). The four-component scoring function (source suspiciousness, edge rarity, TCP signal, lateral movement ports) successfully differentiates attack traffic. \textit  {(Figure by: Samyak Kakatur)}}}{5}{figure.5}\protected@file@percent }
+\newlabel{fig:scoring}{{5}{5}{Composite anomaly scores: red-team edges score 1.59$\times $ higher than baseline (mean 0.85 vs. 0.53). The four-component scoring function (source suspiciousness, edge rarity, TCP signal, lateral movement ports) successfully differentiates attack traffic. \textit {(Figure by: Samyak Kakatur)}}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Detection Timeline}{5}{subsection.5.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Anomaly score distribution for red-team edges (orange) versus baseline edges (blue). Red-team edges cluster at higher scores (mean = 0.85 vs. 0.53), but distribution overlap limits threshold-based recall. \textit  {(Figure by: Wesley Gunawan)}}}{6}{figure.6}\protected@file@percent }
+\newlabel{fig:scores}{{6}{6}{Anomaly score distribution for red-team edges (orange) versus baseline edges (blue). Red-team edges cluster at higher scores (mean = 0.85 vs. 0.53), but distribution overlap limits threshold-based recall. \textit {(Figure by: Wesley Gunawan)}}{figure.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Detection timeline showing anomalous edges (blue) overlaid with red-team activity windows (orange). Detections cluster around active attack periods, confirming temporal responsiveness of the graph-based method. \textit  {(Figure by: Ibrahim Pehlivan)}}}{6}{figure.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Graph Structure Visualization}{6}{subsection.5.7}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Graph snapshot of the combined flow + authentication network. High-degree hub nodes (domain controllers, file servers) are visible as central clusters. Red-team edges create structural anomalies by connecting hubs to previously unseen destinations. \textit  {(Figure by: Wesley Gunawan)}}}{6}{figure.8}\protected@file@percent }
+\newlabel{fig:graph}{{8}{6}{Graph snapshot of the combined flow + authentication network. High-degree hub nodes (domain controllers, file servers) are visible as central clusters. Red-team edges create structural anomalies by connecting hubs to previously unseen destinations. \textit {(Figure by: Wesley Gunawan)}}{figure.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion and Limitations}{6}{section.6}\protected@file@percent }
+\bibstyle{acm}
+\bibdata{sample}
+\bibcite{hopper2021}{1}
+\bibcite{euler2023}{2}
+\bibcite{poirot2019}{3}
+\bibcite{holmes2019}{4}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Detection scatter plot: each point is an edge scored by the combined method. Red-team edges (orange) cluster at higher scores but overlap with the dense baseline cloud (blue), explaining the low recall at fixed thresholds. \textit  {(Figure by: Samyak Kakatur)}}}{7}{figure.9}\protected@file@percent }
+\newlabel{fig:scatter}{{9}{7}{Detection scatter plot: each point is an edge scored by the combined method. Red-team edges (orange) cluster at higher scores but overlap with the dense baseline cloud (blue), explaining the low recall at fixed thresholds. \textit {(Figure by: Samyak Kakatur)}}{figure.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{7}{section.7}\protected@file@percent }
+\gdef \@abspage@last{7}

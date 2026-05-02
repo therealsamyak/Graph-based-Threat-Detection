@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{hopper2021}
+{\sc Ho, G., Dhiman, M., Akhawe, D., Paxson, V., Savage, S., Voelker, G.~M., and Wagner, D.}
+\newblock Hopper: Modeling and detecting lateral movement (extended report), 2021.
+
+\bibitem{euler2023}
+{\sc King, I.~J., and Huang, H.~H.}
+\newblock Detecting network lateral movement via scalable temporal graph link prediction.
+\newblock In {\em Proceedings of the Network and Distributed System Security Symposium (NDSS)\/} (2023).
+
+\bibitem{poirot2019}
+{\sc Milajerdi, S.~M., Eshete, B., Gjomemo, R., and Venkatakrishnan, V.~N.}
+\newblock Poirot: Aligning attack behavior with kernel audit records for cyber threat hunting, 2019.
+
+\bibitem{holmes2019}
+{\sc Milajerdi, S.~M., Gjomemo, R., Eshete, B., Sekar, R., and Venkatakrishnan, V.~N.}
+\newblock Holmes: Real-time apt detection through correlation of suspicious information flows, 2019.
+
+\end{thebibliography}

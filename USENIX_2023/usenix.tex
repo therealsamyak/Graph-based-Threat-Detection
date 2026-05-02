@@ -119,11 +119,11 @@ Before presenting detection results, we report three key findings from our analy
 
 Table~\ref{tab:comparison} presents the detection performance of all evaluated methods across both datasets. The combined method achieves the lowest false positive rate (0.0005) and the highest AUC (0.9456) on the LANL-Dataset-2015, demonstrating that integrating flow and authentication logs into a single graph improves the separability of attack traffic from normal operations. However, the pair-space recall remains low across all methods, reflecting the challenge of detecting lateral movement when the attacker's connections are a tiny fraction of total traffic.
 
-\begin{table}[h]
+\begin{table*}[t]
 \centering
 \caption{Detection performance comparison across all methods. The combined method achieves the lowest FPR and highest AUC on LANL-2015. On DAPT2020, the Isolation Forest achieves perfect recall but at the cost of a 100\% false positive rate. \textit{(Table by: Samyak Kakatur)}}
 \label{tab:comparison}
-\small
+\footnotesize
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Method} & \textbf{Dataset} & \textbf{Recall} & \textbf{FPR} & \textbf{F1} & \textbf{AUC} & \textbf{Throughput} \\
@@ -135,7 +135,7 @@ OneClassSVM & DAPT2020 & 0.1612 & 0.0543 & 0.1065 & 0.6353 & -- \\
 Isolation Forest & DAPT2020 & 1.0000 & 1.0000 & 0.0550 & 0.4487 & -- \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 The AUC values reveal the underlying discriminative power of each method even when threshold-based recall is low. The combined method's AUC of 0.9456 significantly exceeds both single-source baselines (flow-only: 0.0000, auth-only: 0.9094), indicating that the composite graph provides richer signal for distinguishing attack edges from benign edges. The flow-only method's near-zero AUC suggests that network flow patterns alone, without authentication context, are insufficient to identify the specific edges used by the red team in this dataset.
 
@@ -152,11 +152,11 @@ Figure~\ref{fig:roc} visualizes the ROC curves for the three LANL methods. The c
 
 Understanding which graph features contribute most to detection is critical for both interpretability and optimization. Table~\ref{tab:features} summarizes the feature importance analysis for the combined method, comparing feature values on red-team nodes versus baseline nodes. The most discriminative features are active duration (ratio 5.46), inter-arrival time standard deviation (ratio 4.49), and in-degree (ratio 3.27). These results align with the expected behavior of lateral movement: attackers maintain persistent access over longer durations, exhibit more variable timing patterns, and connect to more distinct destinations than normal users.
 
-\begin{table}[h]
+\begin{table*}[t]
 \centering
 \caption{Feature importance: red-team vs. baseline node feature means. Active duration and inter-arrival variability are the strongest discriminators. \textit{(Table by: Ibrahim Pehlivan)}}
 \label{tab:features}
-\small
+\footnotesize
 \begin{tabular}{lccc}
 \toprule
 \textbf{Feature} & \textbf{Red-Team Mean} & \textbf{Baseline Mean} & \textbf{Ratio} \\
@@ -171,7 +171,7 @@ Out-Degree & 9.0 & 3.85 & 2.34 \\
 Fan-Out Ratio & 0.541 & 0.540 & 1.00 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 Figure~\ref{fig:featimp} further illustrates the relative importance of each feature. The edge rarity feature shows the strongest correlation with anomaly scores (0.63), confirming that uncommon connections are the primary driver of detection. Source out-degree and destination in-degree also correlate positively with scores (0.29 and 0.32, respectively), indicating that the scoring algorithm correctly identifies connections from high-degree sources to high-degree destinations as more suspicious.
 
