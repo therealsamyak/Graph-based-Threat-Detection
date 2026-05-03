@@ -162,50 +162,50 @@ The pipeline is implemented in Python. igraph handles graph operations; scikit-l
 \item Throughput: number of log records processed per second by the pipeline
 \item System overhead: CPU and memory usage of graph construction and scoring components
 \item Comparison: combined method vs flow-only baseline vs auth-only baseline, with discussion of cases where each method succeeds or fails
-\item Feature analysis: which graph features contribute most to detection (structural vs temporal vs statistical)
-\item Key findings: TCP dominance in attack traffic (99.82\% TCP in red-team flows), kill-chain progression patterns (fan-out ratio increasing from 2.50 in reconnaissance to 6.0 in lateral movement), temporal separation (red-team median inter-arrival time 214s vs 6s for normal users)
+\item Feature analysis: which graph features contribute most to detection (structural vs temporal vs statistical) 
 \end{itemize}
 
-\subsection{Tabular Baselines on LANL-2015}
-\label{sec:baselines_lanl}
+% \subsection{Tabular Baselines on LANL-2015}
+% \label{sec:baselines_lanl}
 
-Table~\ref{tab:methods_lanl} reports all eight methods evaluated on
-the same LANL-2015 run: three graph-based variants using the
-manually-weighted scoring formulas, and five unsupervised tabular
-detectors using \texttt{scikit-learn} defaults trained on benign
-edges only. All eight methods are scored against the same 305
-red-team source-destination pairs.
+% Table~\ref{tab:methods_lanl} reports all eight methods evaluated on
+% the same LANL-2015 run: three graph-based variants using the
+% manually-weighted scoring formulas, and five unsupervised tabular
+% detectors using \texttt{scikit-learn} defaults trained on benign
+% edges only. All eight methods are scored against the same 305
+% red-team source-destination pairs.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{lcccc}
-\hline
-Method & Recall & FPR & F1 & AUC \\
-\hline
-\multicolumn{5}{l}{\textit{Graph-based (pair space)}} \\
-combined              & 0.662 & 0.020 & 0.039 & \textbf{0.954} \\
-auth\_only            & 0.747 & 0.030 & 0.036 & 0.951 \\
-flow\_only            & 0.013 & 0.030 & 0.002 & 0.579 \\
-\hline
-\multicolumn{5}{l}{\textit{Unsupervised tabular baselines (edge space)}} \\
-Isolation Forest      & 0.741 & 0.050 & 0.024 & 0.940 \\
-Elliptic Envelope     & 0.000 & 0.050 & 0.000 & 0.774 \\
-One-Class SVM         & 0.492 & 0.098 & 0.008 & 0.706 \\
-PCA Reconstruction    & 0.033 & 0.050 & 0.001 & 0.667 \\
-Local Outlier Factor  & 0.207 & 0.045 & 0.008 & 0.493 \\
-\hline
-\end{tabular}
-\caption{All eight methods on LANL-2015 (run \texttt{20260502\_165755}, 364{,}802-edge feature matrix, 305 red-team pairs). Graph methods evaluate threshold-dependent metrics in pair space (deduplicated source-destination pairs); tabular baselines evaluate in edge space. AUC is comparable across both spaces.}
-\label{tab:methods_lanl}
-\end{table}
+% \begin{table}[h]
+% \centering
+% \begin{tabular}{lcccc}
+% \hline
+% Method & Recall & FPR & F1 & AUC \\
+% \hline
+% \multicolumn{5}{l}{\textit{Graph-based (pair space)}} \\
+% combined              & 0.662 & 0.020 & 0.039 & \textbf{0.954} \\
+% auth\_only            & 0.747 & 0.030 & 0.036 & 0.951 \\
+% flow\_only            & 0.013 & 0.030 & 0.002 & 0.579 \\
+% \hline
+% \multicolumn{5}{l}{\textit{Unsupervised tabular baselines (edge space)}} \\
+% Isolation Forest      & 0.741 & 0.050 & 0.024 & 0.940 \\
+% Elliptic Envelope     & 0.000 & 0.050 & 0.000 & 0.774 \\
+% One-Class SVM         & 0.492 & 0.098 & 0.008 & 0.706 \\
+% PCA Reconstruction    & 0.033 & 0.050 & 0.001 & 0.667 \\
+% Local Outlier Factor  & 0.207 & 0.045 & 0.008 & 0.493 \\
+% \hline
+% \end{tabular}
+% \caption{All eight methods on LANL-2015 (run \texttt{20260502\_165755}, 364{,}802-edge feature matrix, 305 red-team pairs). Graph methods evaluate threshold-dependent metrics in pair space (deduplicated source-destination pairs); tabular baselines evaluate in edge space. AUC is comparable across both spaces.}
+% \label{tab:methods_lanl}
+% \end{table}
 
-The combined graph method is strongest overall (AUC 0.954). Among
-baselines, Isolation Forest leads (AUC 0.940), within 0.015 of
-combined and within 0.011 of auth-only. LOF underperforms on the
-full data because the feature matrix is dominated by binary
-indicators, which saturate the local-density signal LOF relies on.
-The graph method's edge over the best baseline is small in AUC but
-larger in false-positive rate
+% The combined graph method is strongest overall (AUC 0.954). Among
+% baselines, Isolation Forest leads (AUC 0.940), within 0.015 of
+% combined and within 0.011 of auth-only. LOF underperforms on the
+% full data because the feature matrix is dominated by binary
+% indicators, which saturate the local-density signal LOF relies on.
+% The graph method's edge over the best baseline is small in AUC but
+% larger in false-positive rate
+
 
 
 \section{Discussion and Limitations}
