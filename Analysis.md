@@ -225,3 +225,211 @@
 4. **F1 ≈ 0.02 is not usable** — needs at minimum 10x improvement to be practical
 5. **Path scoring is expensive and unused** — either integrate it into detection or remove the overhead
 6. **The combined method should theoretically be superior** — the issue is in how flow edges are scored/thresholded, not in the graph approach itself
+
+# New Analysis After Changes Made
+
+## Run Metadata
+
+- **Run ID**: `20260502_165755`
+- **Total wall time**: ~4h12m (09:57:55 → 14:10:01)
+- **Command**: `make pipeline` → `uv run python run_experiment.py` (all defaults, post-fix config)
+- **Results dir**: `results/20260502_165755/`
+- **Changes since last run**: commit `49e0c60` — auto-optimize threshold, real AUC, flow edge features, auth weight multiplier, path boost, IsolationForest/SVM threshold fixes
+
+## Parameters Used
+
+### Pipeline Config (`pipeline_config.json`)
+
+| Section | Parameter | Value | Changed from previous? |
+|---|---|---|---|
+| scoring | `threshold_mode` | `auto_optimize` | was fixed 90th percentile |
+| scoring | `threshold_search_range` | [90,95,97,99,99.5,99.9] | new |
+| scoring | `flow_weights` | {rarity: 0.4, unusual_port: 0.3, protocol_rarity: 0.3} | was rarity only |
+| scoring | `auth_weight_multiplier` | 1.5 | was 1.0 (no multiplier) |
+| scoring | `path_boost_factor` | 0.1 | was 0 (no boost) |
+| scoring | `temporal_decay_rate` | 0.0 | new (not active) |
+| features | `approximate_betweenness` | true | was skipped entirely |
+| features | `betweenness_cutoff` | 3 | new |
+| baselines | `oneclass_svm.nu` | 0.1 | was 0.05 |
+| baselines | `isolation_forest` | uses `model.offset_` | was hardcoded 0.0 |
+
+### New Edge Features (flow edges)
+
+- `is_unusual_dst_port` — flags ports {22,23,445,3389,5985,5986} or >49152
+- `protocol_rarity` — `1 - (protocol_count / total_flow_edges)`
+- `byte_per_packet` — percentile rank of byte_count/pkt_count
+- `duration_zscore` — z-score of duration across all edges
+- `temporal_decay_weight` — exponential decay (rate=0.0, effectively inactive)
+
+## Results Summary
+
+| Method | Dataset | Recall | FPR | F1 | AUC | Threshold | Pctl | Anomalous | Latency |
+|---|---|---|---|---|---|---|---|---|---|
+| flow_only | LANL-2015 | 0.0130 | 0.0297 | 0.0019 | 0.5785 | 0.691 | 97th | 3,907 | 585s |
+| auth_only | LANL-2015 | 0.7468 | 0.0296 | 0.0364 | 0.9508 | 1.401 | 95th | 12,319 | 6,142s |
+| combined | LANL-2015 | 0.6623 | 0.0196 | 0.0387 | 0.9544 | 1.407 | 97th | 10,243 | 7,598s |
+| oneclass_svm | DAPT2020 | 1.0000 | 1.0000 | 0.0550 | 0.6463 | — | — | — | — |
+| isolation_forest | DAPT2020 | 0.0069 | 0.0500 | 0.0051 | 0.4487 | — | — | — | — |
+
+### Old vs New Comparison
+
+| Method | Metric | Old | New | Change |
+|---|---|---|---|---|
+| flow_only | Recall | 0.0032 | 0.0130 | +306% |
+| flow_only | FPR | 0.0713 | 0.0297 | -58% |
+| flow_only | F1 | 0.0002 | 0.0019 | +850% |
+| flow_only | AUC | 0.0000 | 0.5785 | ✓ computed |
+| auth_only | Recall | 0.9545 | 0.7468 | -22% |
+| auth_only | FPR | 0.0632 | 0.0296 | -53% |
+| auth_only | F1 | 0.0222 | 0.0364 | +64% |
+| auth_only | AUC | 0.0000 | 0.9508 | ✓ computed |
+| combined | Recall | 0.8701 | 0.6623 | -24% |
+| combined | FPR | 0.0707 | 0.0196 | -72% |
+| combined | F1 | 0.0146 | 0.0387 | +165% |
+| combined | AUC | 0.0000 | 0.9544 | ✓ computed |
+| oneclass_svm | Recall | 0.1612 | 1.0000 | **broken** |
+| oneclass_svm | FPR | 0.0543 | 1.0000 | **broken** |
+| oneclass_svm | F1 | 0.1065 | 0.0550 | -48% |
+| isolation_forest | Recall | 1.0000 | 0.0069 | fixed (was broken) |
+| isolation_forest | FPR | 1.0000 | 0.0500 | fixed (was broken) |
+| isolation_forest | F1 | 0.0550 | 0.0051 | -91% |
+
+## Sanity Checks
+
+### 1. Auto-optimize threshold works ✓
+
+- flow_only: chose 97th percentile (threshold=0.691)
+- auth_only: chose 95th percentile (threshold=1.401)
+- combined: chose 97th percentile (threshold=1.407)
+- All three chose higher percentiles than the previous fixed 90th, confirming 90th was too permissive
+- F1 improved 64-165% across all LANL methods
+
+### 2. AUC now properly computed ✓
+
+- auth_only: 0.9508 — excellent discrimination
+- combined: 0.9544 — marginally better than auth_only
+- flow_only: 0.5785 — barely above random (0.5), confirming flow data alone is weak
+
+### 3. FPR dramatically improved ✓
+
+- combined: 7.07% → 1.96% (3.6x better)
+- auth_only: 6.32% → 2.96% (2.1x better)
+- False positives roughly halved across the board
+
+### 4. Combined method now beats auth_only on F1 ✓ (improvement from previous)
+
+- combined F1 = 0.0387 > auth_only F1 = 0.0364
+- Previous run: combined (0.0146) was worse than auth_only (0.0222)
+- **Why**: auth_weight_multiplier=1.5 pushes auth edges higher in combined graph, flow weights give meaningful scores, and 97th percentile threshold is tighter
+- Combined also has lower FPR (1.96% vs 2.96%) and higher AUC (0.9544 vs 0.9508)
+
+### 5. Recall dropped — precision/recall tradeoff ⚠
+
+- auth_only: 95.45% → 74.68% (302→225 red team pairs detected)
+- combined: 87.01% → 66.23% (305→202 red team pairs detected)
+- This is the expected cost of higher thresholds: fewer false positives but also fewer true positives
+- ~75 red team pairs lost in auth_only, ~103 lost in combined
+
+### 6. OneClassSVM is now broken ✗ (regression)
+
+- Previous: recall=0.1612, fpr=0.0543 (weak but functional)
+- Now: recall=1.0, fpr=1.0 (flags everything)
+- **Why**: Changing nu from 0.05→0.1 made the model more permissive. Combined with the `model.offset_` threshold fix, the decision boundary shifted. For OneClassSVM, `offset_` may be negative, so `score >= offset_` is always true for training data
+- **Fix needed**: The offset_ approach works differently for SVM vs IF. Need to use `model.predict()` or compute a proper percentile threshold on decision scores
+
+### 7. IsolationForest fixed but overcorrected ⚠
+
+- Previous: recall=1.0, fpr=1.0 (flagged everything)
+- Now: recall=0.0069, fpr=0.05 (detects almost nothing)
+- `model.offset_` is likely very negative, making `score >= offset_` almost never true
+- AUC unchanged at 0.4487 (still below random) — model itself isn't learning useful patterns
+- **Fix needed**: Use `model.predict()` which uses the built-in contamination-based threshold
+
+### 8. Path boost applied but minimal impact ⚠
+
+- Path boost factor=0.1 applied to all three LANL methods
+- Max path scores: 0.7848 (flow), 1.4772 (auth), 1.479 (combined)
+- Boost is additive to edge scores — 10% of path score added
+- Given path scores are similar to edge scores, the boost is ~0.01-0.15 range
+- Path enumeration still takes significant time (part of the 10-47 min scoring)
+
+### 9. Approximate betweenness computed ✓
+
+- cutoff=3 used for graphs >5000 nodes
+- Betweenness no longer always 0
+- But impact on scoring is unclear (betweenness is a node feature, not directly used in edge scoring)
+
+### 10. Flow edges now have meaningful features ✓
+
+- 3-feature scoring: rarity (0.4) + unusual_port (0.3) + protocol_rarity (0.3)
+- Flow AUC: 0.5785 — slightly above random but still weak
+- Flow recall improved from 0.0032→0.0130 (4x) but remains very low
+- 35 red team pairs in flow graph, only 4 detected
+
+## Parameter Tuning Recommendations
+
+### High Priority
+
+#### 1. Fix OneClassSVM baseline (regression)
+
+- **Current**: `model.offset_` threshold flags everything
+- **Fix**: Use `model.predict(X)` which returns {-1, 1} using the internal contamination-based decision boundary
+- **Or**: Use `model.decision_function(X)` and set threshold at `np.percentile(scores, 100 * contamination)`
+
+#### 2. Fix IsolationForest threshold (overcorrection)
+
+- **Current**: `model.offset_` too strict, detects almost nothing
+- **Fix**: Same as SVM — use `model.predict(X)` or `model.decision_function(X)` with proper percentile
+- **AUC=0.4487** suggests the model itself may not be learning useful patterns regardless of threshold
+
+#### 3. Recover recall without sacrificing F1
+
+- **Current tradeoff**: F1 improved 1.6-2.7x but recall dropped 22-24%
+- **Approach A**: Use F2 or F0.5 score for threshold optimization instead of F1 (F2 weights recall more)
+- **Approach B**: Two-stage detection — high recall first pass, then filter by additional features
+- **Approach C**: Per-edge-type thresholds (separate for auth vs flow in combined)
+
+### Medium Priority
+
+#### 4. Increase path boost factor
+
+- **Current**: 0.1 — very conservative
+- **Try**: 0.3 or 0.5 to give path information more weight
+- Path scores are meaningful (max=1.479) but diluted by 10% factor
+
+#### 5. Activate temporal decay
+
+- **Current**: `temporal_decay_rate=0.0` (inactive)
+- **Try**: rate=1.0 or 2.0 — recent events should score higher
+- The feature code is in place, just needs config change
+
+#### 6. Tune flow edge features
+
+- `is_unusual_dst_port` may be too aggressive — flags all high ports (>49152)
+- `protocol_rarity` heavily weights rare protocols but rare ≠ malicious
+- Consider byte/packet ratio anomalies and duration outliers more heavily
+
+### Low Priority / Future Work
+
+#### 7. Feature importance analysis
+
+- 5 new flow features added but unclear which help
+- Run ablation: score with each feature individually to measure contribution
+- AUC=0.5785 suggests the new features help marginally at best
+
+#### 8. Ensemble the LANL methods
+
+- auth_only has highest recall (0.7468), combined has best F1 (0.0387) and AUC (0.9544)
+- Union of detections would improve recall; intersection would improve precision
+- Simple voting ensemble across methods could outperform any single method
+
+## Key Takeaways (Updated)
+
+1. **Auto-optimize threshold was the biggest win** — F1 improved 64-165%, FPR halved
+2. **Combined method now outperforms auth_only on F1 and AUC** — flow data helps when properly weighted
+3. **AUC=0.95+ confirms graph-based approach has strong discriminative power** — the signal was always there, threshold was hiding it
+4. **Recall drop (22-24%) is the cost** — 75-103 more red team pairs missed
+5. **OneClassSVM regressed** — nu=0.1 + offset_ fix broke it (flags everything)
+6. **IsolationForest overcorrected** — now detects almost nothing
+7. **F1 still only ~0.04** — improved but still impractical; class imbalance (308/400K) is the ceiling
+8. **Path boost has minimal impact at factor=0.1** — either increase or remove the overhead

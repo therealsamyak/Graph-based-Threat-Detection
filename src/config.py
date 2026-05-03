@@ -35,6 +35,8 @@ _DEFAULTS: dict = {
         "max_workers": 12,
     },
     "baselines": {
+        "run_lanl_baselines": True,
+        "run_dapt_graph": True,
         "oneclass_svm": {"kernel": "rbf", "gamma": "scale", "nu": 0.1},
         "isolation_forest": {"n_estimators": 100, "contamination": 0.05, "random_state": 42},
     },

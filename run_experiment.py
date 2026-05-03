@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from src.config import load_config
-from src.generate_comparison import generate_comparison
+from src.reporting import generate_comparison
 
 logging.basicConfig(
     level=logging.INFO,
@@ -93,7 +93,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
 
     logger.info(f"Loading LANL data from {data_dir} (window={window_size}s)")
     try:
-        from src.streaming_pipeline import run_streaming_experiment
+        from src.pipeline import run_streaming_experiment
         lanl_results, viz_data, results_base = run_streaming_experiment(
             data_dir=data_dir,
             window_seconds=window_size,
