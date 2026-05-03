@@ -7,7 +7,6 @@ import json
 import logging
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from src.config import load_config
@@ -136,6 +135,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
         plot_score_distribution,
         plot_roc_curves,
         plot_detection_timeline,
+        plot_method_comparison,
     )
 
     figures_dir = results_dir / "figures"
@@ -143,20 +143,20 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
 
     g = viz_data.get("combined_graph")
     if g is not None:
-        plot_graph_snapshot(g, str(figures_dir / "graph_snapshot.png"), title="Combined Auth+Flow Graph")
+        plot_graph_snapshot(g, str(figures_dir / "graph_snapshot.png"), title=f"Combined Auth+Flow Graph ({g.vcount():,} nodes, {g.ecount():,} edges)")
         logger.info("Saved graph_snapshot.png")
 
     edge_scores = viz_data.get("combined_edge_scores")
     combined_g = viz_data.get("combined_graph")
     if edge_scores is not None and not edge_scores.empty and combined_g is not None:
-        viz_data.get("redteam_times")
         red_pairs = viz_data.get("red_pairs", set())
+        threshold = viz_data.get("combined_threshold", 0.5)
 
         labels = pd.Series([
             1.0 if (combined_g.vs[e.source]["name"], combined_g.vs[e.target]["name"]) in red_pairs else 0.0
             for e in combined_g.es
         ], index=edge_scores.index)
-        plot_score_distribution(edge_scores, labels, str(figures_dir / "score_distribution.png"))
+        plot_score_distribution(edge_scores, labels, str(figures_dir / "score_distribution.png"), threshold=threshold, title="Edge Anomaly Score Distribution")
         logger.info("Saved score_distribution.png")
 
         times = pd.Series(
@@ -169,28 +169,21 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
             pair = (combined_g.vs[combined_g.es[i].source]["name"], combined_g.vs[combined_g.es[i].target]["name"])
             if pair in red_pairs:
                 rt_edge_indices.add(i)
-        rt_times = viz_data.get("redteam_times", pd.Series())
-        threshold = viz_data.get("combined_threshold", 0.5)
-        plot_detection_timeline(times, edge_scores, rt_times, threshold, str(figures_dir / "detection_timeline.png"), redteam_edge_indices=rt_edge_indices)
+        plot_detection_timeline(times, edge_scores, threshold, str(figures_dir / "detection_timeline.png"), redteam_edge_indices=rt_edge_indices, title="Anomaly Score Timeline with Red Team Events")
         logger.info("Saved detection_timeline.png")
 
     roc_data = []
     for r in all_results:
-        if r.get("fpr", 0) > 0 or r.get("recall", 0) > 0:
-            roc_data.append({
-                "method_name": f"{r['method']} (LANL)",
-                "fpr_array": np.array([0, r["fpr"], 1.0]),
-                "tpr_array": np.array([0, r["recall"], 1.0]),
-            })
-    for r in all_results[len(lanl_results):]:
         if r.get("auc", 0) > 0:
             roc_data.append({
-                "method_name": f"{r['method']} (DAPT)",
-                "fpr_array": np.linspace(0, 1, 100),
-                "tpr_array": np.linspace(0, 1, 100) ** (1.0 / r["auc"] - 1.0),
+                "method_name": f"{r['method']} ({r['dataset']})",
+                "auc": r["auc"],
             })
-    plot_roc_curves(roc_data, str(figures_dir / "roc_curves.png"))
+    plot_roc_curves(roc_data, str(figures_dir / "roc_curves.png"), title="ROC Curves — Lateral Movement Detection Methods")
     logger.info("Saved roc_curves.png")
+
+    plot_method_comparison(all_results, str(figures_dir / "method_comparison.png"), title="Method Performance Comparison")
+    logger.info("Saved method_comparison.png")
 
     _print_summary(results_df)
     return results_df
