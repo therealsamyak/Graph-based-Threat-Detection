@@ -1,0 +1,5 @@
+method,dataset,recall,fpr,f1,auc,latency,throughput,graph_nodes,graph_edges,rt_pairs_in_graph,anomalous_pairs,threshold,threshold_mode,threshold_percentile_used,max_path_score,mean_edge_score
+flow_only,LANL-2015,0.0,0.1042,0.0,0.0,6.32,7.9,41,48,0,5,0.8968,auto_optimize,90,0.775,0.4955
+auth_only,LANL-2015,0.0,0.0,0.0,0.0,12.48,4.0,70,69,0,0,1.0,auto_optimize,90,1.3467,0.2397
+combined,LANL-2015,0.0,0.0,0.0,0.0,18.41,5.4,110,117,0,0,1.0,auto_optimize,90,1.3212,0.3771
+graph_combined,DAPT2020,0.0,0.0,0.0,0.0,0.02,2742.9,13,9,0,0,0.5194,auto_optimize,90,0.4722,0.4636
