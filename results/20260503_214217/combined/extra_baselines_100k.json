@@ -1,0 +1,92 @@
+{
+  "run_dir": "/Users/ipehlivan/Documents/GitHub/Graph-based-Threat-Detection/results/20260502_165755/combined",
+  "n_edges_evaluated": 100305,
+  "n_redteam": 305,
+  "feature_columns": [
+    "edge_rarity",
+    "src_out_degree",
+    "dst_in_degree",
+    "is_ntlm",
+    "is_network_logon",
+    "is_success_auth",
+    "source_fan_out",
+    "weight_norm",
+    "is_unusual_dst_port",
+    "protocol_rarity",
+    "byte_per_packet",
+    "duration_zscore"
+  ],
+  "config": {
+    "oneclass_svm": {
+      "kernel": "rbf",
+      "gamma": "scale",
+      "nu": 0.1
+    },
+    "isolation_forest": {
+      "n_estimators": 100,
+      "contamination": 0.05,
+      "random_state": 42
+    },
+    "lof": {
+      "n_neighbors": 20,
+      "contamination": 0.05
+    },
+    "elliptic_envelope": {
+      "contamination": 0.05,
+      "random_state": 42
+    },
+    "pca_reconstruction": {
+      "n_components": 5,
+      "contamination": 0.05,
+      "random_state": 42
+    }
+  },
+  "sample_size": 100000,
+  "seed": 42,
+  "results": [
+    {
+      "method": "isolation_forest",
+      "auc": 0.9449,
+      "f1": 0.0841,
+      "recall": 0.7639,
+      "fpr": 0.05,
+      "precision": 0.0445
+    },
+    {
+      "method": "lof",
+      "auc": 0.8877,
+      "f1": 0.0761,
+      "recall": 0.6098,
+      "fpr": 0.044,
+      "precision": 0.0406
+    },
+    {
+      "method": "elliptic_envelope",
+      "auc": 0.7727,
+      "f1": 0.0,
+      "recall": 0.0,
+      "fpr": 0.05,
+      "precision": 0.0
+    },
+    {
+      "method": "oneclass_svm",
+      "auc": 0.7002,
+      "f1": 0.0271,
+      "recall": 0.4689,
+      "fpr": 0.101,
+      "precision": 0.014
+    },
+    {
+      "method": "pca_reconstruction",
+      "auc": 0.6683,
+      "f1": 0.0034,
+      "recall": 0.0295,
+      "fpr": 0.05,
+      "precision": 0.0018
+    }
+  ],
+  "elapsed_sec": {
+    "shared": 195.59,
+    "extra": 21.07
+  }
+}
