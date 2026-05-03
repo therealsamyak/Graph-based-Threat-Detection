@@ -1,10 +1,9 @@
 """Anomaly scoring for multi-hop paths in igraph graphs.
 
-Scoring is designed to detect lateral movement by flagging:
-- Nodes with abnormally high fan-out (redteam lateral movement: fan-out ≈ 6.0 vs benign ≈ 2.5)
-- Nodes with anomalous inter-arrival timing (redteam: 214s median vs benign: 6s)
-- Edges to new/rare destinations from suspicious sources
-- Multi-hop paths connecting compromised hosts through lateral movement
+Scoring follows LaTeX Section 4.3 Equations 1-2:
+- Auth edges: 0.4 * is_ntlm + 0.3 * is_network_logon + 0.3 * rarity_rank
+- Flow edges: 0.4 * rarity_rank + 0.3 * is_unusual_dst_port + 0.3 * protocol_rarity_rank
+- Combined method: auth edges receive 1.5x multiplier
 """
 
 from __future__ import annotations
@@ -25,131 +24,64 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# Redteam lateral movement ports (TCP-only services)
-REDTEAM_PORTS = {"445", "139", "22", "3389", "443", "80", "8080"}
+# Lateral movement ports per LaTeX Section 4.2
+LATERAL_MOVEMENT_PORTS = {22, 23, 445, 3389, 5985, 5986}
 
-def _compute_node_suspiciousness(g: ig.Graph, node_features: pd.DataFrame) -> np.ndarray:
-    """Compute per-node suspiciousness score based on lateral movement indicators.
-    
-    High scores indicate nodes behaving like lateral movement sources:
-    - High fan-out ratio (spreading to many destinations)
-    - Anomalous inter-arrival timing (slower, more deliberate than normal)
-    - High betweenness centrality (acting as bridge/pivot point)
-    - High out-degree (initiating many connections)
-    
-    Returns array of scores in [0, 1] for each node.
-    """
-    n = g.vcount()
-    if n == 0:
-        return np.array([])
-    
-    scores = np.zeros(n, dtype=float)
-    
-    # --- Fan-out ratio --- 
-    # Redteam lateral movement: fan-out ≈ 6.0, benign ≈ 2.5
-    # Higher fan-out = more suspicious
-    if "fan_out_ratio" in node_features.columns:
-        fan_out = node_features["fan_out_ratio"].values.astype(float)
-        # Normalize to [0, 1]
-        mx = fan_out.max()
-        if mx > 0:
-            scores += fan_out / mx
-    
-    # --- Inter-arrival time anomaly ---
-    # Redteam: median 214s, benign: 6s → redteam is 35.7x slower
-    # Nodes with very high or very low inter-arrival times are suspicious
-    if "inter_arrival_mean" in node_features.columns:
-        iat = node_features["inter_arrival_mean"].values.astype(float)
-        valid = iat > 0
-        if valid.any():
-            log_iat = np.zeros_like(iat)
-            log_iat[valid] = np.log1p(iat[valid])
-            mx = log_iat.max()
-            if mx > 0:
-                scores += log_iat / mx
-    
-    # --- Betweenness centrality ---
-    # Redteam jump box (C17693) has high betweenness — it's a pivot point
-    if "betweenness_centrality" in node_features.columns:
-        bc = node_features["betweenness_centrality"].values.astype(float)
-        mx = bc.max()
-        if mx > 0:
-            scores += bc / mx
-    
-    # --- Out-degree ---
-    # Redteam sources initiate many connections (reconnaissance + lateral movement)
-    if "out_degree" in node_features.columns:
-        out_deg = node_features["out_degree"].values.astype(float)
-        mx = out_deg.max()
-        if mx > 0:
-            scores += out_deg / mx
-    
-    # --- Burst score ---
-    # Redteam has different burst patterns
-    if "burst_score" in node_features.columns:
-        burst = node_features["burst_score"].values.astype(float)
-        mx = burst.max()
-        if mx > 0:
-            scores += burst / mx
-    
-    # Normalize to [0, 1]
-    mx = scores.max()
-    if mx > 0:
-        scores /= mx
-    
-    return scores
+# Auth weight multiplier for combined method (LaTeX Section 4.3)
+AUTH_WEIGHT_MULTIPLIER = 1.5
 
 
-def _compute_edge_scores_from_features(
-    g: ig.Graph,
-    node_suspiciousness: np.ndarray,
-    edge_features: pd.DataFrame,
-) -> np.ndarray:
-    """Score each edge based on source/destination suspiciousness and edge properties.
-    
-    An edge is suspicious when:
-    1. Source node is suspicious (high fan-out, anomalous timing)
-    2. Destination is a new/rare target for this source
-    3. Edge uses a lateral movement port (SMB, SSH, RDP)
-    
-    Returns array of scores in [0, 1] for each edge.
-    """
+def _compute_rarity_rank(values: np.ndarray) -> np.ndarray:
+    """Compute percentile rank of values (0-1 scale)."""
+    if len(values) == 0:
+        return values
+    sorted_idx = np.argsort(values)
+    ranks = np.empty_like(sorted_idx)
+    ranks[sorted_idx] = np.arange(len(values))
+    return ranks / max(len(values) - 1, 1)
+
+
+def _score_auth_edges(g: ig.Graph, edge_features: pd.DataFrame) -> np.ndarray:
+    """Score auth edges per Equation 1: 0.4*is_ntlm + 0.3*is_network_logon + 0.3*rarity_rank."""
     n = g.ecount()
     if n == 0:
         return np.array([])
-    
+
+    rarity_vals = edge_features.get("edge_rarity", pd.Series(0.0, index=range(n))).values.astype(float)
+    rarity_rank = _compute_rarity_rank(rarity_vals)
+
+    is_ntlm = edge_features.get("is_ntlm", pd.Series(0, index=range(n))).values.astype(float)
+    is_network_logon = edge_features.get("is_network_logon", pd.Series(0, index=range(n))).values.astype(float)
+
     scores = np.zeros(n, dtype=float)
-    
     for i in range(n):
-        e = g.es[i]
-        src_idx = e.source
-        dst_idx = e.target
-        attrs = e.attributes()
-        
-        # Component 1: source node suspiciousness (primary signal)
-        src_susp = node_suspiciousness[src_idx]
-        
-        # Component 2: edge rarity (rare connections are more suspicious)
-        edge_rarity = float(edge_features.loc[i, "edge_rarity"]) if i in edge_features.index else 0.0
-        
-        # Component 3: protocol signal (TCP-only for lateral movement)
-        protocol = str(attrs.get("protocol", ""))
-        protocol_score = 0.1 if protocol == "6" else 0.0  # TCP = 6
-        
-        # Component 4: port signal (lateral movement ports)
-        dst_port = str(attrs.get("dst_port", ""))
-        port_score = 0.1 if dst_port in REDTEAM_PORTS else 0.0
-        
-        # Combined score: source suspiciousness is the main driver
-        combined = 0.5 * src_susp + 0.2 * edge_rarity + 0.15 * protocol_score + 0.15 * port_score
-        scores[i] = combined
-    
-    # Min-max scale to [0, 1]
-    if len(scores) > 0:
-        mn, mx = scores.min(), scores.max()
-        if mx - mn > 1e-12:
-            scores = (scores - mn) / (mx - mn)
-    
+        edge_type = g.es[i].attributes().get("type", "")
+        if edge_type == "auth":
+            scores[i] = 0.4 * is_ntlm[i] + 0.3 * is_network_logon[i] + 0.3 * rarity_rank[i]
+
+    return scores
+
+
+def _score_flow_edges(g: ig.Graph, edge_features: pd.DataFrame) -> np.ndarray:
+    """Score flow edges per Equation 2: 0.4*rarity_rank + 0.3*is_unusual_dst_port + 0.3*protocol_rarity_rank."""
+    n = g.ecount()
+    if n == 0:
+        return np.array([])
+
+    rarity_vals = edge_features.get("edge_rarity", pd.Series(0.0, index=range(n))).values.astype(float)
+    rarity_rank = _compute_rarity_rank(rarity_vals)
+
+    is_unusual = edge_features.get("is_unusual_dst_port", pd.Series(0, index=range(n))).values.astype(float)
+
+    protocol_rarity_vals = edge_features.get("protocol_rarity", pd.Series(0.0, index=range(n))).values.astype(float)
+    protocol_rarity_rank = _compute_rarity_rank(protocol_rarity_vals)
+
+    scores = np.zeros(n, dtype=float)
+    for i in range(n):
+        edge_type = g.es[i].attributes().get("type", "")
+        if edge_type == "flow":
+            scores[i] = 0.4 * rarity_rank[i] + 0.3 * is_unusual[i] + 0.3 * protocol_rarity_rank[i]
+
     return scores
 
 
@@ -211,24 +143,51 @@ def score_edges(
     edge_features: pd.DataFrame,
     node_features: pd.DataFrame | None = None,
     weights: dict[str, float] | None = None,
+    is_combined: bool = False,
 ) -> pd.Series:
-    """Score edges for lateral movement detection.
-    
-    Uses node-level suspiciousness (fan-out, timing, centrality) combined with
-    edge-level features (rarity, protocol, port) to produce per-edge scores.
-    
+    """Score edges for lateral movement detection per LaTeX Equations 1-2.
+
+    Auth edges: 0.4 * is_ntlm + 0.3 * is_network_logon + 0.3 * rarity_rank
+    Flow edges: 0.4 * rarity_rank + 0.3 * is_unusual_dst_port + 0.3 * protocol_rarity_rank
+    Combined method: auth edges receive 1.5x multiplier.
+
     Returns pd.Series indexed by edge index (int), values in [0,1].
     """
     n = g.ecount()
     if n == 0:
         return pd.Series([], dtype=float, name="score")
-    
-    # Compute node suspiciousness
-    node_susp = _compute_node_suspiciousness(g, node_features if node_features is not None else pd.DataFrame())
-    
-    # Score edges based on node suspiciousness + edge properties
-    edge_scores_arr = _compute_edge_scores_from_features(g, node_susp, edge_features)
-    
+
+    # Score auth and flow edges separately
+    auth_scores = _score_auth_edges(g, edge_features)
+    flow_scores = _score_flow_edges(g, edge_features)
+
+    # Combine: each edge gets its type-specific score
+    edge_scores_arr = np.zeros(n, dtype=float)
+    for i in range(n):
+        edge_type = g.es[i].attributes().get("type", "")
+        if edge_type == "auth":
+            edge_scores_arr[i] = auth_scores[i]
+        elif edge_type == "flow":
+            edge_scores_arr[i] = flow_scores[i]
+        else:
+            # Unknown type: use average of both
+            edge_scores_arr[i] = (auth_scores[i] + flow_scores[i]) / 2.0
+
+    # Apply 1.5x auth multiplier for combined method
+    if is_combined:
+        for i in range(n):
+            edge_type = g.es[i].attributes().get("type", "")
+            if edge_type == "auth":
+                edge_scores_arr[i] = min(edge_scores_arr[i] * AUTH_WEIGHT_MULTIPLIER, 1.0)
+
+    # Min-max scale to [0, 1]
+    if len(edge_scores_arr) > 0:
+        mn, mx = edge_scores_arr.min(), edge_scores_arr.max()
+        if mx - mn > 1e-12:
+            edge_scores_arr = (edge_scores_arr - mn) / (mx - mn)
+        else:
+            edge_scores_arr = np.zeros_like(edge_scores_arr)
+
     return pd.Series(edge_scores_arr, index=pd.Index(range(n), name="edge_index"), name="score")
 
 
@@ -275,16 +234,19 @@ def score_paths(
     edge_scores: pd.Series,
     max_hops: int = 4,
     top_k: int = 50,
-) -> pd.DataFrame:
-    """BFS path enumeration with anomaly scoring.
+) -> tuple[pd.DataFrame, pd.Series]:
+    """BFS path enumeration with anomaly scoring and path boost.
 
     Limits outgoing exploration to top-10 edges by score per node.
-    Returns DataFrame sorted by path_score descending, limited to top_k.
-    Columns: source_node, path_score, path_nodes, path_edges, path_length.
+    After enumerating top_k paths, applies a boost of 0.1 * path_score
+    to each edge appearing in a top-50 path, capped at 1.0.
+
+    Returns:
+        Tuple of (paths DataFrame, boosted edge_scores Series).
     """
     total_nodes = g.vcount()
     n_workers = min(os.cpu_count() or 1, 12)
-    edge_scores_arr = edge_scores.values
+    edge_scores_arr = edge_scores.values.copy()
 
     node_names = [g.vs[i]["name"] for i in range(total_nodes)]
     adjacency: dict[int, list[tuple[int, int]]] = {}
@@ -330,11 +292,22 @@ def score_paths(
                 )
 
     if not all_paths:
-        return pd.DataFrame(columns=["source_node", "path_score", "path_nodes", "path_edges", "path_length"])
+        return pd.DataFrame(columns=["source_node", "path_score", "path_nodes", "path_edges", "path_length"]), edge_scores
 
     df = pd.DataFrame(all_paths)
     df = df.sort_values("path_score", ascending=False).head(top_k).reset_index(drop=True)
-    return df
+
+    # Apply path boost: 0.1 * path_score to each edge in top-50 paths, capped at 1.0
+    boost_factor = 0.1
+    for _, row in df.iterrows():
+        path_score = row["path_score"]
+        path_edges = row["path_edges"]
+        for eid in path_edges:
+            if eid < len(edge_scores_arr):
+                edge_scores_arr[eid] = min(edge_scores_arr[eid] + boost_factor * path_score, 1.0)
+
+    boosted_scores = pd.Series(edge_scores_arr, index=pd.Index(range(len(edge_scores_arr)), name="edge_index"), name="score")
+    return df, boosted_scores
 
 
 def score_graph(
@@ -343,15 +316,21 @@ def score_graph(
     edge_scores: pd.Series | None = None,
     paths: pd.DataFrame | None = None,
     threshold: float = 0.5,
+    is_combined: bool = False,
 ) -> dict:
-    """Aggregate graph-level anomaly scores."""
+    """Aggregate graph-level anomaly scores.
+
+    Returns dict with path and edge score aggregates.
+    If edge_scores is None, computes them. If paths is None, computes them
+    and applies path boost, returning boosted edge scores.
+    """
     edge_features = all_features["edge_features"]
 
     if edge_scores is None:
-        edge_scores = score_edges(g, edge_features, all_features.get("node_features"))
+        edge_scores = score_edges(g, edge_features, all_features.get("node_features"), is_combined=is_combined)
 
     if paths is None:
-        paths = score_paths(g, edge_scores)
+        paths, edge_scores = score_paths(g, edge_scores)
 
     return {
         "max_path_score": float(paths["path_score"].max()) if len(paths) > 0 else 0.0,
@@ -359,7 +338,8 @@ def score_graph(
         "anomalous_path_count": int((paths["path_score"] > threshold).sum()) if len(paths) > 0 else 0,
         "max_edge_score": float(edge_scores.max()) if len(edge_scores) > 0 else 0.0,
         "mean_edge_score": float(edge_scores.mean()) if len(edge_scores) > 0 else 0.0,
-        "high_rarity_edge_count": int((edge_features["edge_rarity"] > 0.5).sum()),
+        "high_rarity_edge_count": int((edge_features["edge_rarity"] > 0.5).sum()) if "edge_rarity" in edge_features.columns else 0,
+        "edge_scores": edge_scores,
     }
 
 

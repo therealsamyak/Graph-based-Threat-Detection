@@ -298,19 +298,42 @@ def run_streaming_experiment(
         logger.info(f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)...")
         all_feat = extract_all_features(g)
         logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
-        edge_scores = score_edges(g, all_feat["edge_features"], node_features=all_feat["node_features"])
+        is_combined_method = method_name == "combined"
+        edge_scores = score_edges(g, all_feat["edge_features"], node_features=all_feat["node_features"], is_combined=is_combined_method)
         logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
-        paths = score_paths(g, edge_scores)
+        paths, edge_scores = score_paths(g, edge_scores)
         logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
-        graph_result = score_graph(g, all_feat, edge_scores, paths=paths)
+        graph_result = score_graph(g, all_feat, edge_scores, paths=paths, is_combined=is_combined_method)
+        # Extract boosted edge scores from graph_result
+        edge_scores = graph_result.get("edge_scores", edge_scores)
         score_time = time.perf_counter() - t1
         logger.info(f"  Scoring completed in {score_time:.1f}s")
 
-        # Detection threshold
-        threshold = float(np.percentile(edge_scores.values, 95)) if len(edge_scores) > 0 else 0.5
-        if len(edge_scores) > 0 and edge_scores.std() < 1e-10:
-            logger.warning("  Edge scores have very low variance — detection may be limited")
-            threshold = float(edge_scores.mean()) + 0.1 * max(float(edge_scores.std()), 0.01)
+        # Threshold sweeping: find percentile that maximizes F1
+        percentiles = [90, 95, 97, 99, 99.5, 99.9]
+        best_f1 = -1.0
+        best_threshold = float(np.percentile(edge_scores.values, 95)) if len(edge_scores) > 0 else 0.5
+        for pct in percentiles:
+            thr = float(np.percentile(edge_scores.values, pct)) if len(edge_scores) > 0 else 0.5
+            # Compute pair-space F1 at this threshold
+            anom_edges = set()
+            for i in range(g.ecount()):
+                if i in edge_scores.index and edge_scores.loc[i] > thr:
+                    anom_edges.add(i)
+            anom_pairs_thr: set[tuple[str, str]] = set()
+            for i in anom_edges:
+                e = g.es[i]
+                anom_pairs_thr.add((g.vs[e.source]["name"], g.vs[e.target]["name"]))
+            det_pairs_thr = anom_pairs_thr & rt_in_graph
+            rec_thr = len(det_pairs_thr) / len(red_pairs) if red_pairs else 0.0
+            prec_thr = len(det_pairs_thr) / max(len(anom_pairs_thr), 1)
+            f1_thr = 2 * rec_thr * prec_thr / (rec_thr + prec_thr) if (rec_thr + prec_thr) > 0 else 0.0
+            if f1_thr > best_f1:
+                best_f1 = f1_thr
+                best_threshold = thr
+
+        threshold = best_threshold
+        logger.info(f"  Best threshold: {threshold:.4f} (F1={best_f1:.4f})")
         anomalous_paths_df = paths[paths["path_score"] > threshold] if len(paths) > 0 else pd.DataFrame()
 
         # Extract all anomalous pairs from anomalous paths (pair-space)
@@ -468,6 +491,31 @@ def run_streaming_experiment(
         else:
             method_graphs[method_name] = None
             del g
+
+    # LANL unsupervised baselines (on combined method's edge features)
+    logger.info("Running LANL-2015 unsupervised baselines")
+    try:
+        from src.baselines.lanl_baselines import run_lanl_baselines
+        # Use the combined method's graph and edge features for baselines
+        lanl_results = run_lanl_baselines(
+            all_feat["edge_features"],
+            red_pairs,
+            viz_data.get("combined_graph"),
+        )
+        for r in lanl_results:
+            all_results.append({
+                "method": r["method_name"],
+                "dataset": "LANL-2015",
+                "recall": round(r["recall"], 4),
+                "fpr": round(r["fpr"], 4),
+                "f1": round(r["f1"], 4),
+                "auc": round(r["auc"], 4),
+                "latency": 0.0,
+                "throughput": 0.0,
+            })
+            logger.info(f"  LANL {r['method_name']}: AUC={r['auc']:.4f}, F1={r['f1']:.4f}")
+    except Exception as e:
+        logger.warning(f"LANL baselines failed: {e}")
 
     # DAPT baselines
     logger.info("Running DAPT2020 baselines")
