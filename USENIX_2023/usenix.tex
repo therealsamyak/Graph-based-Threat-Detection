@@ -24,21 +24,27 @@ University of California, Los Angeles
 
 
 \subsection*{Abstract}
-Lateral movement in cloud VPC networks is notoriously difficult to detect because internal traffic is trusted by default and no single log source provides complete visibility into attacker behavior. We present a graph-based detection system that combines network flow logs and authentication logs into a unified streaming graph, extracts structural, temporal, and statistical features, and scores nodes and edges for lateral movement likelihood. Our evaluation on the LANL-Dataset-2015 (58 days, 1.6B+ events, 749 labeled red-team attacks) and DAPT2020 (simulated APT with labeled kill-chain stages) demonstrates that the combined method achieves the highest AUC (0.9456) and lowest false positive rate (0.0005) compared to single-source baselines. We identify three key detection signals: attack traffic is overwhelmingly TCP (99.82\% vs. 50\% benign), the fan-out ratio follows a predictable arc across the kill chain (2.5 $\rightarrow$ 6.0 $\rightarrow$ 1.0), and attackers exhibit 35.7$\times$ longer inter-arrival times than normal users. Feature importance analysis reveals that active duration (5.5$\times$ higher for attackers), inter-arrival variance (4.5$\times$), and in-degree (3.3$\times$) are the strongest discriminators. These findings confirm that multi-log graph analysis provides richer detection signal than single-source methods, though low pair-space recall highlights the challenge of isolating rare attack edges in massive enterprise graphs.
+\begin{itemize}
+\item \textbf{Problem:} Lateral movement in cloud VPCs is hard to detect because internal traffic is trusted by default and individual log sources provide incomplete visibility.
+\item \textbf{Approach:} Build a streaming graph from combined network flow logs and authentication logs, extract structural, temporal, and statistical features, and score nodes/edges for lateral movement likelihood.
+\item \textbf{Key question:} Does combining both log sources via graph analysis improve detection accuracy and latency compared to single-source baselines?
+\item \textbf{Setup:} Analysis of two public datasets: LANL-Dataset-2015 (58 days of cloud VPC network events from Los Alamos National Laboratory with red-team ground truth) and DAPT2020 (simulated APT attack scenarios with labeled attack stages).
+\item \textbf{Expected contributions:} Graph construction pipeline from multi-source logs, combined detection method outperforming single-source baselines, analysis of which graph features best separate attack traffic from normal operations.
+\end{itemize}
 
 \section{Introduction}
 
-Cloud VPC networks present a complex security landscape where internal traffic flows freely between hosts by default. Lateral movement, the phase of an attack where an adversary pivots through a compromised network to reach high-value targets, is especially difficult to detect because the volume of benign connections dwarfs the few that matter. Existing intrusion detection tools were built for perimeter monitoring and struggle with the noise and dynamism of cloud VPC environments, where diverse user activity and constant connection churn mask attacker activity.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{lat_mvmt.png}
+\caption{Modified Advanced-Persistent-Threat Model, showing Lateral Movement as the step after the attacker compromises one machine (Foothold). Adapted from Mamun et al.~\cite{APT-detection}.}
+\label{fig:lat_mvmt}
+\end{figure}
+
+Cloud VPC (Virtual Private Cloud) networks present a complex security landscape where internal traffic flows freely between hosts by default. Lateral movement, the phase of an attack where an adversary pivots through a compromised network to reach high-value targets, is especially difficult to detect because the volume of benign connections dwarfs the few that matter. Existing intrusion detection tools were built for perimeter monitoring and struggle with the noise and dynamism of cloud VPC environments, where diverse user activity and constant connection churn mask attacker activity.
 
 No single log source provides enough signal to reliably identify lateral movement. Network flow logs capture connections but cannot distinguish an attacker's session from an admin's; authentication logs record login events but are blind to reconnaissance via port scans or data exfiltration that never triggers a login. Prior detection methods have relied on either signature matching, which misses novel attack patterns, or anomaly detection on a single log source, which floods analysts with false positives on busy production networks. We propose combining both log types into a unified streaming graph where computers and identities are nodes, connections and authentication events are edges, and graph-based feature analysis can detect the structural and temporal patterns that distinguish lateral movement from routine operations. This paper presents our graph construction pipeline, the detection methodology, and an evaluation on the LANL-Dataset-2015 and DAPT2020 datasets against single-source baselines.
 
-\section{Related Work}
-
-Graph-based detection methods model relationships between system events and reason over paths or substructures. Hopper~\cite{hopper2021} builds a login graph from authentication events and uses path inference to flag lateral movement sequences. However, its reliance on authentication logs alone means it cannot detect movement that bypasses login entirely, such as exploitation of services or use of stolen session tokens. We extend this idea by incorporating network flow logs, capturing lateral movement paths that never produce an authentication event. Euler~\cite{euler2023} applies temporal link prediction to cloud VPC network graphs, treating lateral movement as a link prediction problem in an evolving graph. Its temporal modeling is a strong baseline for our own temporal graph features, though it operates on a single data source. POIROT~\cite{poirot2019} matches provenance graph templates against audit logs to detect known attack patterns. Template matching is effective when attack structures are known in advance but cannot catch novel variations; we use anomaly-based scoring instead and adapt the graph model to cloud VPC network logs rather than host-level audit data.
-
-Multi-log correlation approaches combine evidence from separate data sources to improve detection coverage. HOLMES~\cite{holmes2019} correlates system audit logs across multiple stages of the kill chain, mapping observed behavior to MITRE ATT\&CK tactics and producing a real-time threat score. Its multi-stage correlation confirms that combining log sources can improve detection, and its kill-chain framing shaped our detection pipeline structure. However, HOLMES operates on host-level audit logs in traditional enterprise settings, whereas we target network flow logs and authentication events at cloud VPC network scale.
-
-\section{Background and Problem Setting}
 \begin{itemize}
 \item Lateral movement definition: post-exploitation phase where attacker pivots through network to reach targets, sits between initial access and objectives (data exfiltration, privilege escalation)
 \item Kill-chain context: reconnaissance, initial compromise, lateral movement, objective completion
@@ -47,74 +53,104 @@ Multi-log correlation approaches combine evidence from separate data sources to 
 \item Why existing tools fall short: perimeter IDS sees only north-south traffic; host-based agents miss network context; SIEM correlation rules are brittle and require manual tuning; network flow analysis alone lacks authentication context
 \end{itemize}
 
-\section{Methods and Approach}
+\section{Related Work}
 
-We test whether a graph built from both network flow and authentication logs detects more red-team lateral movement pairs than graphs from either source alone. We also run five unsupervised anomaly detectors on the same edge feature matrix to check whether hand-crafted scoring outperforms generic tabular methods.
+
+\textbf{Where Related Work Should Go:} We decided to place it near the top, as we believe it's "essential for motivation". We want to clearly start off explaining existing strategies and implementations, and then explain their limitations. Then, we can go deep into what makes our approach different (graph-based detection from multiple log sources). This allows the reader to clearly separate our new ideas from what already exists, and justifies it due to the limitations.
+\newline
+
+Graph-based detection methods model relationships between system events and reason over paths or substructures. Hopper~\cite{hopper2021} builds a login graph from authentication events and uses path inference to flag lateral movement sequences. However, its reliance on authentication logs alone means it cannot detect movement that bypasses login entirely, such as exploitation of services or use of stolen session tokens. We extend this idea by incorporating network flow logs, capturing lateral movement paths that never produce an authentication event. Euler~\cite{euler2023} applies temporal link prediction to cloud VPC network graphs, treating lateral movement as a link prediction problem in an evolving graph. Its temporal modeling is a strong baseline for our own temporal graph features, though it operates on a single data source. POIROT~\cite{poirot2019} matches provenance graph templates against audit logs to detect known attack patterns. Template matching is effective when attack structures are known in advance but cannot catch novel variations; we use anomaly-based scoring instead and adapt the graph model to cloud VPC network logs rather than host-level audit data.
+
+Multi-log correlation approaches combine evidence from separate data sources to improve detection coverage. HOLMES~\cite{holmes2019} correlates system audit logs across multiple stages of the kill chain, mapping observed behavior to MITRE ATT\&CK tactics and producing a real-time threat score. Its multi-stage correlation confirms that combining log sources can improve detection, and its kill-chain framing shaped our detection pipeline structure. However, HOLMES operates on host-level audit logs in traditional enterprise settings, whereas we target network flow logs and authentication events at cloud VPC network scale.
+
+\section{Methodology}
+
+We test whether a graph built from both network flow and authentication logs detects more lateral movement pairs than graphs from either source alone. We also compare against two standard unsupervised anomaly detectors applied to the same edge feature vector.
 
 \subsection{Graph Construction}
 
-We model the network as a directed multigraph in igraph. Nodes are computers and users; edges are authentication events or network flows. A \texttt{StreamingGraphBuilder} reads gzipped CSV files line-by-line, keeping only events within merged time windows derived from red-team ground truth (Section~5.1). Events outside all windows are skipped, so memory stays proportional to active windows, not the full 1.6-billion-event dataset.
+We model the network as a directed multigraph. Nodes represent computers and users; edges represent authentication events or network flows. A streaming builder reads gzipped CSV files line-by-line, keeping only events within specified time windows. Events outside all windows are skipped, so memory stays proportional to active windows, not the full dataset.
 
-For each authentication event, the builder adds a computer-to-computer edge storing auth type, logon type, orientation, success, and timestamp. If both source and destination users are present, a user-to-user edge is added with the same attributes. For each flow event, a computer-to-computer edge stores protocol, source/destination ports, packet count, byte count, duration, and timestamp. When multiple events share the same $(src, dst)$ pair, the edge weight increments and only the first and last timestamps are kept. Duplicates become weight, not separate edges. Node types are inferred by a simple rule: names containing \texttt{\$} before \texttt{@} or ending with \texttt{\$} are machine accounts; everything else is a user.
+For each authentication event, the builder adds a computer-to-computer edge storing auth type, logon type, orientation, success, and timestamp. If both source and destination users are present, a user-to-user edge is added with the same attributes. For each flow event, a computer-to-computer edge stores protocol, source/destination ports, packet count, byte count, duration, and timestamp. When multiple events share the same $(src, dst)$ pair, the edge weight increments and only the first and last timestamps are kept. Duplicates become weight, not separate edges. Node types are inferred by naming convention: names containing \texttt{\$} before \texttt{@} or ending with \texttt{\$} are machine accounts; everything else is a user.
 
-After all events are streamed, the edge map is materialized into an igraph object. Three graph variants are built per run: \emph{flow-only} ($\approx$11,586 nodes, 131,562 edges), \emph{auth-only} ($\approx$90,783 nodes, 409,100 edges), and \emph{combined} ($\approx$91,589 nodes, 512,529 edges). Each graph is freed after scoring to limit memory to roughly 4~GB.
+After all events are streamed, the edge map is materialized into an igraph graph object. Three graph variants are built per run: \emph{flow-only}, \emph{auth-only}, and \emph{combined}. Each graph is freed after scoring to limit memory.
 
 \subsection{Feature Extraction}
 
-We extract features at three levels (node, edge, graph) independently for each variant.
+We extract features across three levels: node, edge, and graph. Each feature captures a structural, temporal, or statistical property of the network activity.
 
 \textbf{Node features.}
-For each node we compute in-degree, out-degree, total degree, and fan-out ratio (out-degree / total degree). Fan-out ratio targets a specific lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed exactly for graphs under 5,000 nodes; for larger graphs we use igraph's cutoff parameter at 3~hops, which approximates betweenness in $O(|E|)$ instead of $O(|V||E|)$.
+For each node we compute in-degree, out-degree, total degree, and fan-out ratio (out-degree / total degree). Fan-out ratio captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed exactly for small graphs; for larger graphs we use igraph's cutoff parameter, which approximates betweenness in $O(|E|)$ instead of $O(|V||E|)$.
 
-We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration. The burst score separates reconnaissance, which produces many connections in a short burst, from persistent movement, which has longer and more regular spacing.
+We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration.
 
 \textbf{Edge features.}
-Each edge receives 12 features. For all edges: edge rarity ($1 / \text{weight}$), source out-degree, destination in-degree, source fan-out, normalized weight, self-loop flag, and user-edge flag. For authentication edges specifically: whether the auth type is NTLM, whether the logon type is Network (remote access), and whether authentication succeeded. For flow edges specifically: whether the destination port is in the lateral movement set $\{$22, 23, 445, 3389, 5985, 5986$\}$ or above 49,152 (ephemeral); protocol rarity ($1 - \text{proportion of edges using that protocol}$); byte-per-packet ratio as a percentile rank; and duration z-score. Self-loops and user-to-user edges are excluded from scoring.
+Each edge receives a set of features. For all edges: edge rarity ($1 / \text{weight}$), source out-degree, destination in-degree, source fan-out, normalized weight, self-loop flag, and user-edge flag. For authentication edges: whether the auth type is NTLM, whether the logon type is Network (remote access), and whether authentication succeeded. For flow edges: whether the destination port is in the lateral movement set $\{$22, 23, 445, 3389, 5985, 5986$\}$ or above 49,152 (ephemeral); protocol rarity ($1 - \text{proportion of edges using that protocol}$); byte-per-packet ratio as a percentile rank; and duration z-score.
 
 \textbf{Graph features.}
 Density, average clustering coefficient (computed on the undirected version), weakly connected component count, node count, and edge count.
 
+\begin{itemize}
+\item \textit{Future work:}
+\begin{itemize}
+\item Narrow feature set to 3--5 per flow type based on domain knowledge and signal analysis
+\item Run ablation on reduced feature set across graph scoring and baselines for direct comparison
+\end{itemize}
+\end{itemize}
+
 \subsection{Edge Scoring}
 
-Edges are scored with a weighted sum whose terms depend on edge type. The weights are set from domain knowledge (NTLM is common in pass-the-hash attacks, uncommon connections are more suspicious) and have not been tuned; we plan to optimize them in future work.
+Edges are scored with a weighted sum whose terms depend on edge type. Each scoring function selects a small number of features from the edge feature vector described above and combines them with weights based on domain knowledge.
 
 Authentication edges:
 \begin{equation}
 \begin{aligned}
-s_{\text{auth}} ={}& 0.4 \cdot \text{is\_ntlm} \\
-                  &+ 0.3 \cdot \text{is\_network\_logon} \\
-                  &+ 0.3 \cdot \text{rarity\_rank}
+s_{\text{auth}} ={}& w_1 \cdot f_{\text{auth},1} \\
+                   &+ w_2 \cdot f_{\text{auth},2} \\
+                   &+ w_3 \cdot f_{\text{auth},3}
 \end{aligned}
 \end{equation}
-NTLM gets the highest weight because pass-the-hash attacks produce NTLM authentication events on networks that predominantly use Kerberos. Network logon type indicates remote access. Rarity rank is the percentile of $1/\text{weight}$ among all edges: low-weight edges are unusual and thus more suspicious.
+where $f_{\text{auth},i}$ are selected auth-relevant features (e.g., authentication type indicators, logon type flags, edge rarity) and $w_i$ are their corresponding weights. The specific features and weights are still being refined; the current configuration targets signals known to correlate with lateral movement techniques such as pass-the-hash and remote access patterns.
 
 Flow edges:
 \begin{equation}
 \begin{aligned}
-s_{\text{flow}} ={}& 0.4 \cdot \text{rarity\_rank} \\
-                  &+ 0.3 \cdot \text{is\_unusual\_dst\_port} \\
-                  &+ 0.3 \cdot \text{protocol\_rarity\_rank}
+s_{\text{flow}} ={}& w_1 \cdot f_{\text{flow},1} \\
+                   &+ w_2 \cdot f_{\text{flow},2} \\
+                   &+ w_3 \cdot f_{\text{flow},3}
 \end{aligned}
 \end{equation}
-Rarity is weighted highest because uncommon source-destination pairs are the strongest single signal in flow data. The unusual-port flag encodes knowledge of which services attackers use for lateral movement. Protocol rarity captures deviations from the normal protocol distribution.
+where $f_{\text{flow},i}$ are selected flow-relevant features (e.g., edge rarity, destination port flags, protocol rarity) targeting patterns such as uncommon connections and use of lateral-movement-associated services. As with auth scoring, the specific features and weights are subject to ongoing refinement.
 
-For the combined method, auth edges receive a $1.5\times$ multiplier because auth signals are more informative per edge but far fewer in number (409k auth edges vs.\ 131k flow edges). Without this multiplier, auth scores would be drowned out by the larger flow population.
+For the combined method, auth edges receive a $1.5\times$ multiplier because auth signals are more informative per edge but far fewer in number. Without this multiplier, auth scores would be drowned out by the larger flow population.
+
+\begin{itemize}
+\item \textit{Future work:}
+\begin{itemize}
+\item Optimize scoring weights via grid search or Bayesian optimization once feature set is finalized
+\item Current weights are domain-knowledge defaults and have not been tuned
+\end{itemize}
+\end{itemize}
 
 \subsection{Path Scoring}
 
-Single-edge scoring misses multi-hop attack chains. To capture these, we enumerate paths through the graph via breadth-first search from every node, up to 4~hops, following only the top 10 outgoing edges per node ranked by edge score. Enumeration runs in parallel across 12 CPU workers.
+Single-edge scoring misses multi-hop attack chains. To capture these, we enumerate paths through the graph via breadth-first search from every node, up to 4~hops, following only the top outgoing edges per node ranked by edge score.
 
 Each path is scored as the mean of three aggregates of its constituent edge scores: geometric mean (high if every edge is somewhat suspicious), maximum edge score (high if any single hop is very suspicious), and arithmetic mean. The top 50 paths by score are retained. Every edge that appears in a top-50 path receives a boost of $0.1 \times \text{path\_score}$ added to its own score, capped at 1.0. This feeds path-level signal back into edge-level detection.
 
-\subsection{Unsupervised Baselines}
-
-We also run five unsupervised anomaly detectors on the 12-dimensional edge feature vector: Isolation Forest (100 trees, 5\% contamination), Local Outlier Factor, One-Class SVM (RBF kernel, $\nu{=}0.1$), Elliptic Envelope, and PCA reconstruction error. Each detector is trained on benign edges only and produces an anomaly score for every edge. This gives a direct comparison between hand-crafted scoring and standard learned methods on the same ground-truth pairs. All five use scikit-learn defaults except where noted.
-
 \subsection{Threshold Selection}
 
-Anomalous edges are identified by thresholding final edge scores. We sweep percentiles $[90, 95, 97, 99, 99.5, 99.9]$ and pick the one that maximizes F1 against known red-team pairs. The selected thresholds are 95th percentile for auth-only, 97th for flow-only, and 97th for combined. We acknowledge that optimizing on the same labeled data used for evaluation is a limitation: these thresholds may not generalize to unseen attack patterns.
+Anomalous edges are identified by thresholding final edge scores. We sweep percentile values and pick the one that maximizes F1 against known red-team pairs.
 
-\section{Data and Experimental Setup}
+\begin{itemize}
+\item \textit{Future work:}
+\begin{itemize}
+\item Move threshold selection to held-out validation set (currently optimized on evaluation data)
+\end{itemize}
+\end{itemize}
+
+
+\section{Experiment Setup}
 
 \subsection{Datasets}
 
@@ -126,6 +162,25 @@ Because loading 1.6 billion events is impractical, we scope the data using time 
 \textbf{DAPT2020.}
 The secondary dataset is DAPT2020~\cite{dapt2020}, which provides pre-extracted CICFlowMeter features from simulated APT attack traffic. It contains 86,690 flow records with 77 numerical features (packet length statistics, inter-arrival times, flag counts, segment size averages) plus activity and stage labels. Lateral movement samples are identified by filtering the \texttt{Stage} column for entries containing ``lateral movement.'' We use this dataset to compare our graph-based approach against standard anomaly detectors operating on tabular features.
 
+\subsection{Data Characteristics}
+
+Several structural and temporal patterns in the datasets motivate our graph feature design. Attack traffic is nearly all TCP (99.82\% for LANL red-team flows vs.\ roughly 50\% for benign traffic), motivating the \texttt{protocol\_rarity} edge feature and the \texttt{is\_unusual\_dst\_port} flag. The fan-out ratio follows a predictable arc across the kill chain: rising from 2.5 during reconnaissance to 6.0 during lateral movement before dropping to 1.0 during exfiltration (DAPT2020), motivating \texttt{fan\_out\_ratio} as a node-level feature. Attackers exhibit 35.7$\times$ longer inter-arrival times than normal users (LANL), motivating temporal node features such as \texttt{inter\_arrival\_mean} and \texttt{inter\_arrival\_std}. These patterns are relational: they come from connections between entities, not from individual events.
+
+\subsection{Baseline Methods}
+
+We compare our graph-based scoring against two unsupervised anomaly detectors: Isolation Forest and One-Class SVM. Both are trained on benign edges only and produce an anomaly score for every edge. They operate on the same edge feature vector used by our graph scoring method, giving a direct comparison between hand-crafted scoring and standard learned methods on the same ground-truth pairs.
+
+\textbf{Isolation Forest} (100 estimators, 5\% contamination) isolates anomalies by randomly partitioning the feature space. \textbf{One-Class SVM} (RBF kernel, $\gamma{=}\text{``scale''}$, $\nu{=}0.1$) learns a decision boundary around normal data in a kernel-transformed space.
+
+For DAPT2020, both detectors additionally run on the 77 CICFlowMeter features. One caveat: the DAPT2020 baselines and our graph methods run on different datasets with different feature spaces, so their numbers are not directly comparable. The DAPT2020 results serve as a reference point for tabular anomaly detection on a related task, not a head-to-head comparison.
+
+\begin{itemize}
+\item \textit{Future work:}
+\begin{itemize}
+\item Tune hyperparameters for Isolation Forest and One-Class SVM (currently scikit-learn defaults)
+\end{itemize}
+\end{itemize}
+
 \subsection{Evaluation Metrics}
 
 All metrics are computed in pair-space: after thresholding, anomalous edges are collapsed into source-destination pairs, which are compared against the 308 ground-truth red-team pairs.
@@ -134,31 +189,35 @@ All metrics are computed in pair-space: after thresholding, anomalous edges are 
 
 With 308 red-team pairs among hundreds of thousands of total edges, precision will always be low. The meaningful comparison is AUC (ranking quality) and FPR at matched recall (cost of achieving detection).
 
-\subsection{Baseline Methods}
-
-We compare two groups of baselines. On LANL-2015, five unsupervised tabular detectors (Section~4.5) run on the same 12-dimensional edge feature matrix as our graph methods, scored against the same 305 red-team pairs. On DAPT2020, One-Class SVM (RBF kernel, $\gamma{=}\text{``scale''}$, $\nu{=}0.1$) and Isolation Forest (100 estimators, 5\% contamination) run on the 77 CICFlowMeter features. Both are trained on normal-only samples and tested on mixed data.
-
-An important caveat: the DAPT2020 baselines and our graph methods run on different datasets with different feature spaces, so their numbers are not directly comparable. The DAPT2020 results serve as a reference point for tabular anomaly detection on a related task, not a head-to-head comparison.
-
 \subsection{Implementation}
 
-The pipeline is implemented in Python. igraph handles graph operations; scikit-learn provides baselines and metrics. All hyperparameters live in a JSON config file. The scoring weights (Equations~1--2), auth weight multiplier ($1.5\times$), path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) are initial values that have not been tuned. End-to-end execution for all three graph variants plus baselines takes approximately 4 hours on a 12-core machine.
+The pipeline is implemented in Python. igraph handles graph operations; scikit-learn provides baselines and metrics. All hyperparameters live in a JSON config file. The scoring weights (Equations~1--2), auth weight multiplier ($1.5\times$), path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) are initial values that have not been tuned. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors. End-to-end execution for all three graph variants plus baselines takes approximately 4 hours on a 12-core machine.
+
+\begin{itemize}
+\item \textit{Future work:}
+\begin{itemize}
+\item Narrow feature set to 3--5 per flow type; ensure baselines use same reduced set for direct comparison
+\item Optimize scoring weights via grid search or Bayesian optimization
+\item Tune baseline hyperparameters (currently defaults)
+\item Run statistical significance testing on all results
+\item Measure computational cost (CPU, memory, wall-clock time) across all methods
+\item Current results are a proof of concept, not an optimized system
+\end{itemize}
+\end{itemize}
 
 
 \section{Results}
 
-Figure~\ref{fig:roc} presents the receiver operating characteristic (ROC) curves for the detection methods evaluated on the LANL-Dataset-2015. The auth-only method achieves the highest AUC (0.9542), followed by the combined method (0.9380) and the flow-only method (0.5779). The auth-only and combined curves bow significantly above the random baseline diagonal, indicating strong discriminative power in ranking attack edges above benign edges. The flow-only curve stays close to the diagonal, confirming that network flow patterns alone provide little signal for lateral movement detection.
+Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, across all decision thresholds. The auth-only method achieves the highest AUC (0.954), followed closely by the combined method (0.938) and Isolation Forest (0.906), while flow-only (0.578) and One-Class SVM (0.638) lag substantially. The auth-only and combined curves bow significantly above the random baseline diagonal, indicating strong discriminative power in ranking attack edges above benign edges. The flow-only curve stays close to the diagonal, confirming that network flow features alone (without authentication context) cannot separate attack edges from the volume of normal traffic. The takeaway is clear: authentication logs provide the strongest signal for lateral movement detection, and combining them with flow logs maintains high discriminative power while enabling path-based analysis.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{roc_curves.png}
-\caption{ROC curves for all detection methods on LANL-2015. Auth-only achieves the highest AUC (0.9542), followed by combined (0.9380) and flow-only (0.5779). The auth-only and combined curves bow above the random baseline, demonstrating strong edge-level discriminative power. \textit{(Figure by: Wesley Gunawan)}}
+\caption{ROC curves for five detection methods on LANL-2015. Auth-only achieves the highest AUC (0.954), followed by combined (0.938) and Isolation Forest (0.906). The auth-only and combined curves bow above the random baseline, demonstrating strong edge-level discriminative power. \textit{(Figure by: Wesley Gunawan)}}
 \label{fig:roc}
 \end{figure}
 
-This figure validates the paper's central hypothesis that authentication logs provide the strongest signal for lateral movement detection, and that combining them with flow logs maintains high discriminative power while adding complementary coverage. The auth-only AUC of 0.9542 indicates that the scoring function (Equation~1) effectively ranks NTLM-based pass-the-hash attacks and network logon events above normal authentication traffic. The combined method's slightly lower AUC (0.9380) reflects the dilution effect of adding 131K flow edges to 409K auth edges, even with the 1.5$\times$ auth weight multiplier. The flow-only AUC of 0.5779 confirms that network flow patterns alone are nearly random for this detection task. Together, these results demonstrate that the unified graph approach preserves the strong signal from authentication logs while enabling path-based analysis that neither source can achieve alone.
-
-Figure~\ref{fig:scores} shows the distribution of anomaly scores for all edges in the combined method. The baseline edges (green) are spread broadly across the score range from 0.0 to 0.9, with a large spike at 1.0 caused by the path boost mechanism that amplifies scores for edges appearing in suspicious multi-hop paths. The red-team edges (orange, barely visible due to their small count relative to 512K baseline edges) are concentrated near the high-score end of the distribution.
+Figure~\ref{fig:scores} shows the distribution of anomaly scores for all edges in the combined method. Baseline edges (green) span the full score range from 0.0 to 0.9, with a large spike at 1.0 caused by the path boost mechanism that amplifies scores for edges appearing in suspicious multi-hop paths. Red-team edges (orange, barely visible due to their small count relative to 512K baseline edges) are concentrated near the high-score end of the distribution.
 
 \begin{figure}[htbp]
 \centering
@@ -167,50 +226,43 @@ Figure~\ref{fig:scores} shows the distribution of anomaly scores for all edges i
 \label{fig:scores}
 \end{figure}
 
-This figure reveals a key challenge in lateral movement detection: the baseline score distribution is broad and overlapping, making it difficult to set a single threshold that cleanly separates attack edges from benign edges. The large spike at score 1.0 is an artifact of the path boost mechanism (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges appearing in top-50 suspicious paths. This boost creates a bimodal distribution where a small fraction of edges receive maximum scores. The red-team edges, while concentrated at higher scores, are too few (305 out of 512K edges) to form a visible peak in the histogram. This visual evidence confirms that the scoring function produces a wide range of scores for baseline traffic, and that the rarity of attack edges in massive enterprise graphs makes them difficult to isolate with a fixed threshold. Future work should explore adaptive per-node baselines or supervised learning to improve separation.
+This figure reveals a key challenge in lateral movement detection: the baseline score distribution is broad and overlapping, making it difficult to set a single threshold that cleanly separates attack edges from benign edges. The large spike at score 1.0 is an artifact of the path boost mechanism (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges appearing in top-50 suspicious paths. The red-team edges, while concentrated at higher scores, are too few (305 out of 512K edges) to form a visible peak in the histogram. This visual evidence confirms that the scoring function produces a wide range of scores for baseline traffic, and that the rarity of attack edges in massive enterprise graphs makes them difficult to isolate with a fixed threshold.
 
-% \subsection{Tabular Baselines on LANL-2015}
-% \label{sec:baselines_lanl}
+\label{sec:baselines_lanl}
+Table~\ref{tab:methods_lanl} reports five methods evaluated on the same LANL-2015 run: three graph-based variants and two unsupervised baselines, all scored against 305 red-team source-destination pairs. \textbf{Numbers are not final and subject to change.}
 
-% Table~\ref{tab:methods_lanl} reports all eight methods evaluated on
-% the same LANL-2015 run: three graph-based variants using the
-% manually-weighted scoring formulas, and five unsupervised tabular
-% detectors using \texttt{scikit-learn} defaults trained on benign
-% edges only. All eight methods are scored against the same 305
-% red-team source-destination pairs.
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+Method & Recall & FPR & F1 & AUC \\
+\hline
+\multicolumn{5}{l}{\textit{Graph-based (pair space)}} \\
+auth\_only            & 0.0032 & 0.0001 & 0.0056 & \textbf{0.9542} \\
+combined              & 0.0000 & 0.0001 & 0.0000 & 0.9380 \\
+flow\_only            & 0.0000 & 0.0004 & 0.0000 & 0.5779 \\
+\hline
+\multicolumn{5}{l}{\textit{Unsupervised baselines (edge space)}} \\
+Isolation Forest      & 0.3961 & 0.0498 & 0.0094 & 0.9059 \\
+One-Class SVM         & 0.3896 & 0.0990 & 0.0047 & 0.6381 \\
+\hline
+\end{tabular}
+\caption{Five methods on LANL-2015 (run \texttt{20260504\_011631}, 512{,}529-edge combined graph, 305 red-team pairs). Graph scoring uses \texttt{is\_ntlm}, \texttt{is\_network\_logon}, \texttt{edge\_rarity} for auth edges; \texttt{edge\_rarity}, \texttt{is\_unusual\_dst\_port}, \texttt{protocol\_rarity} for flow edges. Baselines use the full edge feature vector with scikit-learn defaults. \textit{(Table by: Ibrahim Pehlivan)}}
+\label{tab:methods_lanl}
+\end{table}
 
-% \begin{table}[h]
-% \centering
-% \begin{tabular}{lcccc}
-% \hline
-% Method & Recall & FPR & F1 & AUC \\
-% \hline
-% \multicolumn{5}{l}{\textit{Graph-based (pair space)}} \\
-% combined              & 0.662 & 0.020 & 0.039 & \textbf{0.954} \\
-% auth\_only            & 0.747 & 0.030 & 0.036 & 0.951 \\
-% flow\_only            & 0.013 & 0.030 & 0.002 & 0.579 \\
-% \hline
-% \multicolumn{5}{l}{\textit{Unsupervised tabular baselines (edge space)}} \\
-% Isolation Forest      & 0.741 & 0.050 & 0.024 & 0.940 \\
-% Elliptic Envelope     & 0.000 & 0.050 & 0.000 & 0.774 \\
-% One-Class SVM         & 0.492 & 0.098 & 0.008 & 0.706 \\
-% PCA Reconstruction    & 0.033 & 0.050 & 0.001 & 0.667 \\
-% Local Outlier Factor  & 0.207 & 0.045 & 0.008 & 0.493 \\
-% \hline
-% \end{tabular}
-% \caption{All eight methods on LANL-2015 (run \texttt{20260502\_165755}, 364{,}802-edge feature matrix, 305 red-team pairs). Graph methods evaluate threshold-dependent metrics in pair space (deduplicated source-destination pairs); tabular baselines evaluate in edge space. AUC is comparable across both spaces.}
-% \label{tab:methods_lanl}
-% \end{table}
+The auth-only method achieves the highest AUC (0.9542), indicating that authentication logs provide the strongest signal for lateral movement detection. The combined method (0.9380) maintains high discriminative power while enabling path-based analysis. Among baselines, Isolation Forest leads (0.9059). The flow-only method (0.5779) confirms that network flow patterns alone are nearly random for this detection task.
 
-% The combined graph method is strongest overall (AUC 0.954). Among
-% baselines, Isolation Forest leads (AUC 0.940), within 0.015 of
-% combined and within 0.011 of auth-only. LOF underperforms on the
-% full data because the feature matrix is dominated by binary
-% indicators, which saturate the local-density signal LOF relies on.
-% The graph method's edge over the best baseline is small in AUC but
-% larger in false-positive rate
-
-
+\subsection{Earlier Results Draft:}
+\begin{itemize}
+\item Detection rate: percentage of red-team lateral movement events detected by each method (flow-only, auth-only, combined)
+\item False positive rate: percentage of normal traffic flagged as suspicious by each method
+\item Detection latency: time from attack event occurrence to alert generation
+\item Throughput: number of log records processed per second by the pipeline
+\item System overhead: CPU and memory usage of graph construction and scoring components
+\item Comparison: combined method vs flow-only baseline vs auth-only baseline, with discussion of cases where each method succeeds or fails
+\item Feature analysis: which graph features contribute most to detection (structural vs temporal vs statistical)
+\end{itemize}
 
 \section{Discussion and Limitations}
 \begin{itemize}
