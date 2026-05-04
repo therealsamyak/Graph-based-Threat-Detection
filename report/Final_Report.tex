@@ -77,17 +77,15 @@ After all events are streamed, the edge map is materialized into an igraph graph
 
 \subsection{Feature Extraction}
 
-We extract features across three levels: node, edge, and graph. Each feature captures a structural, temporal, or statistical property of the network activity.
+We extract 23 unique features across three granularities: per-connection (11), per-host (7), and per-network-snapshot (5). Several features have derived variants used internally (e.g., total degree = in-degree + out-degree; fan-out ratio = out-degree / total degree; source/destination degree projected onto edges) but these represent the same underlying signals, not new ones.
 
-\textbf{Node features.}
-For each node we compute in-degree, out-degree, total degree, and fan-out ratio (out-degree / total degree). Fan-out ratio captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). The centrality of the difference is computed exactly for small graphs; for larger graphs we use the igraph cutoff parameter, which approximates the difference in $O(|E|)$ instead of $O(|V||E|)$.
+\textbf{Connection features (11).}
+Each edge receives: edge rarity ($1 / \text{weight}$, percentile-ranked), self-loop flag, user-edge flag, and a temporal decay weight (exponential decay from most recent event; currently disabled). For authentication edges: whether the auth type is NTLM, whether the logon type is Network (remote access), and whether authentication succeeded. For flow edges: whether the destination port is in the lateral movement set $\{$22, 23, 445, 3389, 5985, 5986$\}$ or above 49,152 (ephemeral); protocol rarity ($1 - \text{proportion of edges using that protocol}$); byte-per-packet ratio as a percentile rank; and duration z-score.
 
-We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration.
+\textbf{Host features (7).}
+For each node we compute in-degree and out-degree. Fan-out ratio (out-degree / total degree) captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed exactly for small graphs; for larger graphs we use the igraph cutoff parameter, which approximates it in $O(|E|)$ instead of $O(|V||E|)$. We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration. Node degree features are also projected onto edges as \texttt{src\_out\_degree} and \texttt{dst\_in\_degree} so that flat baselines (which only see edge-level data) can use connectivity information.
 
-\textbf{Edge features.}
-Each edge receives a set of features. For all edges: edge rarity ($1 / \text{weight}$), source out-degree, destination in-degree, source fan-out, normalized weight, self-loop flag, and user-edge flag. For authentication edges: whether the auth type is NTLM, whether the logon type is Network (remote access), and whether authentication succeeded. For flow edges: whether the destination port is in the lateral movement set $\{$22, 23, 445, 3389, 5985, 5986$\}$ or above 49,152 (ephemeral); protocol rarity ($1 - \text{proportion of edges using that protocol}$); byte-per-packet ratio as a percentile rank; and duration z-score.
-
-\textbf{Graph features.}
+\textbf{Network features (5).}
 Density, average clustering coefficient (computed on the undirected version), weakly connected component count, node count, and edge count.
 
 \begin{itemize}

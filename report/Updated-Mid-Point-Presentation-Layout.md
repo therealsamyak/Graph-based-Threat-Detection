@@ -87,39 +87,56 @@
 - "Edge rarity" = whether this specific connection (source → destination) has been seen before — new connections are more suspicious than recurring ones
 - Think of the graph like a social network: people (users) and places (computers) are nodes, interactions are edges, and we're looking for suspicious social circles
 
-## Slide 7: 29 Features Extracted at Three Levels
+## Slide 7: 23 Unique Features
 
-**Edge-level (15)** — computed per connection:
-- Structural: edge_rarity (1/weight → percentile), src_out_degree, dst_in_degree, source_fan_out, weight_norm, is_self_loop, is_user_edge
-- Auth-specific: is_ntlm, is_network_logon, is_success_auth
-- Flow-specific: is_unusual_dst_port, protocol_rarity, byte_per_packet, duration_zscore
-- Temporal: temporal_decay_weight (exp decay from most recent event; currently disabled at decay_rate=0)
+We extract 23 unique features. Some are computed at different granularities (per-connection, per-host, per-snapshot) but all represent distinct signals. Node-level degree features (in_degree, out_degree) are also stamped onto edges as src_out_degree and dst_in_degree so that flat baselines can use them — these are the same signal, not new features.
 
-**Node-level (9)** — computed per host:
-- Structural: in_degree, out_degree, total_degree, fan_out_ratio, betweenness_centrality
-- Temporal: inter_arrival_mean, inter_arrival_std, burst_score, active_duration
+**Connection features (11)** — computed per network connection:
+- edge_rarity, is_self_loop, is_user_edge, is_ntlm, is_network_logon, is_success_auth, is_unusual_dst_port, protocol_rarity, byte_per_packet, duration_zscore, temporal_decay_weight
 
-**Graph-level (5)** — computed per network snapshot:
+**Host features (7)** — computed per host (node):
+- in_degree, out_degree, fan_out_ratio, betweenness_centrality, inter_arrival_mean, inter_arrival_std, burst_score, active_duration
+
+**Network features (5)** — computed per network snapshot:
 - density, avg_clustering, component_count, node_count, edge_count
 
 All features are dataset-agnostic — computed from graph topology and edge attributes regardless of log source
 
 ### Speaker Notes
 
-- 29 features total. Not all are used in scoring — see next slides for which ones feed each method
-- "Edge rarity" = 1/weight → percentile rank. First-time connections are rarest and most suspicious
-- "Source out-degree" / "destination in-degree" = how many outgoing/incoming connections each endpoint has
-- "Fan-out ratio" = out_degree / total_degree — measures how "wide" a node's activity is
-- "Betweenness centrality" = how often this node sits on shortest paths between other nodes — high = bridge/pivot point
-- "NTLM" = older, weaker auth protocol attackers favor for relay attacks
-- "Network logon" (LogonType 3) = remote authentication to another machine
-- "Unusual destination port" = SSH (22), Telnet (23), SMB (445), RDP (3389), WinRM (5985/5986), or ephemeral (>49152)
-- "Protocol rarity" = 1 − (fraction of all flow edges using that protocol)
-- "Bytes per packet" ratio — abnormal values suggest exfiltration or tunneling
-- "Duration z-score" = how many standard deviations from mean duration
-- Node temporal features derived from edge timestamps: inter-arrival = gap between consecutive connections, burst = fraction of events in a 10% time window
-- Graph-level features summarize overall network structure
-- "Temporal decay weight" = exponential decay so recent events score higher (currently disabled, decay_rate=0 → always 1.0)
+- 23 unique features. Some have derived variants (total_degree = in + out, src_out_degree = source node's out_degree projected onto edge) but these are math on existing features, not new signals
+- Node features are extracted but currently NOT used in any scoring or baseline — only edge features feed detection. Node features are saved for future ablation studies
+- Not all features are used in scoring — see next slides for which ones feed each method
+
+**Connection features:**
+
+- **edge_rarity**: 1/edge_weight → percentile rank. First-time or rare connections score highest. If A→B has been seen once vs. thousands of times, it's rare and suspicious
+- **is_self_loop**: 1 if source = destination (computer connecting to itself). Almost never attack-related; used as a filter, not a signal
+- **is_user_edge**: 1 if either endpoint is a user identity node. Filtered out during scoring
+- **is_ntlm**: 1 if auth protocol is NTLM — older, weaker protocol attackers favor for relay and pass-the-hash attacks
+- **is_network_logon**: 1 if logon type is "Network" (LogonType 3 = remote machine-to-machine auth). Primary vehicle for lateral movement
+- **is_success_auth**: 1 if auth succeeded. Failed = possible brute-force; succeeded on suspicious path = confirmed compromise
+- **is_unusual_dst_port**: 1 if port is SSH(22), Telnet(23), SMB(445), RDP(3389), WinRM(5985/5986), or ephemeral(>49152). Ports attackers use for remote access
+- **protocol_rarity**: 1 − (fraction of all flow edges using that protocol). Uncommon protocols = more suspicious
+- **byte_per_packet**: Bytes ÷ packets, percentile-ranked. Abnormal ratios suggest exfiltration or tunneling
+- **duration_zscore**: Standard deviations from mean connection duration. Unusually long = backdoor; short = scanning
+- **temporal_decay_weight**: Exponential decay so recent events score higher. Currently disabled (decay_rate=0 → always 1.0)
+
+**Host features:**
+
+- **in_degree / out_degree**: Incoming/outgoing connection counts for this host. A machine suddenly talking to 50 others instead of 5 is suspicious. These are projected onto edges as dst_in_degree and src_out_degree for flat baselines
+- **fan_out_ratio**: out_degree / total_degree. Near 1.0 = mostly reaching out (scanning); near 0.0 = mostly receiving (server). Derived from in/out degree but captures a distinct behavioral pattern
+- **betweenness_centrality**: How often this node sits on shortest paths between others. High = bridge/pivot point. Attackers naturally pass through high-betweenness nodes
+- **inter_arrival_mean / inter_arrival_std**: Average and std dev of time gaps between this node's connections. Irregular timing = possible automated tools
+- **burst_score**: Fraction of events in the busiest 10% time window. Sudden spike = scanning burst or mass exploitation
+- **active_duration**: Total active time span (last − first event). Very long or short durations may be anomalous
+
+**Network features:**
+
+- **density**: Actual edges ÷ max possible edges. Sparse = anomalies stand out more
+- **avg_clustering**: How tightly interconnected neighborhoods are. Low clustering + high degree = star topology (possible C2)
+- **component_count**: Number of disconnected subgraphs. Changes reveal structural shifts
+- **node_count / edge_count**: Size metrics for normalization
 
 ## Slide 8: Baselines — Flat Tabular Detection Without Graph Structure
 
@@ -153,7 +170,7 @@ All features are dataset-agnostic — computed from graph topology and edge attr
 
 ### Speaker Notes
 
-- The graph scorer uses only 6 of 29 features — deliberately minimal. The other 23 are extracted but not yet incorporated into scoring (future ablation targets)
+- The graph scorer uses only 6 of 23 features — deliberately minimal. The other 17 are extracted but not yet incorporated into scoring (future ablation targets)
 - Why only 6: these were the most discriminative features in initial analysis. is_ntlm flags weak auth protocols (attackers love NTLM), is_network_logon flags machine-to-machine connections, edge_rarity flags first-time connections
 - "auth_weight_multiplier=1.5" means auth edges get a 50% boost over flow edges in combined mode — reflects that auth logs carry stronger attack signals
 - Path scoring is the key differentiator: edges are not scored independently. A path A→B→C where each edge scores 0.3 becomes a path score of ~0.9 — the suspicion accumulates
@@ -225,7 +242,7 @@ All features are dataset-agnostic — computed from graph topology and edge attr
 
 ## Slide 13: Next Steps & Open Questions
 
-- Systematic feature selection via ablation studies — which of the 29 features help vs. add noise
+- Systematic feature selection via ablation studies — which of the 23 features help vs. add noise
 - Statistical validation with proper hypothesis testing, not just descriptive stats
 - Scale to all 1.6B+ LANL events; tune weights via grid search or Bayesian optimization
 - Open question: "Should we prioritize improving DAPT2020 performance or maximizing LANL results?"
