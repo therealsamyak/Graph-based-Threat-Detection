@@ -158,6 +158,17 @@ Figure~\ref{fig:roc} presents the receiver operating characteristic (ROC) curves
 
 This figure validates the paper's central hypothesis that authentication logs provide the strongest signal for lateral movement detection, and that combining them with flow logs maintains high discriminative power while adding complementary coverage. The auth-only AUC of 0.9542 indicates that the scoring function (Equation~1) effectively ranks NTLM-based pass-the-hash attacks and network logon events above normal authentication traffic. The combined method's slightly lower AUC (0.9380) reflects the dilution effect of adding 131K flow edges to 409K auth edges, even with the 1.5$\times$ auth weight multiplier. The flow-only AUC of 0.5779 confirms that network flow patterns alone are nearly random for this detection task. Together, these results demonstrate that the unified graph approach preserves the strong signal from authentication logs while enabling path-based analysis that neither source can achieve alone.
 
+Figure~\ref{fig:scores} shows the distribution of anomaly scores for red-team edges versus baseline edges in the combined method. Red-team edges (orange) cluster at higher scores (mean = 0.85) compared to baseline edges (blue, mean = 0.53), confirming that the scoring function successfully differentiates attack traffic from normal operations. The separation between the two distributions demonstrates that the hand-crafted scoring weights (Equations~1--2) produce meaningful score gaps between attack and benign edges.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{score_distribution.png}
+\caption{Anomaly score distribution for red-team edges (orange) versus baseline edges (blue) in the combined method. Red-team edges cluster at higher scores (mean = 0.85 vs. 0.53), confirming that the scoring function differentiates attack traffic from normal operations. \textit{(Figure by: Ibrahim Pehlivan)}}
+\label{fig:scores}
+\end{figure}
+
+This figure provides direct visual evidence that the graph-based scoring function produces separable score distributions for attack and benign edges. The red-team score distribution peaks near 0.85, well above the baseline peak near 0.53, indicating that the scoring function assigns systematically higher suspicion to edges involved in lateral movement. The overlap between the two distributions explains why threshold-based pair-space recall remains low: some red-team edges receive scores in the baseline range, particularly those that resemble normal traffic patterns. However, the clear separation in the means (0.85 vs. 0.53) confirms that the scoring function captures meaningful signal, and that adaptive thresholding or supervised learning on these scores could further improve detection performance.
+
 % \subsection{Tabular Baselines on LANL-2015}
 % \label{sec:baselines_lanl}
 
