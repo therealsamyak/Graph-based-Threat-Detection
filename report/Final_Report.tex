@@ -208,8 +208,6 @@ The pipeline is implemented in Python. igraph handles graph operations; scikit-l
 
 \section{Results}
 
-\section{Results}
-
 Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, plotting true positive rate against false positive rate as the decision threshold is swept. The combined graph method (AUC~$=$~0.954) achieves the highest ranking quality, marginally ahead of auth-only (0.951) and Isolation Forest (0.940), while flow-only (0.579) and One-Class SVM (0.706) lag substantially. Although the AUC gap between combined and auth-only is narrow (0.003), the combined method achieves this ranking at a materially lower false positive rate (2.0\% vs.\ 3.0\%), meaning it flags roughly one-third fewer benign pairs to achieve comparable recall. The flow-only curve hugs the diagonal, confirming that network flow features alone (without authentication context) cannot separate attack edges from the overwhelming volume of normal enterprise traffic. These results support the paper's central claim: multi-log graph construction yields the strongest detection because it combines complementary signals that neither source provides in isolation.
 
 \begin{figure}[htbp]
