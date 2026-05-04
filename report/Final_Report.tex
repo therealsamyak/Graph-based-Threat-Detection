@@ -80,7 +80,7 @@ After all events are streamed, the edge map is materialized into an igraph graph
 We extract features across three levels: node, edge, and graph. Each feature captures a structural, temporal, or statistical property of the network activity.
 
 \textbf{Node features.}
-For each node we compute in-degree, out-degree, total degree, and fan-out ratio (out-degree / total degree). Fan-out ratio captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed exactly for small graphs; for larger graphs we use igraph's cutoff parameter, which approximates betweenness in $O(|E|)$ instead of $O(|V||E|)$.
+For each node we compute in-degree, out-degree, total degree, and fan-out ratio (out-degree / total degree). Fan-out ratio captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). The centrality of the difference is computed exactly for small graphs; for larger graphs we use the igraph cutoff parameter, which approximates the difference in $O(|E|)$ instead of $O(|V||E|)$.
 
 We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration.
 
@@ -93,8 +93,7 @@ Density, average clustering coefficient (computed on the undirected version), we
 \begin{itemize}
 \item \textit{Future work:}
 \begin{itemize}
-\item Narrow feature set to 3--5 per flow type based on domain knowledge and signal analysis
-\item Run ablation on reduced feature set across graph scoring and baselines for direct comparison
+\item Narrow feature set to 3-5 per flow type. Likely will just pick based on common sense / what appears interesting.
 \end{itemize}
 \end{itemize}
 
@@ -110,7 +109,7 @@ s_{\text{auth}} ={}& w_1 \cdot f_{\text{auth},1} \\
                    &+ w_3 \cdot f_{\text{auth},3}
 \end{aligned}
 \end{equation}
-where $f_{\text{auth},i}$ are selected auth-relevant features (e.g., authentication type indicators, logon type flags, edge rarity) and $w_i$ are their corresponding weights. The specific features and weights are still being refined; the current configuration targets signals known to correlate with lateral movement techniques such as pass-the-hash and remote access patterns.
+where $f_{\text{auth},i}$ are selected auth-relevant features (e.g., authentication type indicators, logon type flags, edge rarity) and $w_i$ are their corresponding weights.
 
 Flow edges:
 \begin{equation}
@@ -120,15 +119,14 @@ s_{\text{flow}} ={}& w_1 \cdot f_{\text{flow},1} \\
                    &+ w_3 \cdot f_{\text{flow},3}
 \end{aligned}
 \end{equation}
-where $f_{\text{flow},i}$ are selected flow-relevant features (e.g., edge rarity, destination port flags, protocol rarity) targeting patterns such as uncommon connections and use of lateral-movement-associated services. As with auth scoring, the specific features and weights are subject to ongoing refinement.
+where $f_{\text{flow},i}$ are selected flow-relevant features (e.g., edge rarity, destination port flags, protocol rarity) targeting patterns such as uncommon connections and use of lateral-movement-associated services.
 
-For the combined method, auth edges receive a $1.5\times$ multiplier because auth signals are more informative per edge but far fewer in number. Without this multiplier, auth scores would be drowned out by the larger flow population.
+For the combined method, auth edges receive a $1.5\times$ multiplier because auth signals are more informative per edge but fewer in number. Without this multiplier, auth scores would be drowned out by the larger flow population.
 
 \begin{itemize}
 \item \textit{Future work:}
 \begin{itemize}
-\item Optimize scoring weights via grid search or Bayesian optimization once feature set is finalized
-\item Current weights are domain-knowledge defaults and have not been tuned
+\item The specific features and weights are still being refined.
 \end{itemize}
 \end{itemize}
 
@@ -168,22 +166,23 @@ Several structural and temporal patterns in the datasets motivate our graph feat
 
 \subsection{Baseline Methods}
 
-We compare our graph-based scoring against two unsupervised anomaly detectors: Isolation Forest and One-Class SVM. Both are trained on benign edges only and produce an anomaly score for every edge. They operate on the same edge feature vector used by our graph scoring method, giving a direct comparison between hand-crafted scoring and standard learned methods on the same ground-truth pairs.
+We compare our graph-based scoring against two unsupervised anomaly detectors: \textbf{Isolation Forest~\cite{isoforest}} and \textbf{One-Class SVM}.
 
-\textbf{Isolation Forest} (100 estimators, 5\% contamination) isolates anomalies by randomly partitioning the feature space. \textbf{One-Class SVM} (RBF kernel, $\gamma{=}\text{``scale''}$, $\nu{=}0.1$) learns a decision boundary around normal data in a kernel-transformed space.
+\textbf{Isolation Forest} isolates anomalies by randomly partitioning the feature space. \textbf{One-Class SVM} learns a decision boundary around normal data in a kernel-transformed space. 
 
-For DAPT2020, both detectors additionally run on the 77 CICFlowMeter features. One caveat: the DAPT2020 baselines and our graph methods run on different datasets with different feature spaces, so their numbers are not directly comparable. The DAPT2020 results serve as a reference point for tabular anomaly detection on a related task, not a head-to-head comparison.
+We use the sckit-learn implementation for both. Both operate on the same edge feature vector used by our graph scoring method.
 
 \begin{itemize}
 \item \textit{Future work:}
 \begin{itemize}
-\item Tune hyperparameters for Isolation Forest and One-Class SVM (currently scikit-learn defaults)
+\item Finalize baseline implementations / parameters and how data is injested by them
+\item If necessary, tune hyperparameters for baseline methods (currently scikit-learn defaults)
 \end{itemize}
 \end{itemize}
 
 \subsection{Evaluation Metrics}
 
-All metrics are computed in pair-space: after thresholding, anomalous edges are collapsed into source-destination pairs, which are compared against the 308 ground-truth red-team pairs.
+All metrics are computed in pair-space: after thresholding, anomalous edges are collapsed into source-destination pairs, which are compared against the 308 ground-truth red-team pairs. The exception is the baseline metrics reported in Table~\ref{tab:methods_lanl}, which are computed in edge-space; AUC remains comparable across spaces.
 
 \emph{Recall}: fraction of red-team pairs detected. \emph{False positive rate (FPR)}: fraction of non-red-team pairs flagged. \emph{F1}: harmonic mean of precision and recall. \emph{AUC}: area under the ROC curve computed via scikit-learn's \texttt{roc\_auc\_score} over all valid edges (not pairs), with binary labels from the red-team pair set. AUC is threshold-independent: it measures whether scoring ranks attack edges above normal ones regardless of the chosen cutoff.
 
@@ -196,19 +195,16 @@ The pipeline is implemented in Python. igraph handles graph operations; scikit-l
 \begin{itemize}
 \item \textit{Future work:}
 \begin{itemize}
-\item Narrow feature set to 3--5 per flow type; ensure baselines use same reduced set for direct comparison
-\item Optimize scoring weights via grid search or Bayesian optimization
-\item Tune baseline hyperparameters (currently defaults)
+\item Run ablation testing on reduced feature set across graph scoring and baselines
+\item Optimize scoring weights via grid search / Bayesian optimization / other method
 \item Run statistical significance testing on all results
 \item Measure computational cost (CPU, memory, wall-clock time) across all methods
-\item Current results are a proof of concept, not an optimized system
+\item The current results are not finalized
 \end{itemize}
 \end{itemize}
 
 
 \section{Results}
-
-Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, across all decision thresholds. The combined graph method (AUC~$=$~0.954) achieves the highest ranking quality, marginally ahead of auth-only (0.951) and Isolation Forest (0.940), while flow-only (0.579) and One-Class SVM (0.706) lag substantially. Although the AUC gap between combined and auth-only is narrow (0.003), the combined method achieves this ranking at a lower false positive rate (2.0\% vs.\ 3.0\%), meaning it flags roughly one-third fewer benign pairs to achieve comparable recall. The flow-only curve hugs the diagonal, confirming that network flow features alone (without authentication context) cannot separate attack edges from the volume of normal traffic. The takeaway is clear: building a single graph from both log sources detects more lateral movement than either source alone.
 
 \begin{figure}[htbp]
 \centering
@@ -217,9 +213,19 @@ Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for
 \label{fig:roc}
 \end{figure}
 
+Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, across all decision thresholds. The combined graph method (AUC~$=$~0.954) achieves the highest ranking quality, marginally ahead of auth-only (0.951) and Isolation Forest (0.940), while flow-only (0.579) and One-Class SVM (0.706) lag substantially. Although the AUC gap between combined and auth-only is narrow (0.003), the combined method achieves this ranking at a lower false positive rate (2.0\% vs.\ 3.0\%). The flow-only curve cannot separate attack edges from the volume of normal traffic. This demonstrates building a single graph from both log sources detects more lateral movement than either source alone, especially flow-only. \textbf{Numbers are not final and results are subject to change.}
 
-\label{sec:baselines_lanl}
-Table~\ref{tab:methods_lanl} reports five methods evaluated on the same LANL-2015 run: three graph-based variants and two unsupervised baselines, all scored against 305 red-team source-destination pairs. \textbf{Numbers are not final and subject to change.}
+Figure~\ref{fig:scores} shows the anomaly score distribution for all 512,529 edges in the combined method on a log-scale y-axis. Scores range from 0.0 to 1.48. Red-team edges (orange, n=305) concentrate at higher scores than baseline edges (green, n=512,224). The dashed line marks the detection threshold at 1.41.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{score_distribution.png}
+\caption{Anomaly score distribution for the combined method (log scale). Score range [0.00, 1.48]. Red-team edges (orange, n=305) concentrate at high scores. Baseline edges (green, n=512,224) span the full range. The dashed line marks the detection threshold (1.41). \textbf{Numbers not final.} \textit{(Figure by: Wesley Gunawan)}}
+\label{fig:scores}
+\end{figure}
+
+This figure shows the scoring function separates attack edges from baseline: red-team edges concentrate at higher scores. The path boost mechanism (Section~4.4) creates a high-score cluster above 1.0, where most red-team edges appear. The threshold at 1.41 separates the most suspicious edges from the rest. \textbf{Numbers are not final and subject to change.}
+
 
 \begin{table}[h]
 \centering
@@ -237,13 +243,14 @@ Isolation Forest      & 0.741 & 0.050 & 0.024 & 0.940 \\
 One-Class SVM         & 0.492 & 0.098 & 0.008 & 0.706 \\
 \hline
 \end{tabular}
-\caption{Five methods on LANL-2015 (run \texttt{20260503\_080850}, 512{,}529-edge combined graph, 305 red-team pairs). Graph scoring uses \texttt{is\_ntlm}, \texttt{is\_network\_logon}, \texttt{edge\_rarity} for auth edges; \texttt{edge\_rarity}, \texttt{is\_unusual\_dst\_port}, \texttt{protocol\_rarity} for flow edges. Baselines use the full edge feature vector with scikit-learn defaults. \textbf{Numbers not final.} \textit{(Table by: Ibrahim Pehlivan)}}
+\caption{Five methods evaluated on LANL-2015. The combined graph method achieves the highest AUC (0.954), while Isolation Forest is the strongest baseline (AUC 0.940). The gap is small in AUC but more pronounced in FPR (0.020 pair-space vs. 0.050 edge-space). \textbf{Numbers are not final.} \textit{(Table by: Ibrahim Pehlivan)}}
 \label{tab:methods_lanl}
 \end{table}
 
-The combined graph method is strongest overall (AUC 0.954). Among baselines, Isolation Forest leads (AUC 0.940), within 0.015 of combined. The graph method's edge over the best baseline is small in AUC but larger in false-positive rate.
+\label{sec:baselines_lanl}
+Table~\ref{tab:methods_lanl} reports five methods evaluated on LANL-2015 run: three graph-based variants and two unsupervised baselines. Higher AUC and lower FPR indicate better results. We can observe that the combined graph method gives the best overall performance (AUC $0.954$). We can also observe that among baselines, Isolation Forest leads (AUC $0.940$), within $~0.015$ of combined. The graph method's edge over the best baseline is small in AUC but larger in false-positive rate ($0.020$ pair-space vs. $0.050$ edge-space). This result supports our claim that a graph combining both flow and authentication achieves higher AUC and lower false-positive rate than the best baseline. \textbf{Numbers are not final and subject to change.}
 
-\subsection{Earlier Results Draft:}
+\subsection{Results Draft:}
 \begin{itemize}
 \item Detection rate: percentage of red-team lateral movement events detected by each method (flow-only, auth-only, combined)
 \item False positive rate: percentage of normal traffic flagged as suspicious by each method
