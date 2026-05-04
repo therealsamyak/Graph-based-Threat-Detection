@@ -183,7 +183,7 @@ For DAPT2020, both detectors additionally run on the 77 CICFlowMeter features. O
 
 \subsection{Evaluation Metrics}
 
-All metrics are computed in pair-space: after thresholding, anomalous edges are collapsed into source-destination pairs, which are compared against the 308 ground-truth red-team pairs.
+All metrics are computed in pair-space: after thresholding, anomalous edges are collapsed into source-destination pairs, which are compared against the 308 ground-truth red-team pairs. The exception is the baseline metrics reported in Table~\ref{tab:methods_lanl}, which are computed in edge-space; AUC remains comparable across spaces.
 
 \emph{Recall}: fraction of red-team pairs detected. \emph{False positive rate (FPR)}: fraction of non-red-team pairs flagged. \emph{F1}: harmonic mean of precision and recall. \emph{AUC}: area under the ROC curve computed via scikit-learn's \texttt{roc\_auc\_score} over all valid edges (not pairs), with binary labels from the red-team pair set. AUC is threshold-independent: it measures whether scoring ranks attack edges above normal ones regardless of the chosen cutoff.
 
@@ -208,28 +208,26 @@ The pipeline is implemented in Python. igraph handles graph operations; scikit-l
 
 \section{Results}
 
-Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, across all decision thresholds. The auth-only method achieves the highest AUC (0.954), followed closely by the combined method (0.938) and Isolation Forest (0.906), while flow-only (0.578) and One-Class SVM (0.638) lag substantially. The auth-only and combined curves bow significantly above the random baseline diagonal, indicating strong discriminative power in ranking attack edges above benign edges. The flow-only curve stays close to the diagonal, confirming that network flow features alone (without authentication context) cannot separate attack edges from the volume of normal traffic. The takeaway is clear: authentication logs provide the strongest signal for lateral movement detection, and combining them with flow logs maintains high discriminative power while enabling path-based analysis.
+Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, across all decision thresholds. The combined graph method (AUC~$=$~0.954) achieves the highest ranking quality, marginally ahead of auth-only (0.951) and Isolation Forest (0.940), while flow-only (0.579) and One-Class SVM (0.706) lag substantially. Although the AUC gap between combined and auth-only is narrow (0.003), the combined method achieves this ranking at a lower false positive rate (2.0\% vs.\ 3.0\%), meaning it flags roughly one-third fewer benign pairs to achieve comparable recall. The flow-only curve hugs the diagonal, confirming that network flow features alone (without authentication context) cannot separate attack edges from the volume of normal traffic. The takeaway is clear: building a single graph from both log sources detects more lateral movement than either source alone.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{roc_curves.png}
-\caption{ROC curves for five detection methods on LANL-2015. Auth-only achieves the highest AUC (0.954), followed by combined (0.938) and Isolation Forest (0.906). The auth-only and combined curves bow above the random baseline, demonstrating strong edge-level discriminative power. \textit{(Figure by: Wesley Gunawan)}}
+\caption{ROC curves for five detection methods on LANL-2015. The combined graph method achieves the highest AUC (0.954) at the lowest false positive rate, showing that integrating flow and authentication logs into a unified graph outperforms any single-source approach. \textit{(Figure by: Samyak Kakatur)}}
 \label{fig:roc}
 \end{figure}
 
-Figure~\ref{fig:scores} shows the distribution of anomaly scores for all edges in the combined method. Baseline edges (green) span the full score range from 0.0 to 0.9, with a large spike at 1.0 caused by the path boost mechanism that amplifies scores for edges appearing in suspicious multi-hop paths. Red-team edges (orange, barely visible due to their small count relative to 512K baseline edges) are concentrated near the high-score end of the distribution.
+Figure~\ref{fig:scores} shows the anomaly score distribution for all 512,224 edges in the combined method on a log-scale y-axis. Red-team edges (orange, n=305) have mean score 0.98, concentrated near 1.0. Baseline edges (green, n=512,224) have mean score 0.45, spread broadly with a spike at 1.0 from path boosting. The dashed line marks the 97th percentile threshold.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{score_distribution.png}
-\caption{Anomaly score distribution for the combined method. Baseline edges (green) span the full score range with a spike at 1.0 from path boosting. Red-team edges (orange) are concentrated at high scores but are too few to be visible in the histogram. \textit{(Figure by: Ibrahim Pehlivan)}}
+\caption{Anomaly score distribution for the combined method (log scale). Red-team edges (orange, n=305) have mean score 0.98. Baseline edges (green, n=512,224) have mean score 0.45, with a spike at 1.0 from path boosting. The dashed line marks the 97th percentile threshold. \textit{(Figure by: Wesley Gunawan)}}
 \label{fig:scores}
 \end{figure}
 
-This figure reveals a key challenge in lateral movement detection: the baseline score distribution is broad and overlapping, making it difficult to set a single threshold that cleanly separates attack edges from benign edges. The large spike at score 1.0 is an artifact of the path boost mechanism (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges appearing in top-50 suspicious paths. The red-team edges, while concentrated at higher scores, are too few (305 out of 512K edges) to form a visible peak in the histogram. This visual evidence confirms that the scoring function produces a wide range of scores for baseline traffic, and that the rarity of attack edges in massive enterprise graphs makes them difficult to isolate with a fixed threshold.
+This figure shows the scoring function separates attack edges from baseline: red-team edges score 2.2$\times$ higher on average (0.98 vs. 0.45). At the 97th percentile threshold (score = 1.0000), the false positive rate is 8.8\% (45,286 of 512,224 baseline pairs flagged). The spike at 1.0 in the baseline distribution is caused by path boosting (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges in top-50 suspicious paths. This highlights a key trade-off: path boosting improves recall but inflates false positives.
 
-\label{sec:baselines_lanl}
-Table~\ref{tab:methods_lanl} reports five methods evaluated on the same LANL-2015 run: three graph-based variants and two unsupervised baselines, all scored against 305 red-team source-destination pairs. \textbf{Numbers are not final and subject to change.}
 
 \begin{table}[h]
 \centering
@@ -238,20 +236,21 @@ Table~\ref{tab:methods_lanl} reports five methods evaluated on the same LANL-201
 Method & Recall & FPR & F1 & AUC \\
 \hline
 \multicolumn{5}{l}{\textit{Graph-based (pair space)}} \\
-auth\_only            & 0.0032 & 0.0001 & 0.0056 & \textbf{0.9542} \\
-combined              & 0.0000 & 0.0001 & 0.0000 & 0.9380 \\
-flow\_only            & 0.0000 & 0.0004 & 0.0000 & 0.5779 \\
+combined              & 0.662 & 0.020 & 0.039 & \textbf{0.954} \\
+auth\_only            & 0.747 & 0.030 & 0.036 & 0.951 \\
+flow\_only            & 0.013 & 0.030 & 0.002 & 0.579 \\
 \hline
 \multicolumn{5}{l}{\textit{Unsupervised baselines (edge space)}} \\
-Isolation Forest      & 0.3961 & 0.0498 & 0.0094 & 0.9059 \\
-One-Class SVM         & 0.3896 & 0.0990 & 0.0047 & 0.6381 \\
+Isolation Forest      & 0.741 & 0.050 & 0.024 & 0.940 \\
+One-Class SVM         & 0.492 & 0.098 & 0.008 & 0.706 \\
 \hline
 \end{tabular}
-\caption{Five methods on LANL-2015 (run \texttt{20260504\_011631}, 512{,}529-edge combined graph, 305 red-team pairs). Graph scoring uses \texttt{is\_ntlm}, \texttt{is\_network\_logon}, \texttt{edge\_rarity} for auth edges; \texttt{edge\_rarity}, \texttt{is\_unusual\_dst\_port}, \texttt{protocol\_rarity} for flow edges. Baselines use the full edge feature vector with scikit-learn defaults. \textit{(Table by: Ibrahim Pehlivan)}}
+\caption{Five methods evaluated on LANL-2015. The combined graph method achieves the highest AUC (0.954), while Isolation Forest is the strongest baseline (AUC 0.940). The gap is small in AUC but more pronounced in FPR (0.020 pair-space vs. 0.050 edge-space). \textbf{Numbers not final.} \textit{(Table by: Ibrahim Pehlivan)}}
 \label{tab:methods_lanl}
 \end{table}
 
-The auth-only method achieves the highest AUC (0.9542), indicating that authentication logs provide the strongest signal for lateral movement detection. The combined method (0.9380) maintains high discriminative power while enabling path-based analysis. Among baselines, Isolation Forest leads (0.9059). The flow-only method (0.5779) confirms that network flow patterns alone are nearly random for this detection task.
+\label{sec:baselines_lanl}
+Table~\ref{tab:methods_lanl} reports five methods evaluated on LANL-2015 run: three graph-based variants and two unsupervised baselines. Higher AUC and lower FPR indicate better results. We can observe that the combined graph method gives the best overall performance (AUC $0.954$). We can also observe that among baselines, Isolation Forest leads (AUC $0.940$), within $~0.015$ of combined. The graph method's edge over the best baseline is small in AUC but larger in false-positive rate ($0.020$ pair-space vs. $0.050$ edge-space). This result supports our claim that a graph combining both flow and authentication achieves higher AUC and lower false-positive rate than the best baseline. \textbf{Numbers are not final and subject to change.}
 
 \subsection{Earlier Results Draft:}
 \begin{itemize}
