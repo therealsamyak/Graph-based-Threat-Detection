@@ -1,0 +1,11 @@
+method,dataset,recall,fpr,f1,edge_recall,edge_f1,auc,latency,detection_latency_sec,throughput,graph_nodes,graph_edges,rt_pairs_in_graph,rt_edges_in_graph,rt_edges_detected,anomalous_edges,anomalous_pairs,threshold,max_path_score,mean_edge_score,redteam_mean_score,baseline_mean_score
+flow_only,LANL-2015,0.0,0.0043,0.0,0.0,0.0,0.0,8.04,0.0,6222.4,3983.0,11739.0,0.0,0.0,0.0,1174.0,50.0,0.7126,1.0,0.4684,0.0,0.4684
+auth_only,LANL-2015,0.0,0.0032,0.0,0.0,0.0,0.0,11.48,0.0,4354.8,10423.0,15429.0,0.0,0.0,0.0,1543.0,50.0,0.589,1.0,0.4013,0.0,0.4013
+combined,LANL-2015,0.0,0.0019,0.0,0.0,0.0,0.0,25.95,0.0,3853.8,12488.0,26858.0,0.0,0.0,0.0,2686.0,51.0,0.8428,1.0,0.5448,0.0,0.5448
+isolation_forest,LANL-2015,0.0,0.0,0.0,,,,0.0,,0.0,,,,,,,,,,,,
+lof,LANL-2015,0.0,0.0,0.0,,,,0.0,,0.0,,,,,,,,,,,,
+ocsvm,LANL-2015,0.0,0.0,0.0,,,,0.0,,0.0,,,,,,,,,,,,
+elliptic_envelope,LANL-2015,0.0,0.0,0.0,,,,0.0,,0.0,,,,,,,,,,,,
+pca_reconstruction,LANL-2015,0.0,0.0,0.0,,,,0.0,,0.0,,,,,,,,,,,,
+oneclass_svm,DAPT2020,0.1533,0.0551,0.0145,,,0.5512,0.0,,0.0,,,,,,,,,,,,
+isolation_forest,DAPT2020,1.0,1.0,0.0055,,,0.6255,0.0,,0.0,,,,,,,,,,,,
