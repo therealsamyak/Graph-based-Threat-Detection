@@ -91,37 +91,37 @@ Each edge receives a set of features. For all edges: edge rarity ($1 / \text{wei
 Density, average clustering coefficient (computed on the undirected version), weakly connected component count, node count, and edge count.
 
 \begin{itemize}
-\item \textit{Future work:} Systematic feature selection via ablation studies to determine which of these features provide the most discriminative signal. Not all extracted features are currently used in scoring; the active feature set will be refined as experiments progress.
+\item \textit{Future work:} With 29 features across three levels, exhaustive ablation is computationally infeasible within our project timeframe. We plan to manually narrow the feature set to 3-5 features per flow type based on domain knowledge and preliminary signal analysis, then evaluate that reduced set across both graph scoring and baselines to ensure a direct comparison on identical features.
 \end{itemize}
 
 \subsection{Edge Scoring}
 
-Edges are scored with a weighted sum whose terms depend on edge type.
+Edges are scored with a weighted sum whose terms depend on edge type. Each scoring function selects a small number of features from the edge feature vector described above and combines them with domain-knowledge-driven weights.
 
 Authentication edges:
 \begin{equation}
 \begin{aligned}
-s_{\text{auth}} ={}& 0.4 \cdot \text{is\_ntlm} \\
-                   &+ 0.3 \cdot \text{is\_network\_logon} \\
-                   &+ 0.3 \cdot \text{rarity\_rank}
+s_{\text{auth}} ={}& w_1 \cdot f_{\text{auth},1} \\
+                   &+ w_2 \cdot f_{\text{auth},2} \\
+                   &+ w_3 \cdot f_{\text{auth},3}
 \end{aligned}
 \end{equation}
-NTLM gets the highest weight because pass-the-hash attacks produce NTLM authentication events on networks that predominantly use Kerberos. Network logon type indicates remote access. Rarity rank is the percentile of $1/\text{weight}$ among all edges: low-weight edges are unusual and thus more suspicious.
+where $f_{\text{auth},i}$ are selected auth-relevant features (e.g., authentication type indicators, logon type flags, edge rarity) and $w_i$ are their corresponding weights. The specific features and weights are still being refined; the current configuration targets signals known to correlate with lateral movement techniques such as pass-the-hash and remote access patterns.
 
 Flow edges:
 \begin{equation}
 \begin{aligned}
-s_{\text{flow}} ={}& 0.4 \cdot \text{rarity\_rank} \\
-                   &+ 0.3 \cdot \text{is\_unusual\_dst\_port} \\
-                   &+ 0.3 \cdot \text{protocol\_rarity\_rank}
+s_{\text{flow}} ={}& w_1 \cdot f_{\text{flow},1} \\
+                   &+ w_2 \cdot f_{\text{flow},2} \\
+                   &+ w_3 \cdot f_{\text{flow},3}
 \end{aligned}
 \end{equation}
-Rarity is weighted highest because uncommon source-destination pairs are the strongest single signal in flow data. The unusual-port flag encodes knowledge of which services attackers use for lateral movement. Protocol rarity captures deviations from the normal protocol distribution.
+where $f_{\text{flow},i}$ are selected flow-relevant features (e.g., edge rarity, destination port flags, protocol rarity) targeting patterns such as uncommon connections and use of lateral-movement-associated services. As with auth scoring, the specific features and weights are subject to ongoing refinement.
 
 For the combined method, auth edges receive a $1.5\times$ multiplier because auth signals are more informative per edge but far fewer in number. Without this multiplier, auth scores would be drowned out by the larger flow population.
 
 \begin{itemize}
-\item \textit{Future work:} Weight optimization through grid search or Bayesian optimization. The current weights are initial values set from domain knowledge and have not been tuned.
+\item \textit{Future work:} Weight optimization through grid search or Bayesian optimization once the feature set is finalized. The current weights are initial values set from domain knowledge and have not been tuned.
 \end{itemize}
 
 \subsection{Path Scoring}
@@ -180,7 +180,7 @@ With 308 red-team pairs among hundreds of thousands of total edges, precision wi
 The pipeline is implemented in Python. igraph handles graph operations; scikit-learn provides baselines and metrics. All hyperparameters live in a JSON config file. The scoring weights (Equations~1--2), auth weight multiplier ($1.5\times$), path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) are initial values that have not been tuned. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors. End-to-end execution for all three graph variants plus baselines takes approximately 4 hours on a 12-core machine.
 
 \begin{itemize}
-\item \textit{Future work:} The methodology and results presented are a work in progress. Planned next steps include systematic feature selection, weight optimization, and expanded baseline comparison with tuned hyperparameters. The initial results should be interpreted as a proof of concept rather than an optimized detection system.
+\item \textit{Future work:} The methodology and results presented are a work in progress. Planned next steps include narrowing the feature set to 3-5 features per flow type and ensuring baselines operate on the same reduced feature set for direct comparison, weight optimization for scoring functions, hyperparameter tuning for baselines, statistical significance testing of results, and measuring computational cost (CPU usage, memory, wall-clock time) across all methods. The initial results should be interpreted as a proof of concept rather than an optimized detection system.
 \end{itemize}
 
 
