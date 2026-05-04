@@ -53,15 +53,13 @@ def _mp_run_lanl_baselines(
         _log.warning("LANL baselines: graph_edges.csv not found, using edge_features index")
         return []
 
-    available = [c for c in [
-        "edge_rarity", "src_out_degree", "dst_in_degree", "is_ntlm",
-        "is_network_logon", "is_success_auth", "source_fan_out", "weight_norm",
-        "is_unusual_dst_port", "protocol_rarity", "byte_per_packet", "duration_zscore",
-    ] if c in edge_features.columns]
+    import numpy as np
+
+    from src.baselines.shared_baselines import SCORING_FEATURE_COLUMNS
+
+    available = [c for c in SCORING_FEATURE_COLUMNS if c in edge_features.columns]
     if not available:
         return []
-
-    import numpy as np
 
     mask = (
         (edge_features["is_self_loop"].values == 0.0)
