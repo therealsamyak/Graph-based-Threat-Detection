@@ -49,3 +49,22 @@ It should explain:
 - and why this approach is appropriate for answering your research question.
 
 If parts of the project are still in progress, that is okay — but the draft should clearly explain what has already been done and what remains to be done.
+
+# Figure Description 
+
+A strong paper shows the reader evidence to support its claims.
+For this milestone, every group member should contribute at least one figure or table that helps move the paper’s story forward.
+Each group member must contribute:
+one figure or one table
+inserted directly into the LaTeX paper draft
+with a caption that states the takeaway
+with the group member’s name clearly included
+and with an associated paragraph in the paper explaining how that figure/table advances the argument
+
+Associated paragraph
+For each figure/table, include a short paragraph in the paper that explains:
+what the figure/table shows,
+how to interpret it,
+and how it helps push the story or argument forward.
+This paragraph should connect the evidence to the larger paper.
+All figures and tables should be dropped into the LaTeX paper draft itself.
