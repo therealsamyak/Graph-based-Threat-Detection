@@ -91,7 +91,11 @@ Each edge receives a set of features. For all edges: edge rarity ($1 / \text{wei
 Density, average clustering coefficient (computed on the undirected version), weakly connected component count, node count, and edge count.
 
 \begin{itemize}
-\item \textit{Future work:} With 29 features across three levels, exhaustive ablation is computationally infeasible within our project timeframe. We plan to manually narrow the feature set to 3-5 features per flow type based on domain knowledge and preliminary signal analysis, then evaluate that reduced set across both graph scoring and baselines to ensure a direct comparison on identical features.
+\item \textit{Future work:}
+\begin{itemize}
+\item Narrow feature set to 3--5 per flow type based on domain knowledge and signal analysis
+\item Run ablation on reduced feature set across graph scoring and baselines for direct comparison
+\end{itemize}
 \end{itemize}
 
 \subsection{Edge Scoring}
@@ -121,7 +125,11 @@ where $f_{\text{flow},i}$ are selected flow-relevant features (e.g., edge rarity
 For the combined method, auth edges receive a $1.5\times$ multiplier because auth signals are more informative per edge but far fewer in number. Without this multiplier, auth scores would be drowned out by the larger flow population.
 
 \begin{itemize}
-\item \textit{Future work:} Weight optimization through grid search or Bayesian optimization once the feature set is finalized. The current weights are initial values set from domain knowledge and have not been tuned.
+\item \textit{Future work:}
+\begin{itemize}
+\item Optimize scoring weights via grid search or Bayesian optimization once feature set is finalized
+\item Current weights are domain-knowledge defaults and have not been tuned
+\end{itemize}
 \end{itemize}
 
 \subsection{Path Scoring}
@@ -135,7 +143,10 @@ Each path is scored as the mean of three aggregates of its constituent edge scor
 Anomalous edges are identified by thresholding final edge scores. We sweep percentile values and pick the one that maximizes F1 against known red-team pairs.
 
 \begin{itemize}
-\item \textit{Future work:} We acknowledge that optimizing thresholds on the same labeled data used for evaluation is a limitation. Future work will explore held-out validation strategies for threshold selection.
+\item \textit{Future work:}
+\begin{itemize}
+\item Move threshold selection to held-out validation set (currently optimized on evaluation data)
+\end{itemize}
 \end{itemize}
 
 
@@ -164,7 +175,10 @@ We compare our graph-based scoring against two unsupervised anomaly detectors: I
 For DAPT2020, both detectors additionally run on the 77 CICFlowMeter features. An important caveat: the DAPT2020 baselines and our graph methods run on different datasets with different feature spaces, so their numbers are not directly comparable. The DAPT2020 results serve as a reference point for tabular anomaly detection on a related task, not a head-to-head comparison.
 
 \begin{itemize}
-\item \textit{Future work:} Hyperparameter tuning for both baselines. The current results use standard defaults; tuned parameters may shift relative performance between graph-based and baseline methods.
+\item \textit{Future work:}
+\begin{itemize}
+\item Tune hyperparameters for Isolation Forest and One-Class SVM (currently scikit-learn defaults)
+\end{itemize}
 \end{itemize}
 
 \subsection{Evaluation Metrics}
@@ -180,7 +194,15 @@ With 308 red-team pairs among hundreds of thousands of total edges, precision wi
 The pipeline is implemented in Python. igraph handles graph operations; scikit-learn provides baselines and metrics. All hyperparameters live in a JSON config file. The scoring weights (Equations~1--2), auth weight multiplier ($1.5\times$), path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) are initial values that have not been tuned. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors. End-to-end execution for all three graph variants plus baselines takes approximately 4 hours on a 12-core machine.
 
 \begin{itemize}
-\item \textit{Future work:} The methodology and results presented are a work in progress. Planned next steps include narrowing the feature set to 3-5 features per flow type and ensuring baselines operate on the same reduced feature set for direct comparison, weight optimization for scoring functions, hyperparameter tuning for baselines, statistical significance testing of results, and measuring computational cost (CPU usage, memory, wall-clock time) across all methods. The initial results should be interpreted as a proof of concept rather than an optimized detection system.
+\item \textit{Future work:}
+\begin{itemize}
+\item Narrow feature set to 3--5 per flow type; ensure baselines use same reduced set for direct comparison
+\item Optimize scoring weights via grid search or Bayesian optimization
+\item Tune baseline hyperparameters (currently defaults)
+\item Run statistical significance testing on all results
+\item Measure computational cost (CPU, memory, wall-clock time) across all methods
+\item Current results are a proof of concept, not an optimized system
+\end{itemize}
 \end{itemize}
 
 
