@@ -77,10 +77,10 @@ After all events are streamed, the edge map is materialized into an igraph graph
 
 \subsection{Feature Extraction}
 
-We extract features across three levels: node, edge, and graph. Each feature captures a different structural, temporal, or statistical property of the network activity.
+We extract features across three levels: node, edge, and graph. Each feature captures a structural, temporal, or statistical property of the network activity.
 
 \textbf{Node features.}
-For each node we compute in-degree, out-degree, total degree, and fan-out ratio (out-degree / total degree). Fan-out ratio targets a specific lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed exactly for small graphs; for larger graphs we use igraph's cutoff parameter, which approximates betweenness in $O(|E|)$ instead of $O(|V||E|)$.
+For each node we compute in-degree, out-degree, total degree, and fan-out ratio (out-degree / total degree). Fan-out ratio captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed exactly for small graphs; for larger graphs we use igraph's cutoff parameter, which approximates betweenness in $O(|E|)$ instead of $O(|V||E|)$.
 
 We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration.
 
@@ -100,7 +100,7 @@ Density, average clustering coefficient (computed on the undirected version), we
 
 \subsection{Edge Scoring}
 
-Edges are scored with a weighted sum whose terms depend on edge type. Each scoring function selects a small number of features from the edge feature vector described above and combines them with domain-knowledge-driven weights.
+Edges are scored with a weighted sum whose terms depend on edge type. Each scoring function selects a small number of features from the edge feature vector described above and combines them with weights based on domain knowledge.
 
 Authentication edges:
 \begin{equation}
@@ -164,7 +164,7 @@ The secondary dataset is DAPT2020~\cite{dapt2020}, which provides pre-extracted 
 
 \subsection{Data Characteristics}
 
-Several structural and temporal patterns in the datasets motivate our graph feature design. Attack traffic is nearly all TCP (99.82\% for LANL red-team flows vs.\ roughly 50\% for benign traffic), motivating the \texttt{protocol\_rarity} edge feature and the \texttt{is\_unusual\_dst\_port} flag. The fan-out ratio follows a predictable arc across the kill chain: rising from 2.5 during reconnaissance to 6.0 during lateral movement before dropping to 1.0 during exfiltration (DAPT2020), motivating \texttt{fan\_out\_ratio} as a node-level feature. Attackers exhibit 35.7$\times$ longer inter-arrival times than normal users (LANL), motivating temporal node features such as \texttt{inter\_arrival\_mean} and \texttt{inter\_arrival\_std}. These patterns are inherently relational, emerging from connections between entities rather than from individual events in isolation.
+Several structural and temporal patterns in the datasets motivate our graph feature design. Attack traffic is nearly all TCP (99.82\% for LANL red-team flows vs.\ roughly 50\% for benign traffic), motivating the \texttt{protocol\_rarity} edge feature and the \texttt{is\_unusual\_dst\_port} flag. The fan-out ratio follows a predictable arc across the kill chain: rising from 2.5 during reconnaissance to 6.0 during lateral movement before dropping to 1.0 during exfiltration (DAPT2020), motivating \texttt{fan\_out\_ratio} as a node-level feature. Attackers exhibit 35.7$\times$ longer inter-arrival times than normal users (LANL), motivating temporal node features such as \texttt{inter\_arrival\_mean} and \texttt{inter\_arrival\_std}. These patterns are relational: they come from connections between entities, not from individual events.
 
 \subsection{Baseline Methods}
 
@@ -172,7 +172,7 @@ We compare our graph-based scoring against two unsupervised anomaly detectors: I
 
 \textbf{Isolation Forest} (100 estimators, 5\% contamination) isolates anomalies by randomly partitioning the feature space. \textbf{One-Class SVM} (RBF kernel, $\gamma{=}\text{``scale''}$, $\nu{=}0.1$) learns a decision boundary around normal data in a kernel-transformed space.
 
-For DAPT2020, both detectors additionally run on the 77 CICFlowMeter features. An important caveat: the DAPT2020 baselines and our graph methods run on different datasets with different feature spaces, so their numbers are not directly comparable. The DAPT2020 results serve as a reference point for tabular anomaly detection on a related task, not a head-to-head comparison.
+For DAPT2020, both detectors additionally run on the 77 CICFlowMeter features. One caveat: the DAPT2020 baselines and our graph methods run on different datasets with different feature spaces, so their numbers are not directly comparable. The DAPT2020 results serve as a reference point for tabular anomaly detection on a related task, not a head-to-head comparison.
 
 \begin{itemize}
 \item \textit{Future work:}
@@ -208,12 +208,12 @@ The pipeline is implemented in Python. igraph handles graph operations; scikit-l
 
 \section{Results}
 
-Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, plotting true positive rate against false positive rate as the decision threshold is swept. The combined graph method (AUC~$=$~0.954) achieves the highest ranking quality, marginally ahead of auth-only (0.951) and Isolation Forest (0.940), while flow-only (0.579) and One-Class SVM (0.706) lag substantially. Although the AUC gap between combined and auth-only is narrow (0.003), the combined method achieves this ranking at a materially lower false positive rate (2.0\% vs.\ 3.0\%), meaning it flags roughly one-third fewer benign pairs to achieve comparable recall. The flow-only curve hugs the diagonal, confirming that network flow features alone (without authentication context) cannot separate attack edges from the overwhelming volume of normal enterprise traffic. These results support the paper's central claim: multi-log graph construction yields the strongest detection because it combines complementary signals that neither source provides in isolation.
+Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for all five detection methods evaluated on LANL-2015, across all decision thresholds. The combined graph method (AUC~$=$~0.954) achieves the highest ranking quality, marginally ahead of auth-only (0.951) and Isolation Forest (0.940), while flow-only (0.579) and One-Class SVM (0.706) lag substantially. Although the AUC gap between combined and auth-only is narrow (0.003), the combined method achieves this ranking at a lower false positive rate (2.0\% vs.\ 3.0\%), meaning it flags roughly one-third fewer benign pairs to achieve comparable recall. The flow-only curve hugs the diagonal, confirming that network flow features alone (without authentication context) cannot separate attack edges from the volume of normal traffic. The takeaway is clear: building a single graph from both log sources detects more lateral movement than either source alone.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{roc_curves.png}
-\caption{ROC curves for five detection methods on LANL-2015. The combined graph method achieves the highest AUC (0.954) at the lowest false positive rate, validating that integrating flow and authentication logs into a unified graph outperforms any single-source approach. \textit{(Figure by: Samyak Kakatur)}}
+\caption{ROC curves for five detection methods on LANL-2015. The combined graph method achieves the highest AUC (0.954) at the lowest false positive rate, showing that integrating flow and authentication logs into a unified graph outperforms any single-source approach. \textit{(Figure by: Samyak Kakatur)}}
 \label{fig:roc}
 \end{figure}
 
