@@ -130,7 +130,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     generate_comparison(results_dir=str(results_dir))
 
     # --- Generate figures with real data ---
-    from src.visualize import (
+    from src.visualization import (
         plot_graph_snapshot,
         plot_score_distribution,
         plot_roc_curves,

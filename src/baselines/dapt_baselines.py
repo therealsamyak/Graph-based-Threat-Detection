@@ -8,8 +8,8 @@ import igraph as ig
 import numpy as np
 
 from src.baselines.shared_baselines import SCORING_FEATURE_COLUMNS, run_baselines
-from src.dapt_loader import load_dapt2020
-from src.features import extract_all_features
+from src.data.dapt import load_dapt2020
+from src.features.graph import extract_all_features
 
 logger = logging.getLogger(__name__)
 

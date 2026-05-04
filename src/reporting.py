@@ -35,7 +35,7 @@ def generate_comparison(results_dir: str = "results") -> None:
 
     df = pd.read_csv(metrics_path)
 
-    # ── comparison_table.md ────────────────────────────────────────────
+    # comparison_table.md
     metric_cols = ["recall", "fpr", "f1", "auc", "latency", "throughput"]
     avail = [c for c in metric_cols if c in df.columns]
 
@@ -86,7 +86,7 @@ def generate_comparison(results_dir: str = "results") -> None:
 
     comp_path.write_text(md)
 
-    # ── summary.txt ────────────────────────────────────────────────────
+    # summary.txt
     lines = [
         "LATERAL MOVEMENT DETECTION — KEY FINDINGS",
         "=" * 50,

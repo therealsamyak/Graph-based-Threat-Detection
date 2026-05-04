@@ -8,7 +8,7 @@ import logging
 import igraph as ig
 import pandas as pd
 
-from src.data_loader import _time_in_any_window
+from src.data.lanl import time_in_any_window
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +133,7 @@ def stream_gz_to_graph(
             if time_val > last_end:
                 break
 
-            if not _time_in_any_window(time_val, windows, _starts):
+            if not time_in_any_window(time_val, windows, _starts):
                 continue
 
             row = dict(zip(columns, parts))

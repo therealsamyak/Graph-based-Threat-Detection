@@ -11,18 +11,12 @@ from pathlib import Path
 import igraph as ig
 import pandas as pd
 
-from src.data_loader import (
-    AUTH_COLUMNS,
-    AUTH_NUMERIC,
-    FLOW_COLUMNS,
-    FLOW_NUMERIC,
-    _build_window_intervals,
-    load_redteam,
-)
+from src.data.lanl import AUTH_COLUMNS, AUTH_NUMERIC, FLOW_COLUMNS, FLOW_NUMERIC, build_window_intervals, load_redteam
 from src.detection import compute_pair_metrics, optimize_threshold
-from src.features import extract_all_features
-from src.graph_builder import StreamingGraphBuilder, stream_gz_to_graph
-from src.scorer import boost_edges_from_paths, score_edges, score_graph, score_paths
+from src.features.graph import extract_all_features
+from src.graph.builder import StreamingGraphBuilder, stream_gz_to_graph
+from src.scoring.edges import boost_edges_from_paths, score_edges
+from src.scoring.paths import score_graph, score_paths
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +156,7 @@ def run_streaming_experiment(
 
     rt = load_redteam(str(data_path / "redteam.txt.gz"))
     red_pairs = set(zip(rt["src_comp"].astype(str), rt["dst_comp"].astype(str)))
-    windows = _build_window_intervals(rt, window_seconds)
+    windows = build_window_intervals(rt, window_seconds)
     logger.info(f"Red team: {len(rt)} events, {len(windows)} merged windows")
     viz_data["redteam_times"] = rt["time"]
     viz_data["red_pairs"] = red_pairs

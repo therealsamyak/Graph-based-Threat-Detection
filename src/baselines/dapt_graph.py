@@ -7,10 +7,11 @@ import time
 
 import igraph as ig
 
-from src.dapt_loader import load_dapt2020
+from src.data.dapt import load_dapt2020
 from src.detection import compute_pair_metrics, optimize_threshold
-from src.features import extract_all_features
-from src.scorer import boost_edges_from_paths, score_edges, score_graph, score_paths
+from src.features.graph import extract_all_features
+from src.scoring.edges import boost_edges_from_paths, score_edges
+from src.scoring.paths import score_graph, score_paths
 
 logger = logging.getLogger(__name__)
 
