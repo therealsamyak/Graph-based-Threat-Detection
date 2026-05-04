@@ -8,3 +8,4 @@ results/*.csv
 results/*.parquet
 results/figures/*.png
 results/cache/
+.sisyphus/
