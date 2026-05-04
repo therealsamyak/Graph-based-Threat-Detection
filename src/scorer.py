@@ -297,14 +297,14 @@ def score_paths(
     df = pd.DataFrame(all_paths)
     df = df.sort_values("path_score", ascending=False).head(top_k).reset_index(drop=True)
 
-    # Apply path boost: 0.1 * path_score to each edge in top-50 paths, capped at 1.0
+    # Apply path boost: 0.1 * path_score to each edge in top-50 paths (no cap)
     boost_factor = 0.1
     for _, row in df.iterrows():
         path_score = row["path_score"]
         path_edges = row["path_edges"]
         for eid in path_edges:
             if eid < len(edge_scores_arr):
-                edge_scores_arr[eid] = min(edge_scores_arr[eid] + boost_factor * path_score, 1.0)
+                edge_scores_arr[eid] = edge_scores_arr[eid] + boost_factor * path_score
 
     boosted_scores = pd.Series(edge_scores_arr, index=pd.Index(range(len(edge_scores_arr)), name="edge_index"), name="score")
     return df, boosted_scores
