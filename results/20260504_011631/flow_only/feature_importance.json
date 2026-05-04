@@ -1,0 +1,106 @@
+{
+  "node_feature_importance": {
+    "in_degree": {
+      "redteam_mean": 18.5,
+      "baseline_mean": 11.333,
+      "ratio": 1.6324
+    },
+    "out_degree": {
+      "redteam_mean": 22.7778,
+      "baseline_mean": 11.3197,
+      "ratio": 2.0122
+    },
+    "total_degree": {
+      "redteam_mean": 41.2778,
+      "baseline_mean": 22.6526,
+      "ratio": 1.8222
+    },
+    "fan_out_ratio": {
+      "redteam_mean": 0.3488,
+      "baseline_mean": 0.5546,
+      "ratio": 0.629
+    },
+    "betweenness_centrality": {
+      "redteam_mean": 0.0001,
+      "baseline_mean": 0.0001,
+      "ratio": 1.4548
+    },
+    "inter_arrival_mean": {
+      "redteam_mean": 114299.5162,
+      "baseline_mean": 93230.9619,
+      "ratio": 1.226
+    },
+    "inter_arrival_std": {
+      "redteam_mean": 160607.5457,
+      "baseline_mean": 82695.5188,
+      "ratio": 1.9422
+    },
+    "burst_score": {
+      "redteam_mean": 0.5977,
+      "baseline_mean": 0.4515,
+      "ratio": 1.3238
+    },
+    "active_duration": {
+      "redteam_mean": 788343.8333,
+      "baseline_mean": 360699.646,
+      "ratio": 2.1856
+    }
+  },
+  "edge_feature_importance": {
+    "edge_rarity": {
+      "score_correlation": 0.5243
+    },
+    "src_out_degree": {
+      "score_correlation": -0.1523
+    },
+    "dst_in_degree": {
+      "score_correlation": 0.0716
+    },
+    "src_fan_out": {
+      "score_correlation": 0.374
+    },
+    "normalized_weight": {
+      "score_correlation": -0.3388
+    },
+    "is_self_loop": {
+      "score_correlation": NaN
+    },
+    "is_user_edge": {
+      "score_correlation": NaN
+    },
+    "is_ntlm": {
+      "score_correlation": NaN
+    },
+    "is_network_logon": {
+      "score_correlation": NaN
+    },
+    "auth_success": {
+      "score_correlation": NaN
+    },
+    "is_unusual_dst_port": {
+      "score_correlation": 0.4424
+    },
+    "is_ephemeral": {
+      "score_correlation": -0.0028
+    },
+    "protocol_rarity": {
+      "score_correlation": 0.433
+    },
+    "byte_per_packet_ratio": {
+      "score_correlation": -0.2058
+    },
+    "duration_z_score": {
+      "score_correlation": -0.0465
+    }
+  },
+  "redteam_vs_baseline_stats": {
+    "redteam_mean_score": 0.4964,
+    "baseline_mean_score": 0.442,
+    "redteam_std_score": 0.1785,
+    "baseline_std_score": 0.1834,
+    "redteam_max_score": 0.887,
+    "baseline_max_score": 1.0,
+    "redteam_count": 35,
+    "baseline_count": 131527
+  }
+}

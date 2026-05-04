@@ -147,16 +147,16 @@ The pipeline is implemented in Python. igraph handles graph operations; scikit-l
 
 \section{Results}
 
-Figure~\ref{fig:roc} presents the receiver operating characteristic (ROC) curves for the detection methods evaluated on the LANL-Dataset-2015. The plot shows five curves: three graph-based methods (flow-only, auth-only, combined), two unsupervised baselines (OneClassSVM, Isolation Forest), and a random baseline diagonal. The OneClassSVM curve (orange) bows above the diagonal, indicating modest discriminative power, while all three graph-based methods and Isolation Forest hug the diagonal, indicating near-random performance at the chosen threshold.
+Figure~\ref{fig:roc} presents the receiver operating characteristic (ROC) curves for the detection methods evaluated on the LANL-Dataset-2015. The auth-only method achieves the highest AUC (0.9542), followed by the combined method (0.9380) and the flow-only method (0.5779). The auth-only and combined curves bow significantly above the random baseline diagonal, indicating strong discriminative power in ranking attack edges above benign edges. The flow-only curve stays close to the diagonal, confirming that network flow patterns alone provide little signal for lateral movement detection.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{roc_curves.png}
-\caption{ROC curves for all detection methods on LANL-2015. OneClassSVM (orange) shows modest discriminative power above the random baseline, while graph-based methods (flow-only, auth-only, combined) and Isolation Forest hug the diagonal. \textit{(Figure by: Wesley Gunawan)}}
+\caption{ROC curves for all detection methods on LANL-2015. Auth-only achieves the highest AUC (0.9542), followed by combined (0.9380) and flow-only (0.5779). The auth-only and combined curves bow above the random baseline, demonstrating strong edge-level discriminative power. \textit{(Figure by: Wesley Gunawan)}}
 \label{fig:roc}
 \end{figure}
 
-This figure reveals a key challenge in lateral movement detection: the graph-based scoring function, while theoretically sound, produces edge scores that do not cleanly separate attack edges from benign edges at a fixed percentile threshold. All three graph methods (flow-only, auth-only, combined) produce nearly identical ROC curves hugging the diagonal, suggesting that the hand-crafted scoring weights (Equations~1--2) require tuning to achieve meaningful separation. The OneClassSVM baseline's curve above the diagonal indicates that learned anomaly detection on the edge feature matrix can achieve better ranking than the rule-based scoring. This result motivates future work on optimizing scoring weights via supervised learning or adaptive thresholding, and suggests that the combined graph structure provides a richer feature space for downstream classifiers even when the hand-crafted scoring alone is insufficient.
+This figure validates the paper's central hypothesis that authentication logs provide the strongest signal for lateral movement detection, and that combining them with flow logs maintains high discriminative power while adding complementary coverage. The auth-only AUC of 0.9542 indicates that the scoring function (Equation~1) effectively ranks NTLM-based pass-the-hash attacks and network logon events above normal authentication traffic. The combined method's slightly lower AUC (0.9380) reflects the dilution effect of adding 131K flow edges to 409K auth edges, even with the 1.5$\times$ auth weight multiplier. The flow-only AUC of 0.5779 confirms that network flow patterns alone are nearly random for this detection task. Together, these results demonstrate that the unified graph approach preserves the strong signal from authentication logs while enabling path-based analysis that neither source can achieve alone.
 
 % \subsection{Tabular Baselines on LANL-2015}
 % \label{sec:baselines_lanl}
