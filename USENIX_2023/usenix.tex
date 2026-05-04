@@ -217,16 +217,16 @@ Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for
 \label{fig:roc}
 \end{figure}
 
-Figure~\ref{fig:scores} shows the anomaly score distribution for all 512,529 edges in the combined method on a log-scale y-axis. Red-team edges (orange, n=305) have mean score 0.98, concentrated near 1.0. Baseline edges (green, n=512,224) have mean score 0.45, spread broadly with a spike at 1.0 from path boosting. The dashed line marks the 97th percentile threshold.
+Figure~\ref{fig:scores} shows the anomaly score distribution for all 512,529 edges in the combined method on a log-scale y-axis. Red-team edges (orange, n=305) have mean score 0.98, concentrated near 1.0. Baseline edges (green, n=512,224) have mean score 0.45, spread broadly with a spike at 1.0 from path boosting.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{score_distribution.png}
-\caption{Anomaly score distribution for the combined method (log scale). Red-team edges (orange, n=305) have mean score 0.98. Baseline edges (green, n=512,224) have mean score 0.45, with a spike at 1.0 from path boosting. The dashed line marks the 97th percentile threshold. \textit{(Figure by: Wesley Gunawan)}}
+\caption{Anomaly score distribution for the combined method (log scale). Red-team edges (orange, n=305) have mean score 0.98. Baseline edges (green, n=512,224) have mean score 0.45, with a spike at 1.0 from path boosting. \textit{(Figure by: Wesley Gunawan)}}
 \label{fig:scores}
 \end{figure}
 
-This figure shows the scoring function separates attack edges from baseline: red-team edges score 2.2$\times$ higher on average (0.98 vs. 0.45). At the 97th percentile threshold (score = 1.0000), the false positive rate is 8.8\% (45,286 of 512,224 baseline pairs flagged). The spike at 1.0 in the baseline distribution is caused by path boosting (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges in top-50 suspicious paths. This highlights a key trade-off: path boosting improves recall but inflates false positives.
+This figure shows the scoring function separates attack edges from baseline: red-team edges score 2.2$\times$ higher on average (0.98 vs. 0.45). The spike at 1.0 in the baseline distribution is caused by path boosting (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges in top-50 suspicious paths. This highlights a key trade-off: path boosting improves recall but inflates false positives.
 
 
 \begin{table}[h]
