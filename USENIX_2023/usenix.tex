@@ -217,16 +217,16 @@ Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for
 \label{fig:roc}
 \end{figure}
 
-Figure~\ref{fig:scores} shows the anomaly score distribution for all 512,529 edges in the combined method on a log-scale y-axis. Red-team edges (orange, n=305) have mean score 0.98, concentrated near 1.0. Baseline edges (green, n=512,224) have mean score 0.45, spread broadly with a spike at 1.0 from path boosting.
+Figure~\ref{fig:scores} shows the anomaly score distribution for all 512,529 edges in the combined method on a log-scale y-axis, with KDE curves overlaid. Scores range from 0.0 to 1.48, with a clear bimodal distribution: a large cluster at 0.0--1.0 (baseline edges) and a smaller cluster at 1.0--1.48 (path-boosted edges). Red-team edges (orange, n=305) concentrate in the high-score cluster, while baseline edges (green, n=512,224) span both clusters. The dashed orange line marks the detection threshold at 1.41.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{score_distribution.png}
-\caption{Anomaly score distribution for the combined method (log scale). Red-team edges (orange, n=305) have mean score 0.98. Baseline edges (green, n=512,224) have mean score 0.45, with a spike at 1.0 from path boosting. \textit{(Figure by: Wesley Gunawan)}}
+\caption{Anomaly score distribution for the combined method (log scale, with KDE curves). Score range [0.00, 1.48]. Red-team edges (orange, n=305) concentrate at high scores. Baseline edges (green, n=512,224) span the full range. The dashed line marks the detection threshold (1.41). \textit{(Figure by: Wesley Gunawan)}}
 \label{fig:scores}
 \end{figure}
 
-This figure shows the scoring function separates attack edges from baseline: red-team edges score 2.2$\times$ higher on average (0.98 vs. 0.45). The spike at 1.0 in the baseline distribution is caused by path boosting (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges in top-50 suspicious paths. This highlights a key trade-off: path boosting improves recall but inflates false positives.
+This figure shows the scoring function separates attack edges from baseline: red-team edges concentrate in the high-score cluster (1.0--1.48) created by path boosting. The bimodal distribution reflects the path boost mechanism (Section~4.4), which adds $0.1 \times \text{path\_score}$ to edges in top-50 suspicious paths, pushing them above 1.0. The threshold at 1.41 separates the most suspicious edges from the rest. This highlights a key trade-off: path boosting creates a distinct high-score cluster that captures attack edges, but also pulls some baseline edges into that cluster, inflating false positives.
 
 
 \begin{table}[h]
