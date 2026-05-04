@@ -1,0 +1,51 @@
+{
+  "node_feature_importance": {},
+  "edge_feature_importance": {
+    "edge_rarity": {
+      "score_correlation": 0.3572
+    },
+    "src_out_degree": {
+      "score_correlation": 0.0483
+    },
+    "dst_in_degree": {
+      "score_correlation": 0.3927
+    },
+    "src_fan_out": {
+      "score_correlation": 0.2642
+    },
+    "normalized_weight": {
+      "score_correlation": -0.2105
+    },
+    "is_self_loop": {
+      "score_correlation": -0.2763
+    },
+    "is_user_edge": {
+      "score_correlation": -0.1774
+    },
+    "is_ntlm": {
+      "score_correlation": 0.6343
+    },
+    "is_network_logon": {
+      "score_correlation": 0.7435
+    },
+    "auth_success": {
+      "score_correlation": NaN
+    },
+    "is_unusual_dst_port": {
+      "score_correlation": NaN
+    },
+    "is_ephemeral": {
+      "score_correlation": NaN
+    },
+    "protocol_rarity": {
+      "score_correlation": NaN
+    },
+    "byte_per_packet_ratio": {
+      "score_correlation": NaN
+    },
+    "duration_z_score": {
+      "score_correlation": NaN
+    }
+  },
+  "redteam_vs_baseline_stats": {}
+}

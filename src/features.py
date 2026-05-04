@@ -191,8 +191,8 @@ def extract_edge_features(g: ig.Graph) -> pd.DataFrame:
         is_self_loop[i] = 1 if src_idx == dst_idx else 0
 
         # is_user_edge
-        src_type = g.vs[src_idx].get("node_type", "computer")
-        dst_type = g.vs[dst_idx].get("node_type", "computer")
+        src_type = g.vs[src_idx]["node_type"] if "node_type" in g.vs[src_idx].attributes() else "computer"
+        dst_type = g.vs[dst_idx]["node_type"] if "node_type" in g.vs[dst_idx].attributes() else "computer"
         is_user_edge[i] = 1 if src_type == "user" or dst_type == "user" else 0
 
         edge_type = attrs.get("type", "")
