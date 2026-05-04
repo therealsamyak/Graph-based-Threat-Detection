@@ -34,6 +34,13 @@ University of California, Los Angeles
 
 \section{Introduction}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{lat_mvmt.png}
+\caption{Modified Advanced-Persistent-Threat Model, showing Lateral Movement as the step after the attacker compromises one machine (Foothold). Adapted from Mamun et al.~\cite{APT-detection}. Placed by <someone>.}
+\label{fig:lat_mvmt}
+\end{figure}
+
 Cloud VPC (Virtual Private Cloud) networks present a complex security landscape where internal traffic flows freely between hosts by default. Lateral movement, the phase of an attack where an adversary pivots through a compromised network to reach high-value targets, is especially difficult to detect because the volume of benign connections dwarfs the few that matter. Existing intrusion detection tools were built for perimeter monitoring and struggle with the noise and dynamism of cloud VPC environments, where diverse user activity and constant connection churn mask attacker activity.
 
 No single log source provides enough signal to reliably identify lateral movement. Network flow logs capture connections but cannot distinguish an attacker's session from an admin's; authentication logs record login events but are blind to reconnaissance via port scans or data exfiltration that never triggers a login. Prior detection methods have relied on either signature matching, which misses novel attack patterns, or anomaly detection on a single log source, which floods analysts with false positives on busy production networks. We propose combining both log types into a unified streaming graph where computers and identities are nodes, connections and authentication events are edges, and graph-based feature analysis can detect the structural and temporal patterns that distinguish lateral movement from routine operations. This paper presents our graph construction pipeline, the detection methodology, and an evaluation on the LANL-Dataset-2015 and DAPT2020 datasets against single-source baselines.
