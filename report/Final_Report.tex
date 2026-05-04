@@ -37,7 +37,7 @@ University of California, Los Angeles
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{lat_mvmt.png}
-\caption{Modified Advanced-Persistent-Threat Model, showing Lateral Movement as the step after the attacker compromises one machine (Foothold). Adapted from Mamun et al.~\cite{APT-detection}. Placed by <someone>.}
+\caption{Modified Advanced-Persistent-Threat Model, showing Lateral Movement as the step after the attacker compromises one machine (Foothold). Adapted from Mamun et al.~\cite{APT-detection}.}
 \label{fig:lat_mvmt}
 \end{figure}
 
@@ -208,16 +208,18 @@ The pipeline is implemented in Python. igraph handles graph operations; scikit-l
 
 \section{Results}
 
-Figure~\ref{fig:roc} presents the receiver operating characteristic (ROC) curves for the three detection methods evaluated on the LANL-Dataset-2015: flow-only, auth-only, and combined. The combined method achieves an AUC of 0.9456, substantially outperforming both the auth-only method (AUC = 0.9094) and the flow-only method (AUC = 0.0000). The combined method's curve lies closest to the top-left corner of the plot, indicating that it achieves higher true positive rates at lower false positive rates across the full range of decision thresholds.
+\section{Results}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.95\columnwidth]{roc_curves.png}
-\caption{ROC curves comparing detection performance of flow-only, auth-only, and combined methods on LANL-2015. The combined method (AUC = 0.9456) dominates both single-source baselines, demonstrating that multi-log integration improves the trade-off between true positive rate and false positive rate. \textit{(Figure by: Wesley Gunawan)}}
-\label{fig:roc}
-\end{figure}
+% Figure~\ref{fig:roc} presents the receiver operating characteristic (ROC) curves for the three detection methods evaluated on the LANL-Dataset-2015: flow-only, auth-only, and combined. The combined method achieves an AUC of 0.9456, substantially outperforming both the auth-only method (AUC = 0.9094) and the flow-only method (AUC = 0.0000). The combined method's curve lies closest to the top-left corner of the plot, indicating that it achieves higher true positive rates at lower false positive rates across the full range of decision thresholds.
 
-This figure directly supports the paper's central hypothesis that no single log source provides sufficient signal to reliably identify lateral movement, but combining both log types into a unified graph enables detection that neither source can achieve alone. The auth-only method achieves moderate discriminative power (AUC = 0.9094) because authentication events capture credential-based lateral movement such as pass-the-hash and remote logon. However, the combined method's additional 0.036 AUC improvement demonstrates that network flow logs contribute complementary signal --- capturing connections that never produce authentication events, such as service exploitation and data exfiltration. The flow-only method's near-zero AUC confirms that network flow patterns alone, without authentication context, are insufficient to distinguish attack edges from the massive volume of benign enterprise traffic. Together, these results validate the design choice to construct a unified graph from both log sources rather than relying on a single data source.
+% \begin{figure}[htbp]
+% \centering
+% \includegraphics[width=0.95\columnwidth]{roc_curves.png}
+% \caption{ROC curves comparing detection performance of flow-only, auth-only, and combined methods on LANL-2015. The combined method (AUC = 0.9456) dominates both single-source baselines, demonstrating that multi-log integration improves the trade-off between true positive rate and false positive rate. \textit{(Figure by: Wesley Gunawan)}}
+% \label{fig:roc}
+% \end{figure}
+
+% This figure directly supports the paper's central hypothesis that no single log source provides sufficient signal to reliably identify lateral movement, but combining both log types into a unified graph enables detection that neither source can achieve alone. The auth-only method achieves moderate discriminative power (AUC = 0.9094) because authentication events capture credential-based lateral movement such as pass-the-hash and remote logon. However, the combined method's additional 0.036 AUC improvement demonstrates that network flow logs contribute complementary signal --- capturing connections that never produce authentication events, such as service exploitation and data exfiltration. The flow-only method's near-zero AUC confirms that network flow patterns alone, without authentication context, are insufficient to distinguish attack edges from the massive volume of benign enterprise traffic. Together, these results validate the design choice to construct a unified graph from both log sources rather than relying on a single data source.
 
 \label{sec:baselines_lanl}
 Table~\ref{tab:methods_lanl} reports five methods evaluated on the same LANL-2015 run: three graph-based variants and two unsupervised baselines, all scored against 305 red-team source-destination pairs. \textbf{Numbers are not final and subject to change.}
