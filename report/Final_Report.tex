@@ -220,12 +220,7 @@ Figure~\ref{fig:roc} presents the receiver operating characteristic (ROC) curves
 This figure directly supports the paper's central hypothesis that no single log source provides sufficient signal to reliably identify lateral movement, but combining both log types into a unified graph enables detection that neither source can achieve alone. The auth-only method achieves moderate discriminative power (AUC = 0.9094) because authentication events capture credential-based lateral movement such as pass-the-hash and remote logon. However, the combined method's additional 0.036 AUC improvement demonstrates that network flow logs contribute complementary signal --- capturing connections that never produce authentication events, such as service exploitation and data exfiltration. The flow-only method's near-zero AUC confirms that network flow patterns alone, without authentication context, are insufficient to distinguish attack edges from the massive volume of benign enterprise traffic. Together, these results validate the design choice to construct a unified graph from both log sources rather than relying on a single data source.
 
 \label{sec:baselines_lanl}
-Table~\ref{tab:methods_lanl} reports all eight methods evaluated on
-the same LANL-2015 run: three graph-based variants using the
-manually-weighted scoring formulas, and five unsupervised tabular
-detectors using \texttt{scikit-learn} defaults trained on benign
-edges only. All eight methods are scored against the same 305
-red-team source-destination pairs.
+Table~\ref{tab:methods_lanl} reports five methods evaluated on the same LANL-2015 run: three graph-based variants and two unsupervised baselines, all scored against 305 red-team source-destination pairs. \textbf{Numbers are not final and subject to change.}
 
 \begin{table}[h]
 \centering
@@ -238,25 +233,16 @@ combined              & 0.662 & 0.020 & 0.039 & \textbf{0.954} \\
 auth\_only            & 0.747 & 0.030 & 0.036 & 0.951 \\
 flow\_only            & 0.013 & 0.030 & 0.002 & 0.579 \\
 \hline
-\multicolumn{5}{l}{\textit{Unsupervised tabular baselines (edge space)}} \\
+\multicolumn{5}{l}{\textit{Unsupervised baselines (edge space)}} \\
 Isolation Forest      & 0.741 & 0.050 & 0.024 & 0.940 \\
-Elliptic Envelope     & 0.000 & 0.050 & 0.000 & 0.774 \\
 One-Class SVM         & 0.492 & 0.098 & 0.008 & 0.706 \\
-PCA Reconstruction    & 0.033 & 0.050 & 0.001 & 0.667 \\
-Local Outlier Factor  & 0.207 & 0.045 & 0.008 & 0.493 \\
 \hline
 \end{tabular}
-\caption{All eight methods on LANL-2015 (run \texttt{20260502\_165755}, 364{,}802-edge feature matrix, 305 red-team pairs). Graph methods evaluate threshold-dependent metrics in pair space (deduplicated source-destination pairs); tabular baselines evaluate in edge space. AUC is comparable across both spaces. \textit{(Figure by: Ibrahim Pehlivan)}}
+\caption{Five methods on LANL-2015 (run \texttt{20260503\_080850}, 512{,}529-edge combined graph, 305 red-team pairs). Graph scoring uses \texttt{is\_ntlm}, \texttt{is\_network\_logon}, \texttt{edge\_rarity} for auth edges; \texttt{edge\_rarity}, \texttt{is\_unusual\_dst\_port}, \texttt{protocol\_rarity} for flow edges. Baselines use the full edge feature vector with scikit-learn defaults. \textbf{Numbers not final.} \textit{(Table by: Ibrahim Pehlivan)}}
 \label{tab:methods_lanl}
 \end{table}
 
-The combined graph method is strongest overall (AUC 0.954). Among
-baselines, Isolation Forest leads (AUC 0.940), within 0.015 of
-combined and within 0.011 of auth-only. LOF underperforms on the
-full data because the feature matrix is dominated by binary
-indicators, which saturate the local-density signal LOF relies on.
-The graph method's edge over the best baseline is small in AUC but
-larger in false-positive rate.
+The combined graph method is strongest overall (AUC 0.954). Among baselines, Isolation Forest leads (AUC 0.940), within 0.015 of combined. The graph method's edge over the best baseline is small in AUC but larger in false-positive rate.
 
 \subsection{Earlier Results Draft:}
 \begin{itemize}
