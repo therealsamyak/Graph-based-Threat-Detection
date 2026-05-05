@@ -173,7 +173,7 @@ Each experiment run produces 4 visualization files in `results/<run_id>/figures/
 
 ```
 Graph-based-Threat-Detection/
-├── run_experiment.py              # Main CLI orchestrator
+├── main.py              # Main CLI orchestrator
 ├── Makefile                       # make pipeline, make i (install)
 ├── pyproject.toml                 # Dependencies
 ├── datasets/
@@ -221,23 +221,23 @@ Requires Python 3.13+. Dependencies: `python-igraph`, `pandas`, `pyarrow`, `nump
 
 ```bash
 # Run with 1M event sample per source (fast, ~10 minutes)
-uv run python run_experiment.py --sample 1000000
+uv run python main.py --sample 1000000
 ```
 
 ### Full LANL Dataset Run
 
 ```bash
 # Full dataset (will take hours due to 1.05B auth + 130M flow events)
-uv run python run_experiment.py
+uv run python main.py
 
 # Custom window size (default: ±1 hour = 3600s)
-uv run python run_experiment.py --window-size 7200
+uv run python main.py --window-size 7200
 ```
 
 ### Custom Data Paths
 
 ```bash
-uv run python run_experiment.py \
+uv run python main.py \
   --data-dir datasets/LANL-Dataset-2015 \
   --dapt-dir datasets/dapt2020 \
   --sample 5000000
