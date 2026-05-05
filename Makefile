@@ -1,4 +1,4 @@
-.PHONY: i pipeline clean
+.PHONY: i pipeline check
 
 i:
 	uv sync
@@ -6,5 +6,6 @@ i:
 pipeline:
 	uv run python main.py
 
-clean:
-	rm -rf results/metrics.csv results/experiment_results.json results/figures/*.png results/cache/*.parquet
+check:
+	uvx ruff check --fix .
+
