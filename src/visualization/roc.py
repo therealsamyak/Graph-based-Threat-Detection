@@ -12,7 +12,6 @@ from src.visualization.style import (
     LINE_STYLES,
     BG_COLOR,
     FIG_SIZE,
-    DPI,
     TITLE_FS,
     LABEL_FS,
 )

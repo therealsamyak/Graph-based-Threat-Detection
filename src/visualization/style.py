@@ -8,7 +8,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 
 try:
     from matplotlib.dates import DateFormatter as _DateFormatter
