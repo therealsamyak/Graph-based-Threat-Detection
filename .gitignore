@@ -1,24 +1,11 @@
-# Virtual environment
-.venv/
-
-# Python caches
-__pycache__/
-*.pyc
-.ruff_cache/
-
-# OS files
-.DS_Store
-
-# Heavy data (not tracked in git)
 data/
-datasets/
-
-# Cache directory (parquet intermediates)
+.venv/
+__pycache__/
+.ruff_cache/
+.DS_Store
+*.pyc
+results/*.csv
+results/*.parquet
+results/figures/*.png
 results/cache/
-*.aux
-*.bbl
-*.blg
-*.fdb_latexmk
-*.fls
-*.log
-*.out
+.sisyphus/

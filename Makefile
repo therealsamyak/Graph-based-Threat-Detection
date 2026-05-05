@@ -1,10 +1,11 @@
-.PHONY: i pipeline clean
+.PHONY: i pipeline check lint
 
 i:
 	uv sync
 
 pipeline:
-	uv run python run_experiment.py
+	uv run python main.py
 
-clean:
-	rm -rf results/metrics.csv results/experiment_results.json results/figures/*.png results/cache/*.parquet
+check lint:
+	uvx ruff check --fix .
+
