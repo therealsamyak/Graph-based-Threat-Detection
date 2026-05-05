@@ -1,4 +1,4 @@
-.PHONY: i pipeline check
+.PHONY: i pipeline check lint
 
 i:
 	uv sync
@@ -6,6 +6,6 @@ i:
 pipeline:
 	uv run python main.py
 
-check:
+check lint:
 	uvx ruff check --fix .
 
