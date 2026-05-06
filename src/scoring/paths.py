@@ -11,8 +11,6 @@ import igraph as ig
 import numpy as np
 import pandas as pd
 
-from src.scoring.edges import score_edges
-
 logger = logging.getLogger(__name__)
 
 
@@ -145,15 +143,11 @@ def score_paths(
 def score_graph(
     g: ig.Graph,
     all_features: dict,
-    edge_scores: pd.Series | None = None,
+    edge_scores: pd.Series,
     paths: pd.DataFrame | None = None,
     threshold: float = 0.5,
 ) -> dict:
-    """Aggregate graph-level anomaly scores."""
     edge_features = all_features["edge_features"]
-
-    if edge_scores is None:
-        edge_scores = score_edges(g, edge_features)
 
     if paths is None:
         paths = score_paths(g, edge_scores)

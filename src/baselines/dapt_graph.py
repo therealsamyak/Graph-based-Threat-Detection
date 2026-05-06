@@ -5,24 +5,15 @@ from __future__ import annotations
 import logging
 import time
 
-import igraph as ig
-
 from src.data.dapt import load_dapt2020
 from src.detection import compute_pair_metrics, optimize_threshold
-from src.features.graph import extract_all_features
+from src.features import extract_all_features
 from src.scoring.edges import boost_edges_from_paths, score_edges
 from src.scoring.paths import score_graph, score_paths
+from src.types import DetectionParams
+from src.utils import FLOW_AGG_COLUMNS, build_dapt_graph, compute_edge_pair_names
 
 logger = logging.getLogger(__name__)
-
-FLOW_AGG_COLUMNS = [
-    "Flow Duration", "Total Fwd Packet", "Total Bwd packets",
-    "Total Length of Fwd Packet", "Total Length of Bwd Packet",
-    "Flow Bytes/s", "Flow Packets/s",
-    "Fwd Packet Length Mean", "Bwd Packet Length Mean",
-    "Fwd Packets/s", "Bwd Packets/s",
-    "Flow IAT Mean", "Packet Length Mean",
-]
 
 
 def run_dapt_graph(
@@ -50,52 +41,12 @@ def run_dapt_graph(
     load_time = time.perf_counter() - t0
     logger.info(f"DAPT graph: loaded {len(df)} rows in {load_time:.1f}s")
 
-    agg_cols_available = [c for c in FLOW_AGG_COLUMNS if c in df.columns]
-    group_cols = ["Src IP", "Dst IP"]
-
-    agg_dict: dict = {"is_lateral_movement": "max"}
-    for c in agg_cols_available:
-        agg_dict[c] = "mean"
-
-    if "Protocol" in df.columns:
-        agg_dict["Protocol"] = "first"
-
-    grouped = df.groupby(group_cols, as_index=False).agg(agg_dict)
-    logger.info(f"DAPT graph: {len(grouped)} unique src-dst pairs")
-
-    g = ig.Graph(directed=True)
-    node_set: set[str] = set()
-
-    for _, row in grouped.iterrows():
-        src = str(row["Src IP"])
-        dst = str(row["Dst IP"])
-        if src not in node_set:
-            g.add_vertex(src, node_type="computer", is_machine=True)
-            node_set.add(src)
-        if dst not in node_set:
-            g.add_vertex(dst, node_type="computer", is_machine=True)
-            node_set.add(dst)
-
-        edge_attrs = {"type": "flow", "weight": 1}
-        for c in agg_cols_available:
-            val = row.get(c)
-            if val is not None:
-                try:
-                    edge_attrs[c] = float(val)
-                except (ValueError, TypeError):
-                    pass
-        if "Protocol" in row.index:
-            edge_attrs["protocol"] = str(row["Protocol"])
-        g.add_edge(src, dst, **edge_attrs)
-
+    g, grouped = build_dapt_graph(df, FLOW_AGG_COLUMNS)
     logger.info(f"DAPT graph: {g.vcount():,} nodes, {g.ecount():,} edges")
 
-    edge_pair_names = [
-        (g.vs[g.es[i].source]["name"], g.vs[g.es[i].target]["name"])
-        for i in range(g.ecount())
-    ]
+    edge_pair_names = compute_edge_pair_names(g)
 
-    gt_map = {}
+    gt_map: dict[tuple[str, str], int] = {}
     for _, row in grouped.iterrows():
         pair = (str(row["Src IP"]), str(row["Dst IP"]))
         if pair not in gt_map:
@@ -126,19 +77,23 @@ def run_dapt_graph(
         & (ef["is_user_edge"].values == 0.0)
     )
 
+    params = DetectionParams(
+        edge_scores=edge_scores,
+        mask_valid=mask_valid,
+        edge_pair_names=tuple(edge_pair_names),
+        positive_pairs_in_graph=frozenset(lm_in_graph),
+        all_positive_pairs=frozenset(lateral_pairs),
+        all_graph_edges=frozenset(graph_edges),
+    )
+
     threshold, best_pct = optimize_threshold(
-        edge_scores, mask_valid, edge_pair_names,
-        lm_in_graph, lateral_pairs,
+        params,
         threshold_mode=threshold_mode,
         search_range=threshold_search_range,
         default_percentile=threshold_percentile,
     )
 
-    metrics = compute_pair_metrics(
-        edge_scores, mask_valid, edge_pair_names,
-        graph_edges, lm_in_graph, lateral_pairs,
-        threshold,
-    )
+    metrics = compute_pair_metrics(params, threshold)
 
     total_time = time.perf_counter() - t0
     return {

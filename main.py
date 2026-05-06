@@ -11,6 +11,8 @@ import pandas as pd
 
 from src.config import load_config
 from src.reporting import generate_comparison
+from src.types import ExperimentResult, PipelineConfig
+from src.utils import compute_edge_pair_names
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,15 +51,14 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def _print_summary(df: pd.DataFrame) -> None:
-    """Print formatted summary table to stdout."""
     if df.empty:
         print("\nNo results to display.")
         return
 
-    cols = ["method", "dataset", "recall", "edge_recall", "fpr", "f1", "auc", "latency", "throughput",
-            "rt_edges_in_graph", "rt_edges_detected", "anomalous_edges"]
+    cols = ["method", "dataset", "recall", "fpr", "f1", "auc", "latency", "throughput",
+            "rt_pairs_in_graph", "anomalous_pairs", "threshold"]
     display_df = df[cols].copy()
-    for c in ["recall", "edge_recall", "fpr", "f1", "auc"]:
+    for c in ["recall", "fpr", "f1", "auc"]:
         display_df[c] = display_df[c].map(lambda v: f"{v:.4f}")
     display_df["latency"] = display_df["latency"].map(lambda v: f"{v:.2f}s")
     display_df["throughput"] = display_df["throughput"].map(lambda v: f"{v:.0f}/s")
@@ -70,34 +71,31 @@ def _print_summary(df: pd.DataFrame) -> None:
 
 
 def run(argv: list[str] | None = None) -> pd.DataFrame:
-    """Execute the full experiment pipeline and return results DataFrame."""
     args = _parse_args(argv)
-    config = load_config()
+    config: PipelineConfig = load_config()
 
-    if args.data_dir != "data/LANL-Dataset-2015":
-        config.setdefault("data", {})["lanl_dir"] = args.data_dir
-    if args.window_size != 3600:
-        config.setdefault("data", {})["window_size"] = args.window_size
-    if args.dapt_dir != "data/DAPT2020":
-        config.setdefault("data", {})["dapt_dir"] = args.dapt_dir
+    _DEFAULTS = {"data_dir": "datasets/LANL-Dataset-2015", "window_size": 3600, "dapt_dir": "datasets/dapt2020"}
+    data_overrides: dict = {}
+    if args.data_dir != _DEFAULTS["data_dir"]:
+        data_overrides["lanl_dir"] = args.data_dir
+    if args.window_size != _DEFAULTS["window_size"]:
+        data_overrides["window_size"] = args.window_size
+    if args.dapt_dir != _DEFAULTS["dapt_dir"]:
+        data_overrides["dapt_dir"] = args.dapt_dir
+    if data_overrides:
+        config = config.with_overrides(data=data_overrides)
 
     all_results: list[dict] = []
-    viz_data: dict = {}
-    lanl_results: list[dict] = []
+    experiment_result: ExperimentResult | None = None
     results_base = "results/pending"
 
-    config.get("data", {})
-    data_dir = args.data_dir
-    window_size = args.window_size
-    dapt_dir = args.dapt_dir
-
-    logger.info(f"Loading LANL data from {data_dir} (window={window_size}s)")
+    logger.info(f"Loading LANL data from {args.data_dir} (window={args.window_size}s)")
     try:
         from src.pipeline import run_streaming_experiment
-        lanl_results, viz_data, results_base = run_streaming_experiment(
-            data_dir=data_dir,
-            window_seconds=window_size,
-            dapt_dir=dapt_dir,
+        lanl_results, experiment_result, results_base = run_streaming_experiment(
+            data_dir=args.data_dir,
+            window_seconds=args.window_size,
+            dapt_dir=args.dapt_dir,
             max_events=args.sample,
             config=config,
         )
@@ -105,7 +103,6 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     except Exception as e:
         logger.warning(f"LANL experiment failed: {e}")
 
-    # --- Aggregate and save ---
     results_df = pd.DataFrame(all_results)
 
     results_dir = Path(results_base)
@@ -130,7 +127,6 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
 
     generate_comparison(results_dir=str(results_dir))
 
-    # --- Generate figures with real data ---
     from src.visualization import (
         plot_graph_snapshot,
         plot_score_distribution,
@@ -142,34 +138,29 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     figures_dir = results_dir / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
 
-    g = viz_data.get("combined_graph")
+    g = experiment_result.combined_graph if experiment_result else None
     if g is not None:
         plot_graph_snapshot(g, str(figures_dir / "graph_snapshot.png"), title=f"Combined Auth+Flow Graph ({g.vcount():,} nodes, {g.ecount():,} edges)")
         logger.info("Saved graph_snapshot.png")
 
-    edge_scores = viz_data.get("combined_edge_scores")
-    combined_g = viz_data.get("combined_graph")
-    if edge_scores is not None and not edge_scores.empty and combined_g is not None:
-        red_pairs = viz_data.get("red_pairs", set())
-        threshold = viz_data.get("combined_threshold", 0.5)
+    edge_scores = experiment_result.combined_edge_scores if experiment_result else None
+    if edge_scores is not None and not edge_scores.empty and g is not None:
+        red_pairs = experiment_result.red_pairs
+        threshold = experiment_result.combined_threshold
 
+        edge_pair_names = compute_edge_pair_names(g)
         labels = pd.Series([
-            1.0 if (combined_g.vs[e.source]["name"], combined_g.vs[e.target]["name"]) in red_pairs else 0.0
-            for e in combined_g.es
+            1.0 if pair in red_pairs else 0.0
+            for pair in edge_pair_names
         ], index=edge_scores.index)
         plot_score_distribution(edge_scores, labels, str(figures_dir / "score_distribution.png"), threshold=threshold, title="Edge Anomaly Score Distribution")
         logger.info("Saved score_distribution.png")
 
         times = pd.Series(
-            [combined_g.es[i]["time"] if "time" in combined_g.es[i].attributes() else 0 for i in range(combined_g.ecount())],
+            [g.es[i]["time"] if "time" in g.es[i].attributes() else 0 for i in range(g.ecount())],
             index=edge_scores.index,
         )
-        # Compute red-team edge indices for accurate timeline marking
-        rt_edge_indices = set()
-        for i in range(combined_g.ecount()):
-            pair = (combined_g.vs[combined_g.es[i].source]["name"], combined_g.vs[combined_g.es[i].target]["name"])
-            if pair in red_pairs:
-                rt_edge_indices.add(i)
+        rt_edge_indices = {i for i, pair in enumerate(edge_pair_names) if pair in red_pairs}
         plot_detection_timeline(times, edge_scores, threshold, str(figures_dir / "detection_timeline.png"), redteam_edge_indices=rt_edge_indices, title="Anomaly Score Timeline with Red Team Events")
         logger.info("Saved detection_timeline.png")
 
