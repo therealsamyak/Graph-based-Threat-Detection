@@ -7,15 +7,13 @@ import logging
 import numpy as np
 from sklearn.metrics import roc_auc_score
 
+from src.types import DetectionParams
+
 logger = logging.getLogger(__name__)
 
 
 def optimize_threshold(
-    edge_scores,
-    mask_valid,
-    edge_pair_names,
-    positive_pairs_in_graph: set[tuple[str, str]],
-    all_positive_pairs: set[tuple[str, str]],
+    params: DetectionParams,
     threshold_mode: str = "auto_optimize",
     search_range: list[float] | None = None,
     default_percentile: float = 90,
@@ -26,6 +24,12 @@ def optimize_threshold(
     """
     if search_range is None:
         search_range = [90, 95, 97, 99, 99.5, 99.9]
+
+    edge_scores = params.edge_scores
+    mask_valid = params.mask_valid
+    edge_pair_names = params.edge_pair_names
+    positive_pairs_in_graph = params.positive_pairs_in_graph
+    all_positive_pairs = params.all_positive_pairs
 
     scoring_scores = edge_scores[mask_valid]
     best_pct = default_percentile
@@ -75,12 +79,7 @@ def optimize_threshold(
 
 
 def compute_pair_metrics(
-    edge_scores,
-    mask_valid,
-    edge_pair_names: list[tuple[str, str]],
-    all_graph_edges: set[tuple[str, str]],
-    positive_pairs_in_graph: set[tuple[str, str]],
-    all_positive_pairs: set[tuple[str, str]],
+    params: DetectionParams,
     threshold: float,
 ) -> dict:
     """Compute recall, FPR, F1, precision, AUC at pair level.
@@ -88,6 +87,13 @@ def compute_pair_metrics(
     Returns dict with keys: recall, fpr, f1, precision, auc, anomalous_pairs,
     detected_pairs, anomalous_mask.
     """
+    edge_scores = params.edge_scores
+    mask_valid = params.mask_valid
+    edge_pair_names = params.edge_pair_names
+    all_graph_edges = params.all_graph_edges
+    positive_pairs_in_graph = params.positive_pairs_in_graph
+    all_positive_pairs = params.all_positive_pairs
+
     anomalous_mask = mask_valid & (edge_scores > threshold)
     anomalous_pairs: set[tuple[str, str]] = {
         edge_pair_names[i]
