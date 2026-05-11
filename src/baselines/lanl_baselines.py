@@ -8,24 +8,9 @@ import igraph as ig
 import numpy as np
 import pandas as pd
 
-from src.baselines.shared_baselines import run_baselines
+from src.baselines.shared_baselines import SCORING_FEATURE_COLUMNS, run_baselines
 
 logger = logging.getLogger(__name__)
-
-FEATURE_COLUMNS = [
-    "edge_rarity",
-    "src_out_degree",
-    "dst_in_degree",
-    "is_ntlm",
-    "is_network_logon",
-    "is_success_auth",
-    "source_fan_out",
-    "weight_norm",
-    "is_unusual_dst_port",
-    "protocol_rarity",
-    "byte_per_packet",
-    "duration_zscore",
-]
 
 
 def run_lanl_baselines(
@@ -34,9 +19,9 @@ def run_lanl_baselines(
     red_pairs: set[tuple[str, str]],
     config: dict | None = None,
 ) -> list[dict]:
-    available = [c for c in FEATURE_COLUMNS if c in edge_features.columns]
+    available = [c for c in SCORING_FEATURE_COLUMNS if c in edge_features.columns]
     if not available:
-        logger.warning("No tabular feature columns found in edge_features")
+        logger.warning("No scoring feature columns found in edge_features")
         return []
 
     mask = (

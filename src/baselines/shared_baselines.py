@@ -14,6 +14,14 @@ from sklearn.svm import OneClassSVM
 
 logger = logging.getLogger(__name__)
 
+SCORING_FEATURE_COLUMNS = [
+    "edge_rarity",
+    "is_ntlm",
+    "is_network_logon",
+    "is_unusual_dst_port",
+    "protocol_rarity",
+]
+
 
 def _prepare_train_test(
     features: np.ndarray, labels: np.ndarray

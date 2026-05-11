@@ -24,18 +24,18 @@ def generate_comparison(results_dir: str = "results") -> None:
     if not metrics_path.exists():
         comp_path.write_text(
             "# Lateral Movement Detection — Method Comparison\n\n"
-            "> **No results yet.** Run `uv run python run_experiment.py --sample 10000` "
+            "> **No results yet.** Run `uv run python main.py --sample 10000` "
             "to generate results.\n"
         )
         summ_path.write_text(
-            "No results yet. Run: uv run python run_experiment.py --sample 10000\n"
+            "No results yet. Run: uv run python main.py --sample 10000\n"
         )
         logger.info(f"Placeholder files created in {results_path}/")
         return
 
     df = pd.read_csv(metrics_path)
 
-    # ── comparison_table.md ────────────────────────────────────────────
+    # comparison_table.md
     metric_cols = ["recall", "fpr", "f1", "auc", "latency", "throughput"]
     avail = [c for c in metric_cols if c in df.columns]
 
@@ -86,7 +86,7 @@ def generate_comparison(results_dir: str = "results") -> None:
 
     comp_path.write_text(md)
 
-    # ── summary.txt ────────────────────────────────────────────────────
+    # summary.txt
     lines = [
         "LATERAL MOVEMENT DETECTION — KEY FINDINGS",
         "=" * 50,
@@ -131,7 +131,7 @@ def generate_comparison(results_dir: str = "results") -> None:
 
     lines.append("")
     lines.append("Key Takeaways:")
-    lines.append("  - Run `uv run python run_experiment.py --sample 10000` to populate")
+    lines.append("  - Run `uv run python main.py --sample 10000` to populate")
     lines.append("  - Combined auth+flow graph method vs single-source baselines")
     lines.append("  - Graph-based approach vs DAPT2020 ML baselines (OneClassSVM, IF)")
 
