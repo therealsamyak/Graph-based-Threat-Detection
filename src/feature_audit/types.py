@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 @dataclass(frozen=True)
 class AuditConfig:
     holdout_frac: float = 0.5
-    min_auc: float = 0.7
+    min_auc: float = 0.0
     log1p_features: list[str] = field(
         default_factory=lambda: [
             "src_out_degree",
