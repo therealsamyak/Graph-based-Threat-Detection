@@ -7,7 +7,6 @@ import time
 from collections import namedtuple
 from pathlib import Path
 
-import igraph as ig
 import pandas as pd
 
 from src.data.lanl import (

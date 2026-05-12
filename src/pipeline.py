@@ -7,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src.io import save_experiment_summary, save_method_results, save_pipeline_config, save_redteam_data
+from src.io import save_method_results, save_pipeline_config, save_redteam_data
 from src.stages import load_redteam_data, run_method_pipeline
 from src.types import ExperimentResult, PipelineConfig
 logger = logging.getLogger(__name__)
