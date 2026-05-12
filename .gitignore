@@ -9,3 +9,4 @@ results/*.parquet
 results/figures/*.png
 results/cache/
 .sisyphus/
+_backup/
