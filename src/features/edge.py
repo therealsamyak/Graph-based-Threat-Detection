@@ -71,8 +71,9 @@ def extract_edge_features(g: ig.Graph, config: dict | None = None) -> pd.DataFra
 
     weights = np.array(_get_edge_attr_array(g, "weight", 1), dtype=float)
     edge_rarity = np.where(weights > 0, 1.0 / weights, 0.0)
-    max_w = weights.max()
-    weight_norm = weights / max_w if max_w > 0 else np.zeros_like(weights)
+    finite_weights = np.where(np.isfinite(weights), weights, 0.0)
+    max_w = finite_weights.max() if finite_weights.size else 0.0
+    weight_norm = finite_weights / max_w if max_w > 0 else np.zeros_like(weights)
 
     sources = np.array([e.source for e in g.es], dtype=int)
     targets = np.array([e.target for e in g.es], dtype=int)
