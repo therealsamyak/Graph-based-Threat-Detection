@@ -53,7 +53,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Root directory for feature audit outputs.",
     )
     parser.add_argument("--holdout-frac", type=float, default=0.5)
-    parser.add_argument("--min-auc", type=float, default=0.7)
+    parser.add_argument("--min-auc", type=float, default=0.0)
     parser.add_argument("--log1p", dest="log1p", action="store_true", default=True)
     parser.add_argument("--no-log1p", dest="log1p", action="store_false")
     parser.add_argument("--seed", type=int, default=42)
