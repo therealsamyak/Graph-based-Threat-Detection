@@ -74,9 +74,10 @@ def generate_report(audit: AuditReport) -> str:
     lines.extend(["", "### Features to Drop", ""])
     dropped = [duplicate for _, duplicate in audit.duplicate_pairs]
     weak = [result.feature for result in audit.features if result.auc < audit.config.min_auc]
-    for feature in [*dropped, *weak]:
+    drop_recommendations = list(dict.fromkeys([*dropped, *weak]))
+    for feature in drop_recommendations:
         lines.append(f"- `{feature}`")
-    if not dropped and not weak:
+    if not drop_recommendations:
         lines.append("- None")
     return "\n".join(lines) + "\n"
 

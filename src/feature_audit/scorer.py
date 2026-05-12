@@ -23,6 +23,8 @@ def stratified_split(
         idx = np.flatnonzero(y == label)
         rng.shuffle(idx)
         eval_n = int(round(len(idx) * holdout_frac))
+        if len(idx) >= 2:
+            eval_n = min(max(eval_n, 1), len(idx) - 1)
         eval_parts.append(idx[:eval_n])
         calibration_parts.append(idx[eval_n:])
     calibration = np.concatenate(calibration_parts)

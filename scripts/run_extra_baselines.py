@@ -72,7 +72,7 @@ def load_features_and_labels(run_dir: Path) -> tuple[np.ndarray, np.ndarray, lis
     logger.info(f"Loading red-team pairs from {redteam_pairs_path}")
     with open(redteam_pairs_path) as f:
         rt_list = json.load(f)
-    red_pairs: set[tuple[str, str]] = {(p["src"], p["dst"]) for p in rt_list}
+    red_pairs: set[tuple[str, str]] = {(str(p["src"]), str(p["dst"])) for p in rt_list}
     logger.info(f"Loaded {len(red_pairs):,} red-team pairs")
 
     available = [c for c in LANL_FEATURE_COLUMNS if c in ef.columns]
@@ -83,11 +83,12 @@ def load_features_and_labels(run_dir: Path) -> tuple[np.ndarray, np.ndarray, lis
     is_user_edge = ef["is_user_edge"].values if "is_user_edge" in ef.columns else np.zeros(len(ef))
     mask = (is_self_loop == 0.0) & (is_user_edge == 0.0)
 
-    pair_arr = list(zip(edges["src"].values, edges["dst"].values))
+    src_values = edges["src"].astype(str).values
+    dst_values = edges["dst"].astype(str).values
     labels = np.fromiter(
-        (1.0 if pair in red_pairs else 0.0 for pair in pair_arr),
+        (1.0 if (src, dst) in red_pairs else 0.0 for src, dst in zip(src_values, dst_values)),
         dtype=np.float64,
-        count=len(pair_arr),
+        count=len(edges),
     )
 
     features = ef[available].values.astype(np.float64)

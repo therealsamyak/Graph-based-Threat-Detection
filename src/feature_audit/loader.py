@@ -11,7 +11,7 @@ import pandas as pd
 from src.feature_audit.joiner import dedup_against_edge_features, join_node_features
 
 
-METADATA_COLUMNS = {"is_self_loop", "is_user_edge"}
+METADATA_COLUMNS = {"is_self_loop", "is_user_edge", "edge_index", "Unnamed: 0"}
 
 
 def _require(path: Path) -> None:
@@ -35,14 +35,17 @@ def load_feature_frame(run_dir: Path) -> tuple[pd.DataFrame, np.ndarray, list[st
         )
 
     with open(redteam_pairs_path) as f:
-        redteam_pairs = {(p["src"], p["dst"]) for p in json.load(f)}
+        redteam_pairs = {(str(p["src"]), str(p["dst"])) for p in json.load(f)}
 
     is_self_loop = edge_df["is_self_loop"].values if "is_self_loop" in edge_df else np.zeros(len(edge_df))
     is_user_edge = edge_df["is_user_edge"].values if "is_user_edge" in edge_df else np.zeros(len(edge_df))
     mask = (is_self_loop == 0.0) & (is_user_edge == 0.0)
 
     labels = np.fromiter(
-        ((src, dst) in redteam_pairs for src, dst in zip(edges["src"].values, edges["dst"].values)),
+        (
+            (src, dst) in redteam_pairs
+            for src, dst in zip(edges["src"].astype(str).values, edges["dst"].astype(str).values)
+        ),
         dtype=np.float64,
         count=len(edges),
     )
