@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from src.feature_audit.types import AuditConfig, AuditReport
@@ -31,20 +32,7 @@ def run_audit(
     results = mark_duplicates(results, duplicate_pairs)
     selected = select_features(results, cfg.min_auc)
     selected_set = set(selected)
-    results = [
-        type(result)(
-            result.feature,
-            result.auc,
-            result.n_unique,
-            result.variance,
-            result.mean_redteam,
-            result.mean_benign,
-            result.delta_mean,
-            result.is_duplicate_of,
-            result.feature in selected_set,
-        )
-        for result in results
-    ]
+    results = [replace(result, selected=result.feature in selected_set) for result in results]
     report = AuditReport(
         features=results,
         selected_features=selected,

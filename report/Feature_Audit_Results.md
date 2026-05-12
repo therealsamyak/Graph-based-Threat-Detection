@@ -91,5 +91,4 @@
 - `temporal_decay_weight`
 - `edge_index`
 - `duration_zscore`
-- `source_fan_out`
 - `src_betweenness_centrality`
