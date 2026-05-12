@@ -71,14 +71,18 @@ def extract_edge_features(g: ig.Graph, config: dict | None = None) -> pd.DataFra
 
     weights = np.array(_get_edge_attr_array(g, "weight", 1), dtype=float)
     edge_rarity = np.where(weights > 0, 1.0 / weights, 0.0)
-    weight_norm = edge_rarity.copy()
+    max_weight = weights.max() if weights.size > 0 and weights.max() > 0 else 1.0
+    weight_norm = weights / max_weight
 
     sources = np.array([e.source for e in g.es], dtype=int)
     targets = np.array([e.target for e in g.es], dtype=int)
 
     src_out_deg = out_deg[sources]
     dst_in_deg = in_deg[targets]
-    source_fan_out = out_deg[sources]
+    total_deg = out_deg + in_deg
+    source_fan_out = np.where(
+        total_deg[sources] > 0, out_deg[sources] / total_deg[sources], 0.0
+    )
 
     is_self_loop = (sources == targets).astype(float)
 
