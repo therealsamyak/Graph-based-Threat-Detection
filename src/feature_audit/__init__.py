@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from src.feature_audit.types import AuditConfig, AuditReport
 
 
-def run_audit(run_dir: Path, config: AuditConfig | None = None) -> AuditReport:
+def run_audit(
+    run_dir: Path,
+    output_dir: Path,
+    config: AuditConfig | None = None,
+) -> AuditReport:
     from src.feature_audit.loader import detect_duplicates, load_features
     from src.feature_audit.reporter import generate_report, save_report
     from src.feature_audit.scorer import (
@@ -51,9 +56,10 @@ def run_audit(run_dir: Path, config: AuditConfig | None = None) -> AuditReport:
         duplicate_pairs=duplicate_pairs,
         eval_metrics=evaluate_selected(X, y, cal_idx, eval_idx, columns, selected),
     )
+    output_dir.mkdir(parents=True, exist_ok=True)
     markdown = generate_report(report)
-    save_report(markdown, run_dir / "feature_audit_results.md")
-    save_report(markdown, Path("report") / "Feature_Audit_Results.md")
+    (output_dir / "feature_audit_results.json").write_text(json.dumps(report.to_dict(), indent=2))
+    save_report(markdown, output_dir / "Feature_Audit_Results.md")
     return report
 
 
