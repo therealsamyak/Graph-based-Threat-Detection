@@ -42,7 +42,9 @@ def run_audit(
         redteam_eval=int(y[eval_idx].sum()),
         config=cfg,
         duplicate_pairs=duplicate_pairs,
-        eval_metrics=evaluate_selected(X, y, cal_idx, eval_idx, columns, selected),
+        eval_metrics=evaluate_selected(
+            X, y, cal_idx, eval_idx, columns, selected, cfg.log1p_features
+        ),
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     markdown = generate_report(report)
