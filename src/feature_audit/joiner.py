@@ -49,7 +49,6 @@ def dedup_against_edge_features(joined_df: pd.DataFrame, edge_columns: list[str]
     result = joined_df.copy()
     edge_set = set(edge_columns)
     drop_cols: list[str] = []
-    # Only source fan-out matches an existing edge feature; destination fan-out is distinct.
     aliases = {
         "src_fan_out_ratio": "source_fan_out",
     }
