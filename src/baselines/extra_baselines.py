@@ -61,7 +61,7 @@ def _run_lof(args: tuple) -> dict:
             n_neighbors=n_neighbors,
             contamination=contamination,
             novelty=True,
-            n_jobs=-1,
+            n_jobs=1,
         )
         model.fit(X_train)
         decision = model.decision_function(X_test)
