@@ -1,16 +1,4 @@
-"""Standalone comparison runner for ML baselines on cached LANL features.
-
-Loads cached `edge_features.csv` + `graph_edges.csv` + redteam pairs from a
-prior run directory, applies the same mask used by `lanl_baselines.py`, and
-runs all 5 ML baselines (OCSVM, IF, LOF, EllipticEnvelope, PCA reconstruction)
-on the same feature matrix. Outputs a comparison table to stdout and writes
-JSON + Markdown to the run directory.
-
-Does not modify the main pipeline. Reads cached files only.
-
-Usage:
-    uv run python scripts/run_extra_baselines.py results/20260502_165755/combined
-"""
+"""Run extra ML baselines on cached LANL features."""
 
 from __future__ import annotations
 
@@ -24,7 +12,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# allow running from repo root without install
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
