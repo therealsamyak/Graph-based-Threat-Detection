@@ -54,8 +54,13 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--holdout-frac", type=float, default=0.5)
     parser.add_argument("--min-auc", type=float, default=0.0)
-    parser.add_argument("--log1p", dest="log1p", action="store_true", default=True)
-    parser.add_argument("--no-log1p", dest="log1p", action="store_false")
+    parser.set_defaults(log1p=True)
+    parser.add_argument(
+        "--no-log1p",
+        dest="log1p",
+        action="store_false",
+        help="Disable log1p transforms for skewed count features.",
+    )
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args(argv)
 
