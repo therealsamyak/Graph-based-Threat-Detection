@@ -22,8 +22,10 @@ def stratified_split(
     for label in np.unique(y):
         idx = np.flatnonzero(y == label)
         rng.shuffle(idx)
-        eval_n = int(round(len(idx) * holdout_frac))
-        if len(idx) >= 2:
+        if len(idx) == 1:
+            eval_n = 1
+        else:
+            eval_n = int(np.ceil(len(idx) * holdout_frac))
             eval_n = min(max(eval_n, 1), len(idx) - 1)
         eval_parts.append(idx[:eval_n])
         calibration_parts.append(idx[eval_n:])
@@ -74,7 +76,11 @@ def compute_feature_aucs(
 
 
 def select_features(results: list[FeatureResult], min_auc: float = 0.7) -> list[str]:
-    return [result.feature for result in results if result.auc >= min_auc and result.is_duplicate_of is None]
+    return [
+        result.feature
+        for result in results
+        if result.auc >= min_auc and result.is_duplicate_of is None
+    ]
 
 
 def mark_duplicates(
@@ -104,15 +110,24 @@ def evaluate_selected(
     eval_idx: np.ndarray,
     columns: list[str],
     selected_cols: list[str],
+    log1p_cols: list[str] | None = None,
 ) -> dict[str, float]:
     del cal_idx
+    log_cols = set(log1p_cols or [])
     metrics: dict[str, float] = {}
     eval_y = y[eval_idx]
     if len(np.unique(eval_y)) < 2:
         return {feature: 0.5 for feature in selected_cols}
+    red_mask = eval_y == 1
+    benign_mask = eval_y == 0
     for feature in selected_cols:
         col_idx = columns.index(feature)
-        values = X[eval_idx, col_idx]
-        raw_auc = float(roc_auc_score(eval_y, values)) if len(np.unique(values)) > 1 else 0.5
-        metrics[feature] = max(raw_auc, 1.0 - raw_auc)
+        values = _maybe_log1p(X[eval_idx, col_idx].astype(float), feature, log_cols)
+        if len(np.unique(values)) < 2:
+            metrics[feature] = 0.5
+            continue
+        mean_redteam = float(values[red_mask].mean()) if red_mask.any() else 0.0
+        mean_benign = float(values[benign_mask].mean()) if benign_mask.any() else 0.0
+        raw_auc = float(roc_auc_score(eval_y, values))
+        metrics[feature] = 1.0 - raw_auc if mean_redteam < mean_benign else raw_auc
     return metrics

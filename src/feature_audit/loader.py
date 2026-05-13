@@ -74,16 +74,27 @@ def detect_duplicates(
         return []
 
     pairs: list[tuple[str, str]] = []
+    seen_exact: dict[bytes, int] = {}
+    exact_duplicates: set[int] = set()
     for i in range(X.shape[1]):
+        column_key = np.ascontiguousarray(X[:, i]).tobytes()
+        original = seen_exact.get(column_key)
+        if original is None:
+            seen_exact[column_key] = i
+            continue
+        pairs.append((columns[original], columns[i]))
+        exact_duplicates.add(i)
+
+    stds = np.std(X, axis=0)
+    candidate_idx = [i for i in range(X.shape[1]) if i not in exact_duplicates]
+    for left_pos, i in enumerate(candidate_idx):
+        if stds[i] == 0.0:
+            continue
         xi = X[:, i]
-        for j in range(i + 1, X.shape[1]):
-            xj = X[:, j]
-            if np.array_equal(xi, xj):
-                pairs.append((columns[i], columns[j]))
+        for j in candidate_idx[left_pos + 1 :]:
+            if stds[j] == 0.0:
                 continue
-            if np.std(xi) == 0.0 or np.std(xj) == 0.0:
-                continue
-            corr = float(np.corrcoef(xi, xj)[0, 1])
+            corr = float(np.corrcoef(xi, X[:, j])[0, 1])
             if abs(corr) > threshold:
                 pairs.append((columns[i], columns[j]))
     return pairs
