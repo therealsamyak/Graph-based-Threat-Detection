@@ -1,21 +1,4 @@
-"""Rebuild igraph from cached graph_edges.csv and run the FIXED
-extract_edge_features() to produce a refreshed edge_features.csv.
-
-Use this after the duplicate-feature bug fix (PR merged into main as
-commit 4531234) when the raw LANL dataset is not available locally
-but the cached graph snapshot is.
-
-The output is a new results/<timestamp>/combined directory that
-mirrors the input directory's contents but with edge_features.csv
-re-generated using the corrected weight_norm and source_fan_out
-formulas. The redteam directory from the input run is also copied so
-downstream tools (e.g. feature.py) find labels at the expected path.
-
-Usage:
-    uv run python scripts/refresh_edge_features.py \
-        --input results/20260504_183345/combined \
-        --output results/20260512_post_fix
-"""
+"""Refresh cached edge features from graph_edges.csv."""
 
 from __future__ import annotations
 
@@ -116,28 +99,22 @@ def main() -> int:
         shutil.copytree(redteam_src, redteam_dst, dirs_exist_ok=True)
         logger.info(f"Copied redteam dir to {redteam_dst}")
 
-    sample_cols = ["edge_rarity", "weight_norm", "source_fan_out", "src_out_degree"]
-    sample_present = [c for c in sample_cols if c in edge_features.columns]
-    if sample_present:
-        logger.info("Sanity check on refreshed columns (first 5 rows):")
-        logger.info("\n" + edge_features[sample_present].head().to_string())
-
     duplicates = []
     if "weight_norm" in edge_features.columns and "edge_rarity" in edge_features.columns:
         wn = edge_features["weight_norm"].to_numpy()
         er = edge_features["edge_rarity"].to_numpy()
         if np.allclose(wn, er):
-            duplicates.append("weight_norm == edge_rarity (BUG STILL PRESENT)")
+            duplicates.append("weight_norm == edge_rarity")
     if "source_fan_out" in edge_features.columns and "src_out_degree" in edge_features.columns:
         sfo = edge_features["source_fan_out"].to_numpy()
         sod = edge_features["src_out_degree"].to_numpy()
         if np.allclose(sfo, sod):
-            duplicates.append("source_fan_out == src_out_degree (BUG STILL PRESENT)")
+            duplicates.append("source_fan_out == src_out_degree")
     if duplicates:
         for d in duplicates:
             logger.error(d)
     else:
-        logger.info("No exact-duplicate bug detected in refreshed features.")
+        logger.info("No exact duplicate features detected")
     return 0
 
 
