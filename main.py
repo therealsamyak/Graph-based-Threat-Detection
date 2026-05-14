@@ -58,7 +58,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     args = _parse_args(argv)
     config: PipelineConfig = load_config()
 
-    data_dir = "datasets/LANL-Dataset-2015"
+    data_dir = "data/LANL-Dataset-2015"
     window_seconds = 3600
 
     all_results: list[dict] = []
@@ -68,13 +68,19 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     logger.info(f"Loading LANL data from {data_dir} (window={window_seconds}s)")
     try:
         from src.pipeline import run_streaming_experiment
-        lanl_results, experiment_result, results_base = run_streaming_experiment(
+        lanl_results, experiment_result_raw, results_base = run_streaming_experiment(
             data_dir=data_dir,
             window_seconds=window_seconds,
             max_events=args.sample,
             config=config,
         )
         all_results.extend(lanl_results)
+        # Reconstruct ExperimentResult from dict (pipeline returns asdict())
+        if isinstance(experiment_result_raw, dict):
+            from src.types import ExperimentResult
+            experiment_result = ExperimentResult(**experiment_result_raw)
+        else:
+            experiment_result = experiment_result_raw
     except Exception as e:
         logger.warning(f"LANL experiment failed: {e}")
 
