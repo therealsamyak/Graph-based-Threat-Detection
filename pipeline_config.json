@@ -1,6 +1,6 @@
 {
   "data": {
-    "lanl_dir": "datasets/LANL-Dataset-2015",
+    "lanl_dir": "data/LANL-Dataset-2015",
     "window_size": 3600
   },
   "graph": {
