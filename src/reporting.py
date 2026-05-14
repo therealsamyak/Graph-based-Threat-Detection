@@ -33,7 +33,24 @@ def generate_comparison(results_dir: str = "results") -> None:
         logger.info(f"Placeholder files created in {results_path}/")
         return
 
-    df = pd.read_csv(metrics_path)
+    try:
+        df = pd.read_csv(metrics_path)
+    except (pd.errors.EmptyDataError, pd.errors.ParserError):
+        logger.warning(f"metrics.csv is empty or corrupt, writing placeholder")
+        comp_path.write_text(
+            "# Lateral Movement Detection — Method Comparison\n\n"
+            "> **No results.** Experiment did not produce metrics.\n"
+        )
+        summ_path.write_text("No results. Experiment did not produce metrics.\n")
+        return
+    if df.empty:
+        logger.warning("metrics.csv has no rows, writing placeholder")
+        comp_path.write_text(
+            "# Lateral Movement Detection — Method Comparison\n\n"
+            "> **No results.** Experiment did not produce metrics.\n"
+        )
+        summ_path.write_text("No results. Experiment did not produce metrics.\n")
+        return
 
     # comparison_table.md
     metric_cols = ["recall", "fpr", "f1", "auc", "latency", "throughput"]
