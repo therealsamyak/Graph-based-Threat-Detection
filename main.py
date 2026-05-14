@@ -26,26 +26,10 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description="Run lateral movement detection experiments."
     )
     parser.add_argument(
-        "--data-dir",
-        default="datasets/LANL-Dataset-2015",
-        help="Path to LANL-2015 data directory (default: datasets/LANL-Dataset-2015)",
-    )
-    parser.add_argument(
-        "--window-size",
-        type=int,
-        default=3600,
-        help="Half-window size in seconds around red team events (default: 3600)",
-    )
-    parser.add_argument(
         "--sample",
         type=int,
         default=None,
         help="Limit number of events per source for quick testing",
-    )
-    parser.add_argument(
-        "--dapt-dir",
-        default="datasets/dapt2020",
-        help="Path to DAPT2020 data directory (default: datasets/dapt2020)",
     )
     return parser.parse_args(argv)
 
@@ -74,28 +58,19 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     args = _parse_args(argv)
     config: PipelineConfig = load_config()
 
-    _DEFAULTS = {"data_dir": "datasets/LANL-Dataset-2015", "window_size": 3600, "dapt_dir": "datasets/dapt2020"}
-    data_overrides: dict = {}
-    if args.data_dir != _DEFAULTS["data_dir"]:
-        data_overrides["lanl_dir"] = args.data_dir
-    if args.window_size != _DEFAULTS["window_size"]:
-        data_overrides["window_size"] = args.window_size
-    if args.dapt_dir != _DEFAULTS["dapt_dir"]:
-        data_overrides["dapt_dir"] = args.dapt_dir
-    if data_overrides:
-        config = config.with_overrides(data=data_overrides)
+    data_dir = "datasets/LANL-Dataset-2015"
+    window_seconds = 3600
 
     all_results: list[dict] = []
     experiment_result: ExperimentResult | None = None
     results_base = "results/pending"
 
-    logger.info(f"Loading LANL data from {args.data_dir} (window={args.window_size}s)")
+    logger.info(f"Loading LANL data from {data_dir} (window={window_seconds}s)")
     try:
         from src.pipeline import run_streaming_experiment
         lanl_results, experiment_result, results_base = run_streaming_experiment(
-            data_dir=args.data_dir,
-            window_seconds=args.window_size,
-            dapt_dir=args.dapt_dir,
+            data_dir=data_dir,
+            window_seconds=window_seconds,
             max_events=args.sample,
             config=config,
         )

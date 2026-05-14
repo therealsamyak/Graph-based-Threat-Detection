@@ -70,20 +70,6 @@ def generate_comparison(results_dir: str = "results") -> None:
         best = df.loc[best_idx]
         md += f"- **Lowest FPR**: {best['method']} ({best.get('dataset', 'N/A')} — {best['fpr']:.4f})\n"
 
-    # Relative improvement: combined vs single-source
-    if "dataset" in df.columns:
-        lanl = df[df["dataset"] == "LANL-2015"]
-        if not lanl.empty and "combined" in lanl["method"].values:
-            combined = lanl[lanl["method"] == "combined"].iloc[0]
-            singles = lanl[lanl["method"].isin(["flow_only", "auth_only"])]
-            md += "\n## Relative Improvement: Combined vs Single-Source\n\n"
-            for _, s in singles.iterrows():
-                md += f"### Combined vs {s['method']}\n"
-                for m in ["recall", "f1"]:
-                    if s[m] > 0:
-                        imp = ((combined[m] - s[m]) / s[m]) * 100
-                        md += f"- {m}: {imp:+.1f}%\n"
-
     comp_path.write_text(md)
 
     # summary.txt
@@ -103,27 +89,6 @@ def generate_comparison(results_dir: str = "results") -> None:
                     f"f1={row.get('f1', 0):.4f}, fpr={row.get('fpr', 0):.4f}"
                 )
             lines.append("")
-            if "combined" in lanl["method"].values:
-                combined = lanl[lanl["method"] == "combined"].iloc[0]
-                best_single = lanl[lanl["method"] != "combined"]
-                if not best_single.empty:
-                    best_recall = best_single["recall"].max()
-                    lines.append(
-                        f"Combined method recall: {combined['recall']:.4f} "
-                        f"(best single-source: {best_recall:.4f})"
-                    )
-
-        dapt = df[df["dataset"] == "DAPT2020"]
-        if not dapt.empty:
-            lines.append("\nDAPT2020 Baseline Results:")
-            for _, row in dapt.iterrows():
-                auc_val = row.get('auc', 0)
-                if pd.isna(auc_val):
-                    auc_val = 0
-                lines.append(
-                    f"  {row['method']}: auc={auc_val:.4f}, "
-                    f"f1={row.get('f1', 0):.4f}"
-                )
     else:
         lines.append("All results:")
         for _, row in df.iterrows():
@@ -132,8 +97,7 @@ def generate_comparison(results_dir: str = "results") -> None:
     lines.append("")
     lines.append("Key Takeaways:")
     lines.append("  - Run `uv run python main.py --sample 10000` to populate")
-    lines.append("  - Combined auth+flow graph method vs single-source baselines")
-    lines.append("  - Graph-based approach vs DAPT2020 ML baselines (OneClassSVM, IF)")
+    lines.append("  - Combined auth+flow graph method for lateral movement detection")
 
     summ_path.write_text("\n".join(lines))
     logger.info(f"Generated comparison_table.md and summary.txt in {results_path}/")
