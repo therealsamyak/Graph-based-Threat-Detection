@@ -2,114 +2,37 @@
 
 from __future__ import annotations
 
+import json
 import logging
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import time
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 from src.io import save_method_results, save_pipeline_config, save_redteam_data
 from src.stages import load_redteam_data, run_method_pipeline
 from src.types import ExperimentResult, PipelineConfig
+
 logger = logging.getLogger(__name__)
-
-
-def _mp_run_lanl_baselines(
-    results_dir: str, red_pairs_list: list[tuple[str, str]], config: dict
-) -> list[dict]:
-    import logging as _logging
-    import pandas as pd
-    _log = _logging.getLogger(__name__)
-
-    ef_path = Path(results_dir) / "combined" / "edge_features.csv"
-    edges_path = Path(results_dir) / "combined" / "graph_edges.csv"
-    if not ef_path.exists():
-        _log.warning("LANL baselines: edge_features.csv not found")
-        return []
-
-    edge_features = pd.read_csv(ef_path)
-    red_pairs = set(red_pairs_list)
-
-    if edges_path.exists():
-        edges_df = pd.read_csv(edges_path)
-        edge_pair_names = list(zip(edges_df["src"].astype(str), edges_df["dst"].astype(str)))
-    else:
-        _log.warning("LANL baselines: graph_edges.csv not found, using edge_features index")
-        return []
-
-    import numpy as np
-    from src.baselines.shared_baselines import SCORING_FEATURE_COLUMNS
-
-    available = [c for c in SCORING_FEATURE_COLUMNS if c in edge_features.columns]
-    if not available:
-        return []
-
-    mask = (
-        (edge_features["is_self_loop"].values == 0.0)
-        & (edge_features["is_user_edge"].values == 0.0)
-    )
-    features = edge_features[available].values.astype(np.float64)
-    features = np.nan_to_num(features, nan=0.0, posinf=0.0, neginf=0.0)
-    labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
-
-    features_valid = features[mask]
-    labels_valid = labels[mask]
-    _log.info(f"LANL baselines: {len(features_valid):,} edges, {available} features")
-
-    from src.baselines.shared_baselines import run_baselines
-
-    baseline_results = run_baselines(features_valid, labels_valid, config)
-    return [
-        {
-            "method": r["method"],
-            "dataset": "LANL-2015",
-            "recall": round(r["recall"], 4),
-            "fpr": round(r["fpr"], 4),
-            "f1": round(r["f1"], 4),
-            "auc": round(r["auc"], 4),
-            "latency": 0.0,
-            "throughput": 0.0,
-        }
-        for r in baseline_results
-    ]
-
-
-def _mp_run_dapt_baselines(dapt_dir: str, max_events: int | None, config: dict) -> list[dict]:
-    import logging as _logging
-    _log = _logging.getLogger(__name__)
-    from src.baselines.dapt_baselines import run_dapt_baselines
-
-    dapt_results = run_dapt_baselines(data_dir=dapt_dir, max_rows=max_events, config=config)
-    return [
-        {
-            "method": r["method"],
-            "dataset": "DAPT2020",
-            "recall": round(r["recall"], 4),
-            "fpr": round(r["fpr"], 4),
-            "f1": round(r["f1"], 4),
-            "auc": round(r["auc"], 4),
-            "latency": 0.0,
-            "throughput": 0.0,
-        }
-        for r in dapt_results
-    ]
-
-
-def _mp_run_dapt_graph(dapt_dir: str, max_events: int | None, config: dict) -> list[dict]:
-    import logging as _logging
-    _log = _logging.getLogger(__name__)
-    from src.baselines.dapt_graph import run_dapt_graph
-
-    result = run_dapt_graph(data_dir=dapt_dir, max_rows=max_events, config=config)
-    return [result]
 
 
 def run_streaming_experiment(
     data_dir: str = "data/LANL-Dataset-2015",
     window_seconds: int = 3600,
-    dapt_dir: str = "data/DAPT2020",
     max_events: int | None = None,
     config: dict | PipelineConfig | None = None,
 ) -> tuple[list[dict], dict, str]:
+    """Run combined-only streaming experiment.
+
+    Args:
+        data_dir: Path to LANL dataset directory
+        window_seconds: Time window for red team merging (seconds)
+        max_events: Max events to process (None = all)
+        config: Pipeline configuration (dict or PipelineConfig)
+
+    Returns:
+        (method_results, experiment_result_dict, results_dir_path)
+    """
     if isinstance(config, PipelineConfig):
         cfg = config
     else:
@@ -122,93 +45,98 @@ def run_streaming_experiment(
 
     save_pipeline_config(str(results_base), cfg)
 
+    pipeline_start = time.perf_counter()
+
     rt, red_pairs, windows = load_redteam_data(data_dir, window_seconds)
     save_redteam_data(str(results_base), rt, red_pairs, windows)
 
-    combined_graph = None
-    combined_edge_scores = None
-    combined_paths = None
-    combined_threshold = 0.0
-    combined_edge_features = None
-    method_graphs: dict[str, object | None] = {}
-    all_results: list[dict] = []
+    # Single combined-only run
+    mr = run_method_pipeline(
+        data_dir=data_dir,
+        windows=windows,
+        red_pairs=red_pairs,
+        config=cfg,
+        max_events=max_events,
+        output_dir=str(results_base),
+    )
 
-    for method_name, feed_auth, feed_flow in [
-        ("flow_only", None, True),
-        ("auth_only", True, None),
-        ("combined", True, True),
-    ]:
-        mr = run_method_pipeline(
-            method_name=method_name,
-            data_dir=data_dir,
-            windows=windows,
-            red_pairs=red_pairs,
-            config=cfg,
-            max_events=max_events,
-            feed_auth=feed_auth,
-            feed_flow=feed_flow,
-        )
+    # Save combined method results
+    save_method_results(
+        output_dir=str(results_base / "combined"),
+        method="combined",
+        g=mr.graph,
+        edge_scores=mr.edge_scores,
+        paths=mr.paths,
+        edge_features=mr.edge_features,
+        node_features=mr.node_features,
+        graph_features=mr.graph_features,
+        anomalous_pairs=mr.metrics["anomalous_pairs"],
+        detected_pairs=mr.metrics["detected_pairs"],
+    )
 
-        all_results.append(mr.result_dict)
+    all_results = [mr.result_dict]
 
-        save_method_results(
-            output_dir=str(results_base / method_name),
-            method=method_name,
-            g=mr.graph,
-            edge_scores=mr.edge_scores,
-            paths=mr.paths,
-            edge_features=mr.edge_features,
-            node_features=mr.node_features,
-            graph_features=mr.graph_features,
-            anomalous_pairs=mr.metrics["anomalous_pairs"],
-            detected_pairs=mr.metrics["detected_pairs"],
-        )
-
-        if method_name == "combined":
-            combined_graph = mr.graph
-            combined_edge_scores = mr.edge_scores
-            combined_paths = mr.paths
-            combined_threshold = mr.threshold
-            combined_edge_features = mr.edge_features
-        else:
-            method_graphs[method_name] = None
-            # mr (namedtuple) goes out of scope on next iteration, freeing graph
-
-    baseline_tasks: list[tuple[str, tuple]] = []
-    cfg_dict = cfg.to_dict()
-
-    if cfg.baselines.run_lanl_baselines and combined_graph is not None:
-        baseline_tasks.append(("lanl", (_mp_run_lanl_baselines, str(results_base), list(red_pairs), cfg_dict)))
-
-    baseline_tasks.append(("dapt_bl", (_mp_run_dapt_baselines, dapt_dir, max_events, cfg_dict)))
-
-    if cfg.baselines.run_dapt_graph:
-        baseline_tasks.append(("dapt_graph", (_mp_run_dapt_graph, dapt_dir, max_events, cfg_dict)))
-
-    if baseline_tasks:
-        logger.info(f"Running all baselines in parallel ({len(baseline_tasks)} tasks)")
-        with ProcessPoolExecutor(max_workers=len(baseline_tasks)) as pool:
-            futures = {}
-            for name, (fn, *args) in baseline_tasks:
-                futures[pool.submit(fn, *args)] = name
-            for future in as_completed(futures):
-                name = futures[future]
-                try:
-                    results = future.result()
-                    all_results.extend(results)
-                    logger.info(f"  {name}: completed with {len(results)} results")
-                except Exception as e:
-                    logger.warning(f"  {name}: failed: {e}")
-
+    # Build ExperimentResult (method_graphs field removed in T2)
     experiment_result = ExperimentResult(
-        combined_graph=combined_graph,
-        combined_edge_scores=combined_edge_scores,
-        combined_paths=combined_paths,
-        combined_threshold=combined_threshold,
-        combined_edge_features=combined_edge_features,
+        combined_graph=mr.graph,
+        combined_edge_scores=mr.edge_scores,
+        combined_paths=mr.paths,
+        combined_threshold=mr.threshold,
+        combined_edge_features=mr.edge_features,
         red_pairs=frozenset(red_pairs),
         redteam_times=rt["time"],
         method_results=tuple(all_results),
-        method_graphs=frozenset(method_graphs.keys()),
     )
-    return all_results, experiment_result, str(results_base)
+
+    pipeline_end = time.perf_counter()
+    total_duration = pipeline_end - pipeline_start
+
+    # Save pipeline_run.json with complete metadata
+    pipeline_run = {
+        "run_id": run_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "config": cfg.to_dict() if hasattr(cfg, "to_dict") else cfg.__dict__,
+        "data_stats": {
+            "data_dir": data_dir,
+            "window_seconds": window_seconds,
+            "total_events": mr.total_events,
+            "graph_nodes": mr.graph.vcount(),
+            "graph_edges": mr.graph.ecount(),
+        },
+        "timing": {
+            "build_time": mr.build_time,
+            "score_time": mr.score_time,
+            "total_duration": total_duration,
+        },
+        "intermediate": {
+            "threshold": mr.threshold,
+            "red_team_pairs_count": len(red_pairs),
+        },
+        "final_metrics": {
+            "recall": mr.metrics.get("recall"),
+            "f1": mr.metrics.get("f1"),
+            "fpr": mr.metrics.get("fpr"),
+            "auc": mr.metrics.get("auc"),
+            "anomalous_pairs": mr.metrics.get("anomalous_pairs"),
+            "detected_pairs": mr.metrics.get("detected_pairs"),
+        },
+        "feature_stats": {},
+    }
+
+    # Add feature statistics if available
+    if mr.edge_features is not None:
+        edge_feat_df = mr.edge_features
+        pipeline_run["feature_stats"] = {
+            "shape": list(edge_feat_df.shape),
+            "columns": list(edge_feat_df.columns),
+            "nan_counts": edge_feat_df.isna().sum().to_dict(),
+        }
+
+    # Save pipeline_run.json
+    with open(results_base / "pipeline_run.json", "w") as f:
+        json.dump(pipeline_run, f, indent=2, default=str)
+
+    logger.info(f"Pipeline completed in {total_duration:.2f}s")
+    logger.info(f"Recall: {mr.metrics.get('recall'):.4f}, F1: {mr.metrics.get('f1'):.4f}, FPR: {mr.metrics.get('fpr'):.6f}")
+
+    return all_results, asdict(experiment_result), str(results_base)

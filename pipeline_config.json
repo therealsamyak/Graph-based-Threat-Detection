@@ -1,16 +1,12 @@
 {
   "data": {
-    "lanl_dir": "data/LANL-Dataset-2015",
-    "dapt_dir": "data/DAPT2020",
+    "lanl_dir": "datasets/LANL-Dataset-2015",
     "window_size": 3600
   },
   "graph": {
     "progress_every": 500000
   },
   "scoring": {
-    "weights": { "is_ntlm": 0.4, "is_network_logon": 0.3, "edge_rarity": 0.3 },
-    "flow_weights": { "edge_rarity": 0.4, "is_unusual_dst_port": 0.3, "protocol_rarity": 0.3 },
-    "auth_weight_multiplier": 1.5,
     "threshold_mode": "auto_optimize",
     "threshold_percentile": 99,
     "threshold_search_range": [90, 95, 97, 99, 99.5, 99.9],
@@ -26,11 +22,5 @@
     "betweenness_cutoff": 3,
     "temporal_burst_window_pct": 0.1,
     "max_workers": 12
-  },
-  "baselines": {
-    "run_lanl_baselines": true,
-    "run_dapt_graph": true,
-    "oneclass_svm": { "kernel": "rbf", "gamma": "scale", "nu": 0.1 },
-    "isolation_forest": { "n_estimators": 100, "contamination": 0.05, "random_state": 42 }
   }
 }

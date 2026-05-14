@@ -12,7 +12,6 @@ from dataclasses import dataclass, field, replace
 @dataclass(frozen=True)
 class DataConfig:
     lanl_dir: str = "data/LANL-Dataset-2015"
-    dapt_dir: str = "data/DAPT2020"
     window_size: int = 3600
 
     @classmethod
@@ -50,24 +49,8 @@ class ScoringWeights:
 
 
 @dataclass(frozen=True)
-class FlowWeights:
-    edge_rarity: float = 0.4
-    is_unusual_dst_port: float = 0.3
-    protocol_rarity: float = 0.3
-
-    @classmethod
-    def from_dict(cls, d: dict) -> FlowWeights:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-    def to_dict(self) -> dict:
-        return {f.name: getattr(self, f.name) for f in self.__dataclass_fields__.values()}
-
-
-@dataclass(frozen=True)
 class ScoringConfig:
     weights: ScoringWeights = field(default_factory=ScoringWeights)
-    flow_weights: FlowWeights = field(default_factory=FlowWeights)
-    auth_weight_multiplier: float = 1.5
     threshold_mode: str = "auto_optimize"
     threshold_percentile: float = 99
     threshold_search_range: list[float] = field(
@@ -85,8 +68,6 @@ class ScoringConfig:
         for k, v in d.items():
             if k == "weights":
                 kwargs[k] = ScoringWeights.from_dict(v)
-            elif k == "flow_weights":
-                kwargs[k] = FlowWeights.from_dict(v)
             elif k == "threshold_search_range":
                 kwargs[k] = list(v)
             elif k in cls.__dataclass_fields__:
@@ -97,7 +78,7 @@ class ScoringConfig:
         d: dict = {}
         for f in self.__dataclass_fields__:
             val = getattr(self, f)
-            if isinstance(val, (ScoringWeights, FlowWeights)):
+            if isinstance(val, ScoringWeights):
                 d[f] = val.to_dict()
             else:
                 d[f] = copy.deepcopy(val)
@@ -121,48 +102,11 @@ class FeaturesConfig:
 
 
 @dataclass(frozen=True)
-class BaselinesConfig:
-    run_lanl_baselines: bool = True
-    run_dapt_graph: bool = True
-    oneclass_svm: dict = field(
-        default_factory=lambda: {"kernel": "rbf", "gamma": "scale", "nu": 0.1}
-    )
-    isolation_forest: dict = field(
-        default_factory=lambda: {
-            "n_estimators": 100,
-            "contamination": 0.05,
-            "random_state": 42,
-        }
-    )
-
-    @classmethod
-    def from_dict(cls, d: dict) -> BaselinesConfig:
-        kwargs = {}
-        for k, v in d.items():
-            if k in ("oneclass_svm", "isolation_forest"):
-                kwargs[k] = dict(v)
-            elif k in cls.__dataclass_fields__:
-                kwargs[k] = v
-        return cls(**kwargs)
-
-    def to_dict(self) -> dict:
-        d: dict = {}
-        for f in self.__dataclass_fields__:
-            val = getattr(self, f)
-            if isinstance(val, dict):
-                d[f] = copy.deepcopy(val)
-            else:
-                d[f] = val
-        return d
-
-
-@dataclass(frozen=True)
 class PipelineConfig:
     data: DataConfig = field(default_factory=DataConfig)
     graph: GraphConfig = field(default_factory=GraphConfig)
     scoring: ScoringConfig = field(default_factory=ScoringConfig)
     features: FeaturesConfig = field(default_factory=FeaturesConfig)
-    baselines: BaselinesConfig = field(default_factory=BaselinesConfig)
 
     @classmethod
     def from_dict(cls, d: dict) -> PipelineConfig:
@@ -176,8 +120,6 @@ class PipelineConfig:
                 kwargs[k] = ScoringConfig.from_dict(v)
             elif k == "features":
                 kwargs[k] = FeaturesConfig.from_dict(v)
-            elif k == "baselines":
-                kwargs[k] = BaselinesConfig.from_dict(v)
             elif k in cls.__dataclass_fields__:
                 kwargs[k] = v
         return cls(**kwargs)
@@ -226,7 +168,18 @@ class ExperimentResult:
     red_pairs: frozenset = field(default_factory=frozenset)
     redteam_times: object = None
     method_results: tuple = field(default_factory=tuple)
-    method_graphs: frozenset = field(default_factory=frozenset)
+
+
+# ── Optimized weights ───────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class OptimizedWeights:
+    is_ntlm: float = 0.2
+    source_fan_out: float = 0.2
+    dst_in_degree: float = 0.2
+    is_network_logon: float = 0.2
+    dst_fan_out_ratio: float = 0.2
 
 
 # ── Detection params ────────────────────────────────────────────────
