@@ -7,6 +7,7 @@ import time
 from collections import namedtuple
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from src.data.lanl import (
@@ -20,6 +21,7 @@ from src.data.lanl import (
 from src.detection import compute_pair_metrics, optimize_threshold
 from src.features import extract_all_features
 from src.graph.builder import StreamingGraphBuilder, stream_gz_to_graph
+from src.optimization import WeightOptimizer
 from src.scoring.edges import boost_edges_from_paths, score_edges
 from src.scoring.paths import score_graph, score_paths
 from src.types import DetectionParams, PipelineConfig
@@ -63,42 +65,37 @@ def load_redteam_data(
 
 
 def run_method_pipeline(
-    method_name: str,
     data_dir: str,
     windows: list,
     red_pairs: set,
     config: PipelineConfig,
     max_events: int | None = None,
-    feed_auth: bool | None = True,
-    feed_flow: bool | None = True,
+    output_dir: str | None = None,
 ) -> MethodResult:
     scoring = config.scoring
     data_path = Path(data_dir)
 
+    method_name = "combined"
     logger.info(f"Streaming + building: {method_name}")
     t0 = time.perf_counter()
 
     graph = StreamingGraphBuilder()
 
-    n_auth = 0
-    if feed_auth:
-        n_auth = stream_gz_to_graph(
-            str(data_path / "auth.txt.gz"),
-            AUTH_COLUMNS, windows, AUTH_NUMERIC,
-            graph, graph.feed_auth_event,
-            progress_every=config.graph.progress_every,
-            max_events=max_events,
-        )
+    n_auth = stream_gz_to_graph(
+        str(data_path / "auth.txt.gz"),
+        AUTH_COLUMNS, windows, AUTH_NUMERIC,
+        graph, graph.feed_auth_event,
+        progress_every=config.graph.progress_every,
+        max_events=max_events,
+    )
 
-    n_flow = 0
-    if feed_flow:
-        n_flow = stream_gz_to_graph(
-            str(data_path / "flows.txt.gz"),
-            FLOW_COLUMNS, windows, FLOW_NUMERIC,
-            graph, graph.feed_flow_event,
-            progress_every=config.graph.progress_every,
-            max_events=max_events,
-        )
+    n_flow = stream_gz_to_graph(
+        str(data_path / "flows.txt.gz"),
+        FLOW_COLUMNS, windows, FLOW_NUMERIC,
+        graph, graph.feed_flow_event,
+        progress_every=config.graph.progress_every,
+        max_events=max_events,
+    )
 
     g = graph.build()
     build_time = time.perf_counter() - t0
@@ -117,7 +114,24 @@ def run_method_pipeline(
     all_feat = extract_all_features(g, config=config.to_dict())
     logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
 
-    weights_dict = scoring.weights.to_dict()
+    # Run optimizer to find best weights
+    FEATURE_NAMES = ["is_ntlm", "source_fan_out", "dst_in_degree", "is_network_logon", "dst_fan_out_ratio"]
+    _ef = all_feat["edge_features"]
+    _mask = (_ef["is_self_loop"].values == 0.0) & (_ef["is_user_edge"].values == 0.0)
+    _labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
+
+    try:
+        logger.info("  Running weight optimization...")
+        opt = WeightOptimizer(_ef[_mask].reset_index(drop=True), _labels[_mask], FEATURE_NAMES)
+        opt_output_dir = str(Path(output_dir) / "optimization") if output_dir else None
+        opt_result = opt.optimize(output_dir=opt_output_dir)
+        weights_dict = {k: v for k, v in opt_result.items() if k in FEATURE_NAMES}
+        logger.info(f"  Optimized weights: {weights_dict}")
+        logger.info(f"  Optimized AUC: {opt_result['auc']:.4f}")
+    except Exception as e:
+        logger.warning(f"  Optimization failed: {e}, falling back to equal weights")
+        weights_dict = {name: 1.0 / len(FEATURE_NAMES) for name in FEATURE_NAMES}
+
     edge_scores = score_edges(g, all_feat["edge_features"], weights=weights_dict, config=config.to_dict())
     logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
 

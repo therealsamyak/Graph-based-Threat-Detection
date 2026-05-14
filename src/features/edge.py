@@ -50,6 +50,7 @@ def extract_edge_features(g: ig.Graph, config: dict | None = None) -> pd.DataFra
                 "edge_rarity": pd.Series(dtype=float),
                 "src_out_degree": pd.Series(dtype=float),
                 "dst_in_degree": pd.Series(dtype=float),
+                "dst_fan_out_ratio": pd.Series(dtype=float),
                 "is_ntlm": pd.Series(dtype=float),
                 "is_network_logon": pd.Series(dtype=float),
                 "is_success_auth": pd.Series(dtype=float),
@@ -83,6 +84,9 @@ def extract_edge_features(g: ig.Graph, config: dict | None = None) -> pd.DataFra
     total_deg = out_deg + in_deg
     source_fan_out = np.where(
         total_deg[sources] > 0, out_deg[sources] / total_deg[sources], 0.0
+    )
+    dst_fan_out_ratio = np.where(
+        total_deg[targets] > 0, out_deg[targets] / total_deg[targets], 0.0
     )
 
     is_self_loop = (sources == targets).astype(float)
@@ -184,6 +188,7 @@ def extract_edge_features(g: ig.Graph, config: dict | None = None) -> pd.DataFra
             "edge_rarity": edge_rarity,
             "src_out_degree": src_out_deg,
             "dst_in_degree": dst_in_deg,
+            "dst_fan_out_ratio": dst_fan_out_ratio,
             "is_ntlm": is_ntlm,
             "is_network_logon": is_network_logon,
             "is_success_auth": is_success_auth,
