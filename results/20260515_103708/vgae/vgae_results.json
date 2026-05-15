@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-05-15T10:37:08.815861+00:00",
+  "input_data": "/Users/ipehlivan/Documents/GitHub/Graph-based-Threat-Detection/.venv-vgae/cache/vgae_data.pt",
+  "device": "mps",
+  "config": {
+    "hidden": 64,
+    "latent": 32,
+    "lr": 0.01,
+    "epochs": 100,
+    "holdout_frac": 0.5,
+    "seed": 42,
+    "negative_sample_multiplier": 1,
+    "training_positives": "all-cal"
+  },
+  "graph": {
+    "n_nodes": 91589,
+    "in_features": 9,
+    "n_edges_full": 512529,
+    "n_edges_masked": 364802,
+    "n_redteam_total": 305,
+    "n_redteam_masked": 305
+  },
+  "split": {
+    "calibration_edges": 182400,
+    "evaluation_edges": 182402,
+    "calibration_redteam": 152,
+    "evaluation_redteam": 153,
+    "training_positives": 182400
+  },
+  "training_seconds": 38.65939784049988,
+  "results": {
+    "vgae_calibration_auc": 0.49676539660243185,
+    "vgae_evaluation_auc": 0.4967955928427591,
+    "overfit_gap_cal_minus_eval": -3.0196240327240442e-05
+  },
+  "reference_baselines": {
+    "isolation_forest_lanl": 0.9098,
+    "oneclass_svm_lanl": 0.667,
+    "lof_lanl": 0.4925,
+    "elliptic_envelope_lanl": 0.7741,
+    "pca_reconstruction_lanl": 0.6672,
+    "supervised_lr_on_5_features": 0.9733,
+    "combined_graph_pipeline": 0.9544
+  },
+  "delta_vs_isolation_forest": -0.41300440715724096,
+  "delta_vs_supervised_lr": -0.47650440715724096
+}
