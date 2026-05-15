@@ -13,7 +13,6 @@ from typing import Any
 @dataclass(frozen=True)
 class DataConfig:
     lanl_dir: str = "data/LANL-Dataset-2015"
-    dapt_dir: str = "data/DAPT2020"
     window_size: int = 3600
 
     @classmethod
