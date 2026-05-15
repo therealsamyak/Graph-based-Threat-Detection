@@ -36,7 +36,7 @@ def generate_comparison(results_dir: str = "results") -> None:
     try:
         df = pd.read_csv(metrics_path)
     except (pd.errors.EmptyDataError, pd.errors.ParserError):
-        logger.warning(f"metrics.csv is empty or corrupt, writing placeholder")
+        logger.warning("metrics.csv is empty or corrupt, writing placeholder")
         comp_path.write_text(
             "# Lateral Movement Detection — Method Comparison\n\n"
             "> **No results.** Experiment did not produce metrics.\n"
