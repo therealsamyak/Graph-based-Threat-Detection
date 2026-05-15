@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.data.dapt import iter_dapt_flows
 from src.data.lanl import (
     AUTH_COLUMNS,
     AUTH_NUMERIC,
@@ -52,6 +53,14 @@ MethodResult = namedtuple(
     ],
 )
 
+OPTIMIZED_FEATURE_NAMES = [
+    "is_ntlm",
+    "source_fan_out",
+    "dst_in_degree",
+    "is_network_logon",
+    "dst_fan_out_ratio",
+]
+
 
 def load_redteam_data(
     data_dir: str,
@@ -64,46 +73,18 @@ def load_redteam_data(
     return rt, red_pairs, windows
 
 
-def run_method_pipeline(
-    data_dir: str,
-    windows: list,
+def _score_detect_graph(
+    *,
+    method_name: str,
+    dataset: str,
+    g,
     red_pairs: set,
+    build_time: float,
+    total_events: int,
     config: PipelineConfig,
-    max_events: int | None = None,
     output_dir: str | None = None,
 ) -> MethodResult:
     scoring = config.scoring
-    data_path = Path(data_dir)
-
-    method_name = "combined"
-    logger.info(f"Streaming + building: {method_name}")
-    t0 = time.perf_counter()
-
-    graph = StreamingGraphBuilder()
-
-    n_auth = stream_gz_to_graph(
-        str(data_path / "auth.txt.gz"),
-        AUTH_COLUMNS, windows, AUTH_NUMERIC,
-        graph, graph.feed_auth_event,
-        progress_every=config.graph.progress_every,
-        max_events=max_events,
-    )
-
-    n_flow = stream_gz_to_graph(
-        str(data_path / "flows.txt.gz"),
-        FLOW_COLUMNS, windows, FLOW_NUMERIC,
-        graph, graph.feed_flow_event,
-        progress_every=config.graph.progress_every,
-        max_events=max_events,
-    )
-
-    g = graph.build()
-    build_time = time.perf_counter() - t0
-    logger.info(f"  Streamed {n_auth:,} auth + {n_flow:,} flow in {build_time:.1f}s")
-    logger.info(f"  Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
-
-    del graph
-
     edge_pair_names = compute_edge_pair_names(g)
     graph_edges = set(edge_pair_names)
     rt_in_graph = red_pairs & graph_edges
@@ -114,29 +95,35 @@ def run_method_pipeline(
     all_feat = extract_all_features(g, config=config.to_dict())
     logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
 
-    # Run optimizer to find best weights
-    FEATURE_NAMES = ["is_ntlm", "source_fan_out", "dst_in_degree", "is_network_logon", "dst_fan_out_ratio"]
-    _ef = all_feat["edge_features"]
-    _mask = (_ef["is_self_loop"].values == 0.0) & (_ef["is_user_edge"].values == 0.0)
-    _labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
+    ef = all_feat["edge_features"]
+    mask_valid = (
+        (ef["is_self_loop"].values == 0.0)
+        & (ef["is_user_edge"].values == 0.0)
+    )
+    labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
 
     try:
         logger.info("  Running weight optimization...")
-        opt = WeightOptimizer(_ef[_mask].reset_index(drop=True), _labels[_mask], FEATURE_NAMES)
+        opt = WeightOptimizer(
+            ef[mask_valid].reset_index(drop=True),
+            labels[mask_valid],
+            OPTIMIZED_FEATURE_NAMES,
+        )
         opt_output_dir = str(Path(output_dir) / "optimization") if output_dir else None
         opt_result = opt.optimize(output_dir=opt_output_dir)
-        weights_dict = {k: v for k, v in opt_result.items() if k in FEATURE_NAMES}
+        weights_dict = {k: v for k, v in opt_result.items() if k in OPTIMIZED_FEATURE_NAMES}
         logger.info(f"  Optimized weights: {weights_dict}")
         logger.info(f"  Optimized AUC: {opt_result['auc']:.4f}")
     except Exception as e:
         logger.warning(f"  Optimization failed: {e}, falling back to equal weights")
-        weights_dict = {name: 1.0 / len(FEATURE_NAMES) for name in FEATURE_NAMES}
+        weights_dict = {name: 1.0 / len(OPTIMIZED_FEATURE_NAMES) for name in OPTIMIZED_FEATURE_NAMES}
 
-    edge_scores = score_edges(g, all_feat["edge_features"], weights=weights_dict, config=config.to_dict())
+    edge_scores = score_edges(g, ef, weights=weights_dict, config=config.to_dict())
     logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
 
     paths = score_paths(
-        g, edge_scores,
+        g,
+        edge_scores,
         max_hops=scoring.max_hops,
         top_k=scoring.top_k_paths,
         top_outgoing=scoring.top_outgoing_per_node,
@@ -150,12 +137,6 @@ def run_method_pipeline(
     graph_result = score_graph(g, all_feat, edge_scores, paths=paths)
     score_time = time.perf_counter() - t1
     logger.info(f"  Scoring completed in {score_time:.1f}s")
-
-    ef = all_feat["edge_features"]
-    mask_valid = (
-        (ef["is_self_loop"].values == 0.0)
-        & (ef["is_user_edge"].values == 0.0)
-    )
 
     params = DetectionParams(
         edge_scores=edge_scores,
@@ -172,19 +153,18 @@ def run_method_pipeline(
         search_range=scoring.threshold_search_range,
         default_percentile=scoring.threshold_percentile,
     )
-
     metrics = compute_pair_metrics(params, threshold)
 
-    total_events = n_auth + n_flow
+    elapsed = build_time + score_time
     result_dict = {
         "method": method_name,
-        "dataset": "LANL-2015",
+        "dataset": dataset,
         "recall": round(metrics["recall"], 4),
         "fpr": round(metrics["fpr"], 4),
         "f1": round(metrics["f1"], 4),
         "auc": round(metrics["auc"], 4),
-        "latency": round(build_time + score_time, 2),
-        "throughput": round(total_events / (build_time + score_time), 1),
+        "latency": round(elapsed, 2),
+        "throughput": round(total_events / elapsed, 1) if elapsed > 0 else 0.0,
         "graph_nodes": g.vcount(),
         "graph_edges": g.ecount(),
         "rt_pairs_in_graph": len(rt_in_graph),
@@ -217,4 +197,95 @@ def run_method_pipeline(
         edge_pair_names=edge_pair_names,
         rt_in_graph=rt_in_graph,
         result_dict=result_dict,
+    )
+
+
+def run_method_pipeline(
+    data_dir: str,
+    windows: list,
+    red_pairs: set,
+    config: PipelineConfig,
+    max_events: int | None = None,
+    output_dir: str | None = None,
+) -> MethodResult:
+    data_path = Path(data_dir)
+    method_name = "combined"
+    logger.info(f"Streaming + building: {method_name}")
+    t0 = time.perf_counter()
+
+    graph = StreamingGraphBuilder()
+    n_auth = stream_gz_to_graph(
+        str(data_path / "auth.txt.gz"),
+        AUTH_COLUMNS,
+        windows,
+        AUTH_NUMERIC,
+        graph,
+        graph.feed_auth_event,
+        progress_every=config.graph.progress_every,
+        max_events=max_events,
+    )
+    n_flow = stream_gz_to_graph(
+        str(data_path / "flows.txt.gz"),
+        FLOW_COLUMNS,
+        windows,
+        FLOW_NUMERIC,
+        graph,
+        graph.feed_flow_event,
+        progress_every=config.graph.progress_every,
+        max_events=max_events,
+    )
+
+    g = graph.build()
+    build_time = time.perf_counter() - t0
+    logger.info(f"  Streamed {n_auth:,} auth + {n_flow:,} flow in {build_time:.1f}s")
+    logger.info(f"  Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
+    del graph
+
+    return _score_detect_graph(
+        method_name=method_name,
+        dataset="LANL-2015",
+        g=g,
+        red_pairs=red_pairs,
+        build_time=build_time,
+        total_events=n_auth + n_flow,
+        config=config,
+        output_dir=output_dir,
+    )
+
+
+def run_dapt_graph_pipeline(
+    dapt_dir: str,
+    config: PipelineConfig,
+    output_dir: str | None = None,
+) -> MethodResult:
+    method_name = "combined"
+    logger.info(f"Streaming + building: {method_name}")
+    t0 = time.perf_counter()
+
+    graph = StreamingGraphBuilder()
+    red_pairs: set[tuple[str, str]] = set()
+    total_events = 0
+
+    for row in iter_dapt_flows(dapt_dir):
+        pair = (row["src_comp"], row["dst_comp"])
+        if row["stage"].lower() == "lateral movement":
+            red_pairs.add(pair)
+        graph.feed_flow_event(row)
+        total_events += 1
+
+    g = graph.build()
+    build_time = time.perf_counter() - t0
+    logger.info(f"  Streamed {total_events:,} DAPT flows in {build_time:.1f}s")
+    logger.info(f"  Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
+    del graph
+
+    return _score_detect_graph(
+        method_name=method_name,
+        dataset="DAPT2020",
+        g=g,
+        red_pairs=red_pairs,
+        build_time=build_time,
+        total_events=total_events,
+        config=config,
+        output_dir=output_dir,
     )

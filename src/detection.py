@@ -43,7 +43,7 @@ def optimize_threshold(
         best_threshold = float(scoring_scores.max()) + 0.01
 
         for pct in search_range:
-            thr = float(np.percentile(scoring_scores.values, pct))
+            thr = float(np.nextafter(np.percentile(scoring_scores.values, pct), -np.inf))
             anom_mask = mask_valid & (edge_scores > thr)
             anom_pairs_test = {
                 edge_pair_names[i]
@@ -68,7 +68,7 @@ def optimize_threshold(
             f"Auto-optimized: percentile={best_pct}, threshold={threshold:.4f}, F1={best_f1:.4f}"
         )
     elif len(scoring_scores) > 0:
-        threshold = float(np.percentile(scoring_scores.values, default_percentile))
+        threshold = float(np.nextafter(np.percentile(scoring_scores.values, default_percentile), -np.inf))
         if scoring_scores.std() < 1e-10:
             logger.warning("All edge scores identical — no anomalies detectable")
             threshold = float(scoring_scores.max()) + 0.01

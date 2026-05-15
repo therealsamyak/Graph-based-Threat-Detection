@@ -1,6 +1,7 @@
 {
   "data": {
     "lanl_dir": "data/LANL-Dataset-2015",
+    "dapt_dir": "data/DAPT2020",
     "window_size": 3600
   },
   "graph": {
