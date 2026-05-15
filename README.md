@@ -12,59 +12,98 @@ make pipeline    # Run the detection pipeline
 make check lint  # Lint the codebase
 ```
 
+Two entry points:
+
+- `main.py` — runs the full pipeline (graph construction → feature extraction → weight optimization → scoring → detection → visualization)
+- `feature.py` — runs held-out AUC feature audit on cached pipeline outputs to rank features by discriminative power
+
 ## Overview
 
-This project detects **lateral movement** in cloud VPC networks by combining network flow and authentication logs into a unified graph. We score nodes and edges for anomaly likelihood using structural, temporal, and statistical features.
+This project detects **lateral movement** in cloud VPC networks by combining network flow and authentication logs into a unified graph. Edges are scored for anomaly likelihood using a weighted sum of graph features, where weights are automatically optimized via Nelder-Mead to maximize ROC AUC.
 
 **Research Question:** Does combining flow and authentication logs via graph analysis improve detection accuracy compared to single-source baselines?
 
 ## Methods
 
-| Method | Description |
-|--------|-------------|
-| `flow_only` | Network flow logs only |
-| `auth_only` | Authentication logs only |
-| `combined` | Unified graph with both edge types |
-| `oneclass_svm` | One-Class SVM on graph features |
+| Method             | Description                        |
+| ------------------ | ---------------------------------- |
+| `flow_only`        | Network flow logs only             |
+| `auth_only`        | Authentication logs only           |
+| `combined`         | Unified graph with both edge types |
+| `oneclass_svm`     | One-Class SVM on graph features    |
 | `isolation_forest` | Isolation Forest on graph features |
 
 ## Datasets
 
 - **LANL-2015**: 58 days, 1.6B+ events, 749 red-team events (auth.txt.gz, flows.txt.gz, redteam.txt.gz)
 
-## Results
-
-### LANL-2015
-
-| Method | AUC | Recall | F1 |
-|--------|-----|--------|-----|
-| combined | 0.0000 | 0.0000 | 0.0000 |
-| auth_only | 0.0000 | 0.0000 | 0.0000 |
-| flow_only | 0.0000 | 0.0000 | 0.0000 |
-
-*Note: Detection recall limited by sampled data. Full dataset run needed for meaningful metrics.*
-
 ## Project Structure
 
 ```
 Graph-Based-Lateral-Movement-Detection/
-├── main.py              # CLI orchestrator
-├── Makefile             # Build commands
-├── pyproject.toml       # Dependencies
-├── pipeline_config.json  # Pipeline configuration
-├── data/                # Dataset files (.gz)
-├── src/                 # Source code (data, graph, features, scoring, visualization, baselines)
-├── report/              # LaTeX report and project description
-└── results/             # Experiment outputs and figures
+├── main.py               # Full pipeline entry point
+├── feature.py             # Feature audit entry point
+├── Makefile               # Build commands
+├── pyproject.toml          # Dependencies
+├── pipeline_config.json    # Pipeline configuration
+├── data/                   # Dataset files (.gz)
+├── src/                    # Source code
+├── report/                 # LaTeX report and draft sections
+└── results/                # Experiment outputs and figures
 ```
 
 ## Configuration
 
-Edit `pipeline_config.json` to adjust scoring weights, threshold mode, and feature extraction parameters.
+All pipeline parameters live in `pipeline_config.json`.
+
+### `data` — Dataset paths
+
+| Option        | Default                    | Description                                                       |
+| ------------- | -------------------------- | ----------------------------------------------------------------- |
+| `lanl_dir`    | `"data/LANL-Dataset-2015"` | Path to LANL dataset directory                                    |
+| `window_size` | `3600`                     | Time window (seconds) around each red-team event for scoping data |
+
+### `graph` — Graph construction
+
+| Option           | Default  | Description                                  |
+| ---------------- | -------- | -------------------------------------------- |
+| `progress_every` | `500000` | Log progress every N events during streaming |
+
+### `scoring` — Scoring and thresholding
+
+| Option                   | Default                        | Description                                                                                               |
+| ------------------------ | ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `threshold_mode`         | `"auto_optimize"`              | `"auto_optimize"` sweeps percentiles to maximize F1; any other value uses `threshold_percentile` directly |
+| `threshold_percentile`   | `99`                           | Percentile for threshold when not in auto_optimize mode                                                   |
+| `threshold_search_range` | `[90, 95, 97, 99, 99.5, 99.9]` | Percentiles to sweep in auto_optimize mode                                                                |
+| `path_boost_factor`      | `0.1`                          | Boost added to edges appearing in top-scoring paths                                                       |
+| `temporal_decay_rate`    | `0.0`                          | Exponential decay rate for temporal weighting (disabled when 0)                                           |
+| `max_hops`               | `4`                            | Maximum path length for path enumeration                                                                  |
+| `top_k_paths`            | `50`                           | Number of top-scoring paths to retain                                                                     |
+| `top_outgoing_per_node`  | `10`                           | Top outgoing edges per node to follow during path search                                                  |
+
+### `features` — Feature extraction
+
+| Option                      | Default | Description                                                                         |
+| --------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| `betweenness_node_limit`    | `5000`  | Node count threshold for switching from exact to approximate betweenness centrality |
+| `approximate_betweenness`   | `true`  | Use igraph cutoff parameter for approximate betweenness                             |
+| `betweenness_cutoff`        | `3`     | Cutoff parameter for approximate betweenness                                        |
+| `temporal_burst_window_pct` | `0.1`   | Fraction of node active span for burst score computation                            |
+| `max_workers`               | `12`    | Parallel workers for path scoring                                                   |
 
 ## Output
 
 Results saved to `results/<run_id>/`:
-- `metrics.csv` — Summary metrics
-- `figures/` — Visualization plots (graph snapshot, ROC curves, timelines)
+
+- `metrics.csv` — Summary metrics per method
+- `pipeline_run.json` — Full pipeline metadata and timing
+- `figures/` — Visualization plots (graph snapshot, ROC curves, score distribution, timeline)
+- `optimization/` — Weight optimization logs and optimized weights
 - `comparison_table.md` — Method comparison
+
+Feature audit outputs saved to `feature_results/<audit_id>/`:
+
+- `feature_audit_results.json` — Per-feature AUC and statistics
+- `Feature_Audit_Results.md` — Human-readable markdown report
+- `metadata.json` — Audit run metadata
