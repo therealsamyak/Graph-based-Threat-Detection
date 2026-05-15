@@ -10,7 +10,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.data.dapt import iter_dapt_flows
 from src.data.lanl import (
     AUTH_COLUMNS,
     AUTH_NUMERIC,
@@ -252,40 +251,3 @@ def run_method_pipeline(
         output_dir=output_dir,
     )
 
-
-def run_dapt_graph_pipeline(
-    dapt_dir: str,
-    config: PipelineConfig,
-    output_dir: str | None = None,
-) -> MethodResult:
-    method_name = "combined"
-    logger.info(f"Streaming + building: {method_name}")
-    t0 = time.perf_counter()
-
-    graph = StreamingGraphBuilder()
-    red_pairs: set[tuple[str, str]] = set()
-    total_events = 0
-
-    for row in iter_dapt_flows(dapt_dir):
-        pair = (row["src_comp"], row["dst_comp"])
-        if row["stage"].lower() == "lateral movement":
-            red_pairs.add(pair)
-        graph.feed_flow_event(row)
-        total_events += 1
-
-    g = graph.build()
-    build_time = time.perf_counter() - t0
-    logger.info(f"  Streamed {total_events:,} DAPT flows in {build_time:.1f}s")
-    logger.info(f"  Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
-    del graph
-
-    return _score_detect_graph(
-        method_name=method_name,
-        dataset="DAPT2020",
-        g=g,
-        red_pairs=red_pairs,
-        build_time=build_time,
-        total_events=total_events,
-        config=config,
-        output_dir=output_dir,
-    )
