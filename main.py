@@ -23,7 +23,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Capture all logs to memory so we can dump to file at the end
 _log_buffer = io.StringIO()
 _buffer_handler = logging.StreamHandler(_log_buffer)
 _buffer_handler.setLevel(logging.INFO)
@@ -85,7 +84,6 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
             config=config,
         )
         all_results.extend(lanl_results)
-        # Reconstruct ExperimentResult from dict (pipeline returns asdict())
         if isinstance(experiment_result_raw, dict):
             from src.types import ExperimentResult
             experiment_result = ExperimentResult(**experiment_result_raw)
@@ -171,7 +169,6 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
 
     _print_summary(results_df)
 
-    # Flush captured logs to file
     log_path = results_dir / "pipeline_log.txt"
     _log_buffer.seek(0)
     log_path.write_text(_log_buffer.read())

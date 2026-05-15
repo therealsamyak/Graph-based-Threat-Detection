@@ -52,7 +52,6 @@ def generate_comparison(results_dir: str = "results") -> None:
         summ_path.write_text("No results. Experiment did not produce metrics.\n")
         return
 
-    # comparison_table.md
     metric_cols = ["recall", "fpr", "f1", "auc", "latency", "throughput"]
     avail = [c for c in metric_cols if c in df.columns]
 
@@ -75,7 +74,6 @@ def generate_comparison(results_dir: str = "results") -> None:
                 vals.append(f"{v:.4f}")
         md += f"| {row['method']} | {row.get('dataset', 'N/A')} | " + " | ".join(vals) + " |\n"
 
-    # Best per metric
     md += "\n## Best Method Per Metric\n\n"
     for m in ["recall", "f1", "auc"]:
         if m in df.columns and not df[m].dropna().empty:
@@ -89,7 +87,6 @@ def generate_comparison(results_dir: str = "results") -> None:
 
     comp_path.write_text(md)
 
-    # summary.txt
     lines = [
         "LATERAL MOVEMENT DETECTION — KEY FINDINGS",
         "=" * 50,

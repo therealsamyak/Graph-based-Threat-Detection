@@ -50,7 +50,6 @@ def run_streaming_experiment(
     rt, red_pairs, windows = load_redteam_data(data_dir, window_seconds)
     save_redteam_data(str(results_base), rt, red_pairs, windows)
 
-    # Single combined-only run
     mr = run_method_pipeline(
         data_dir=data_dir,
         windows=windows,
@@ -60,7 +59,6 @@ def run_streaming_experiment(
         output_dir=str(results_base / "LANL-2015" / "combined"),
     )
 
-    # Save combined method results
     save_method_results(
         output_dir=str(results_base / "LANL-2015" / "combined"),
         method="combined",
@@ -76,7 +74,6 @@ def run_streaming_experiment(
 
     all_results = [mr.result_dict]
 
-    # Build ExperimentResult
     experiment_result = ExperimentResult(
         combined_graph=mr.graph,
         combined_edge_scores=mr.edge_scores,
@@ -91,7 +88,6 @@ def run_streaming_experiment(
     pipeline_end = time.perf_counter()
     total_duration = pipeline_end - pipeline_start
 
-    # Save pipeline_run.json with complete metadata
     pipeline_run = {
         "run_id": run_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -118,7 +114,6 @@ def run_streaming_experiment(
         "feature_stats": {},
     }
 
-    # Add feature statistics if available
     if mr.edge_features is not None:
         edge_feat_df = mr.edge_features
         pipeline_run["feature_stats"] = {
@@ -127,7 +122,6 @@ def run_streaming_experiment(
             "nan_counts": edge_feat_df.isna().sum().to_dict(),
         }
 
-    # Save pipeline_run.json
     with open(results_base / "pipeline_run.json", "w") as f:
         json.dump(pipeline_run, f, indent=2, default=str)
 
