@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import logging
 from pathlib import Path
@@ -14,11 +15,20 @@ from src.reporting import generate_comparison
 from src.types import ExperimentResult, PipelineConfig
 from src.utils import compute_edge_pair_names
 
+LOG_FMT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    format=LOG_FMT,
 )
 logger = logging.getLogger(__name__)
+
+# Capture all logs to memory so we can dump to file at the end
+_log_buffer = io.StringIO()
+_buffer_handler = logging.StreamHandler(_log_buffer)
+_buffer_handler.setLevel(logging.INFO)
+_buffer_handler.setFormatter(logging.Formatter(LOG_FMT))
+logging.getLogger().addHandler(_buffer_handler)
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -159,6 +169,13 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     logger.info("Saved method_comparison.png")
 
     _print_summary(results_df)
+
+    # Flush captured logs to file
+    log_path = results_dir / "pipeline_log.txt"
+    _log_buffer.seek(0)
+    log_path.write_text(_log_buffer.read())
+    logger.info(f"Pipeline log saved to {log_path}")
+
     return results_df
 
 
