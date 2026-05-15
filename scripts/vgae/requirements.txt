@@ -1,0 +1,14 @@
+# Pinned dependencies for VGAE baseline.
+# Install into a dedicated venv:
+#   uv venv .venv-vgae --python 3.11
+#   .venv-vgae/bin/pip install -r scripts/vgae/requirements.txt
+#
+# Kept separate from the main project's pyproject.toml so PyTorch/PyG
+# install failures or version conflicts don't affect the team's
+# shared environment.
+
+torch>=2.5,<2.7
+torch-geometric>=2.6,<2.7
+numpy>=1.26,<3.0
+pandas>=2.0,<3.0
+scikit-learn>=1.3,<2.0
