@@ -25,15 +25,12 @@ This project detects **lateral movement** in cloud VPC networks by combining net
 | `flow_only` | Network flow logs only |
 | `auth_only` | Authentication logs only |
 | `combined` | Unified graph with both edge types |
-| `combined` | Graph-based detection on DAPT2020 flow graph |
 | `oneclass_svm` | One-Class SVM on graph features |
 | `isolation_forest` | Isolation Forest on graph features |
 
 ## Datasets
 
 - **LANL-2015**: 58 days, 1.6B+ events, 749 red-team events (auth.txt.gz, flows.txt.gz, redteam.txt.gz)
-- **LANL-2017**: Additional LANL dataset
-- **DAPT2020**: 5-day simulated APT, 20,665 labeled flows (CSV files with CICFlowMeter features)
 
 ## Results
 
@@ -46,13 +43,6 @@ This project detects **lateral movement** in cloud VPC networks by combining net
 | flow_only | 0.0000 | 0.0000 | 0.0000 |
 
 *Note: Detection recall limited by sampled data. Full dataset run needed for meaningful metrics.*
-
-### DAPT2020
-
-| Method | AUC | F1 | Recall |
-|--------|-----|----|--------|
-| OneClassSVM | **0.5534** | 0.1065 | 0.1612 |
-| IsolationForest | 0.4785 | 0.0051 | 0.0069 |
 
 ## Project Structure
 
