@@ -12,7 +12,7 @@ contribution of each group.
 Output: JSON to <output-dir>/tabular_vs_graph_ablation.json
 
 Usage:
-    uv run python scripts/tabular_vs_graph_ablation.py \\
+    uv run python analysis/tabular_vs_graph_ablation.py \\
         --run-dir results/20260515_002159/combined
 """
 

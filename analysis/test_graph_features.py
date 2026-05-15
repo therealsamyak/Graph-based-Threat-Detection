@@ -11,7 +11,7 @@ Output: results/<timestamp>/graph_features_test/graph_features_test.json
 and a brief stdout summary.
 
 Usage:
-    uv run python scripts/test_graph_features.py \
+    uv run python analysis/test_graph_features.py \
         --run-dir results/20260515_002159/combined \
         [--attacker-host C17693]
 """
