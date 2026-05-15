@@ -1,0 +1,96 @@
+%% DRAFT 3 — REVISIONS TO EXISTING SECTIONS
+%% This file contains rewritten versions of sections from Final_Report.tex that need updating
+%% due to the addition of feature audit and weight optimization.
+%% Each section is marked with its target location in the final report.
+
+%% ============================================================
+%% REVISION 1: Edge Scoring (Section 4.3 -> now 4.4 after inserting Weight Optimization)
+%% TARGET: Replace current Section 4.3 (Edge Scoring) entirely
+%% ============================================================
+
+\subsection{Edge Scoring}
+\label{sec:edge_scoring}
+
+Edges are scored with a unified weighted sum over the five features selected by the feature audit (Section~\ref{sec:feature_selection}) and weighted by the Nelder-Mead optimizer (Section~\ref{sec:weight_optimization}):
+
+\begin{equation}
+s = \sum_{i=1}^{5} w_i^* \cdot f_i
+\end{equation}
+
+where $w_i^*$ are the optimized weights and $f_i$ are the five features: \texttt{is\_ntlm}, \texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, and \texttt{dst\_fan\_out\_ratio}. Features named \texttt{edge\_rarity} or \texttt{protocol\_rarity} receive a percentile rank transform before scoring to reduce outlier influence.
+
+Edges where either endpoint is a user account (contains \texttt{@}) or where the source equals the destination (self-loop) receive a score of 0.0, as these have no red-team signal in our labeled data.
+
+This replaces the previous approach of separate auth/flow scoring formulas with different feature sets and an ad-hoc $1.5\times$ auth multiplier. The unified scoring is simpler, data-driven, and applies to all edge types in the combined graph without manual tuning.
+
+%% ============================================================
+%% REVISION 2: Implementation subsection (Section 5.4)
+%% TARGET: Replace the current Implementation subsection
+%% ============================================================
+
+\subsection{Implementation}
+
+The pipeline is implemented in Python with two execution modes. \texttt{feature.py} runs the held-out AUC feature audit on cached pipeline outputs to identify discriminative features. \texttt{main.py} runs the full detection pipeline: graph construction, feature extraction, Nelder-Mead weight optimization, edge scoring, path scoring, threshold selection, and visualization. All hyperparameters live in a JSON config file.
+
+Graph operations use igraph; weight optimization uses SciPy's \texttt{minimize} with the Nelder-Mead method; baselines and metrics use scikit-learn. The path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) remain as configurable parameters. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors. End-to-end execution for the combined graph method plus baselines takes approximately 4 hours on a 12-core machine.
+
+%% ============================================================
+%% REVISION 3: Threshold Selection (Section 4.5)
+%% TARGET: Replace current Section 4.5 (Threshold Selection)
+%% CHANGES: Removed "Future work" item about moving to held-out validation
+%%   since optimization already uses proper AUC. Kept auto-optimize description.
+%% ============================================================
+
+\subsection{Threshold Selection}
+
+Anomalous edges are identified by thresholding final edge scores. We sweep percentile values $\{90, 95, 97, 99, 99.5, 99.9\}$ and pick the one that maximizes F1 against known red-team pairs. The auto-optimize mode evaluates each percentile by computing precision and recall in pair-space, selecting the threshold that yields the best F1 score. If edge scores have zero variance (all identical), the threshold is set above the maximum score so no edges are flagged.
+
+%% ============================================================
+%% REVISION 4: Feature Extraction "Future work" (Section 4.2)
+%% TARGET: Remove the "Future work" block at the end of Section 4.2
+%% REASON: Feature selection is now handled by the feature audit
+%% ============================================================
+
+%% DELETE the following block from Section 4.2 (lines 91-96 in Final_Report.tex):
+%%
+%% \begin{itemize}
+%% \item \textit{Future work:}
+%% \begin{itemize}
+%% \item Narrow feature set to 3-5 per flow type. Likely will just pick based on common sense / what appears interesting.
+%% \end{itemize}
+%% \end{itemize}
+%%
+%% REPLACE with:
+The feature set was narrowed from the full 23 features to five discriminative features using the held-out AUC audit described in Section~\ref{sec:feature_selection}.
+
+%% ============================================================
+%% REVISION 5: Edge Scoring "Future work" (old Section 4.3)
+%% TARGET: Remove the "Future work" block at the end of old Section 4.3
+%% REASON: Weights are now optimized by Nelder-Mead
+%% ============================================================
+
+%% DELETE the following block from old Section 4.3 (lines 124-129 in Final_Report.tex):
+%%
+%% \begin{itemize}
+%% \item \textit{Future work:}
+%% \begin{itemize}
+%% \item The specific features and weights are still being refined.
+%% \end{itemize}
+%% \end{itemize}
+%%
+%% (No replacement needed — the new Edge Scoring section already references the optimizer.)
+
+%% ============================================================
+%% REVISION 6: Implementation "Future work" (Section 5.4)
+%% TARGET: Update the "Future work" block in Implementation
+%% REASON: "Optimize scoring weights" is DONE. Remove that item.
+%% ============================================================
+
+%% DELETE the "Optimize scoring weights" line from the Implementation Future Work block (line 198):
+%% \item Optimize scoring weights via grid search / Bayesian optimization / other method
+%%
+%% Keep the remaining items:
+%% - Run ablation testing on reduced feature set across graph scoring and baselines
+%% - Run statistical significance testing on all results
+%% - Measure computational cost (CPU, memory, wall-clock time) across all methods
+%% - The current results are not finalized

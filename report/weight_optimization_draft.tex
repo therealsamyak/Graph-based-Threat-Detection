@@ -1,0 +1,27 @@
+%% DRAFT 2 — NEW SECTION: Weight Optimization
+%% Insert after Section 4.2 (Feature Extraction) and before the current Section 4.3 (Edge Scoring)
+%% This section describes the Nelder-Mead optimization integrated into the pipeline.
+
+\subsection{Weight Optimization}
+\label{sec:weight_optimization}
+
+The edge scoring function (Section~\ref{sec:edge_scoring}) combines five features into a weighted sum. Rather than hand-tuning these weights, we optimize them automatically using Nelder-Mead simplex search~\cite{neldermead1965}, a derivative-free method well-suited to the noisy, non-convex landscape of AUC over a weighted combination of heterogeneous features.
+
+\textbf{Objective.}
+Given a feature matrix $\mathbf{F} \in \mathbb{R}^{m \times 5}$ (valid edges only, after filtering self-loops and user edges) and binary labels $\mathbf{y} \in \{0,1\}^m$ derived from red-team ground truth, we find weights $\mathbf{w}^* = (w_1, \dots, w_5)$ that maximize ROC AUC:
+\begin{equation}
+\mathbf{w}^* = \arg\max_{\mathbf{w}} \; \text{AUC}\!\left(\mathbf{y},\; \sum_{i=1}^{5} w_i \cdot f_i(\mathbf{F})\right)
+\end{equation}
+where $f_i$ denotes the $i$-th feature column, with rank-transform applied to \texttt{edge\_rarity} and \texttt{protocol\_rarity} to reduce outlier influence.
+
+\textbf{Procedure.}
+The optimizer is initialized with equal weights $w_i = 1/5$ and runs Nelder-Mead with adaptive step sizes for up to 500 iterations (convergence tolerances: $\texttt{xatol} = 10^{-6}$, $\texttt{fatol} = 10^{-8}$). Each iteration evaluates AUC by computing a weighted score vector and calling \texttt{sklearn.metrics.roc\_auc\_score}. The best weights observed during the search are retained, even if the final simplex iteration does not improve.
+
+\textbf{Integration.}
+Optimization runs once per pipeline execution, after feature extraction and before edge scoring. The optimized weights are passed directly to the scoring function. If optimization fails (e.g., insufficient label diversity), the pipeline falls back to equal weights with a logged warning. This ensures the pipeline never crashes due to the optimization step.
+
+\textbf{Output artifacts.}
+The optimizer saves four files to \texttt{<run-dir>/optimization/}: (1)~\texttt{optimization\_log.json} containing per-iteration weights, AUC, and timing; (2)~\texttt{optimized\_weights.json} with the final result; (3)~\texttt{feature\_contribution.csv} showing each feature's weighted contribution per edge; (4)~\texttt{optimization\_comparison.json} summarizing AUC improvement from equal to optimized weights.
+
+\textbf{Feature audit connection.}
+The five optimized features (\texttt{is\_ntlm}, \texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, \texttt{dst\_fan\_out\_ratio}) were selected based on the held-out AUC feature audit described in Section~\ref{sec:feature_selection}. These features each achieve individual AUC $> 0.8$ and collectively span authentication semantics, graph structure, and host behavior — the three signal categories that the feature audit identified as most discriminative.
