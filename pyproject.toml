@@ -4,11 +4,4 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "python-igraph",
-    "pandas",
-    "numpy",
-    "scikit-learn",
-    "matplotlib",
-    "pyarrow",
-]
+dependencies = ["python-igraph", "pandas", "numpy", "scikit-learn", "matplotlib", "pyarrow"]
