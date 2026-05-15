@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field, replace
+from typing import Any
 
 
 # ── Config dataclasses ──────────────────────────────────────────────
@@ -12,6 +13,7 @@ from dataclasses import dataclass, field, replace
 @dataclass(frozen=True)
 class DataConfig:
     lanl_dir: str = "data/LANL-Dataset-2015"
+    dapt_dir: str = "data/DAPT2020"
     window_size: int = 3600
 
     @classmethod
@@ -146,7 +148,7 @@ class PipelineConfig:
         updates: dict = {}
         for k, v in kwargs.items():
             section = getattr(self, k, None)
-            if isinstance(v, dict) and hasattr(section, "from_dict"):
+            if section is not None and isinstance(v, dict) and hasattr(section, "from_dict"):
                 updates[k] = section.__class__.from_dict(
                     {**section.to_dict(), **v}
                 )
@@ -161,7 +163,7 @@ class PipelineConfig:
 @dataclass(frozen=True)
 class ExperimentResult:
     combined_graph: object = None
-    combined_edge_scores: object = None
+    combined_edge_scores: Any = None
     combined_paths: object = None
     combined_threshold: float = 0.0
     combined_edge_features: object = None
@@ -187,8 +189,8 @@ class OptimizedWeights:
 
 @dataclass(frozen=True)
 class DetectionParams:
-    edge_scores: object = None
-    mask_valid: object = None
+    edge_scores: Any = None
+    mask_valid: Any = None
     edge_pair_names: tuple = field(default_factory=tuple)
     positive_pairs_in_graph: frozenset = field(default_factory=frozenset)
     all_positive_pairs: frozenset = field(default_factory=frozenset)

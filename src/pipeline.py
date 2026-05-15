@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from src.io import save_method_results, save_pipeline_config, save_redteam_data
-from src.stages import load_redteam_data, run_method_pipeline
+from src.stages import load_redteam_data, run_dapt_graph_pipeline, run_method_pipeline
 from src.types import ExperimentResult, PipelineConfig
 
 logger = logging.getLogger(__name__)
@@ -57,12 +57,12 @@ def run_streaming_experiment(
         red_pairs=red_pairs,
         config=cfg,
         max_events=max_events,
-        output_dir=str(results_base),
+        output_dir=str(results_base / "LANL-2015" / "combined"),
     )
 
     # Save combined method results
     save_method_results(
-        output_dir=str(results_base / "combined"),
+        output_dir=str(results_base / "LANL-2015" / "combined"),
         method="combined",
         g=mr.graph,
         edge_scores=mr.edge_scores,
@@ -74,7 +74,25 @@ def run_streaming_experiment(
         detected_pairs=mr.metrics["detected_pairs"],
     )
 
-    all_results = [mr.result_dict]
+    dapt_mr = run_dapt_graph_pipeline(
+        dapt_dir=cfg.data.dapt_dir,
+        config=cfg,
+        output_dir=str(results_base / "DAPT2020" / "combined"),
+    )
+    save_method_results(
+        output_dir=str(results_base / "DAPT2020" / "combined"),
+        method="combined",
+        g=dapt_mr.graph,
+        edge_scores=dapt_mr.edge_scores,
+        paths=dapt_mr.paths,
+        edge_features=dapt_mr.edge_features,
+        node_features=dapt_mr.node_features,
+        graph_features=dapt_mr.graph_features,
+        anomalous_pairs=dapt_mr.metrics["anomalous_pairs"],
+        detected_pairs=dapt_mr.metrics["detected_pairs"],
+    )
+
+    all_results = [mr.result_dict, dapt_mr.result_dict]
 
     # Build ExperimentResult (method_graphs field removed in T2)
     experiment_result = ExperimentResult(
@@ -99,26 +117,27 @@ def run_streaming_experiment(
         "data_stats": {
             "data_dir": data_dir,
             "window_seconds": window_seconds,
-            "total_events": mr.total_events,
-            "graph_nodes": mr.graph.vcount(),
-            "graph_edges": mr.graph.ecount(),
+            "lanl_total_events": mr.total_events,
+            "lanl_graph_nodes": mr.graph.vcount(),
+            "lanl_graph_edges": mr.graph.ecount(),
+            "dapt_total_events": dapt_mr.total_events,
+            "dapt_graph_nodes": dapt_mr.graph.vcount(),
+            "dapt_graph_edges": dapt_mr.graph.ecount(),
         },
         "timing": {
             "build_time": mr.build_time,
             "score_time": mr.score_time,
             "total_duration": total_duration,
+            "dapt_build_time": dapt_mr.build_time,
+            "dapt_score_time": dapt_mr.score_time,
         },
         "intermediate": {
             "threshold": mr.threshold,
             "red_team_pairs_count": len(red_pairs),
         },
         "final_metrics": {
-            "recall": mr.metrics.get("recall"),
-            "f1": mr.metrics.get("f1"),
-            "fpr": mr.metrics.get("fpr"),
-            "auc": mr.metrics.get("auc"),
-            "anomalous_pairs": mr.metrics.get("anomalous_pairs"),
-            "detected_pairs": mr.metrics.get("detected_pairs"),
+            "LANL-2015": mr.result_dict,
+            "DAPT2020": dapt_mr.result_dict,
         },
         "feature_stats": {},
     }

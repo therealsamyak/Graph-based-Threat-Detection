@@ -1,4 +1,7 @@
 data/
+!src/data/
+src/data/*
+!src/data/dapt.py
 .venv/
 __pycache__/
 .ruff_cache/

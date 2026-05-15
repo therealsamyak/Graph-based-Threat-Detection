@@ -110,7 +110,8 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     details = {}
     for r in all_results:
         method = r["method"]
-        details[method] = {k: v for k, v in r.items()}
+        dataset = r.get("dataset", "unknown")
+        details[f"{dataset}/{method}"] = {k: v for k, v in r.items()}
     details_path = results_dir / "per_method_details.json"
     with open(details_path, "w") as f:
         json.dump(details, f, indent=2, default=str)

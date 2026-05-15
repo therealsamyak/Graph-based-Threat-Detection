@@ -25,7 +25,7 @@ This project detects **lateral movement** in cloud VPC networks by combining net
 | `flow_only` | Network flow logs only |
 | `auth_only` | Authentication logs only |
 | `combined` | Unified graph with both edge types |
-| `graph_combined` | Graph-based detection on DAPT2020 |
+| `combined` | Graph-based detection on DAPT2020 flow graph |
 | `oneclass_svm` | One-Class SVM on graph features |
 | `isolation_forest` | Isolation Forest on graph features |
 
