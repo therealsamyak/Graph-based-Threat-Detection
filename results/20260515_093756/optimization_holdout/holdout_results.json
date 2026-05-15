@@ -1,0 +1,53 @@
+{
+  "timestamp": "2026-05-15T09:37:56.591207+00:00",
+  "input_run_dir": "/Users/ipehlivan/Documents/GitHub/Graph-based-Threat-Detection/results/20260515_002159/combined",
+  "features": [
+    "is_ntlm",
+    "source_fan_out",
+    "dst_in_degree",
+    "is_network_logon",
+    "dst_fan_out_ratio"
+  ],
+  "holdout_frac": 0.5,
+  "seed": 42,
+  "n_calibration": 182400,
+  "n_eval": 182402,
+  "redteam_calibration": 152,
+  "redteam_eval": 153,
+  "optimizer": {
+    "method": "nelder-mead",
+    "weights": {
+      "is_ntlm": 0.2948175607022412,
+      "source_fan_out": 0.2153379244944829,
+      "dst_in_degree": 3.6266651565079375e-06,
+      "is_network_logon": 0.2581640617159878,
+      "dst_fan_out_ratio": 0.23699665368411815
+    },
+    "auc_calibration": 0.9688653900468766,
+    "auc_eval": 0.9680696850251238,
+    "auc_full_for_reference": 0.9684628360745239,
+    "auc_full_equal_weights_baseline": 0.19787153794739903,
+    "overfit_gap_cal_minus_eval": 0.0007957050217527462,
+    "overfit_gap_relative": 0.000821275101708657,
+    "iterations": 219,
+    "converged": true,
+    "seconds": 24.706230878829956
+  },
+  "logistic_regression": {
+    "auc_calibration": 0.9737791686111926,
+    "auc_eval": 0.9732575525038519,
+    "overfit_gap_cal_minus_eval": 0.0005216161073406944,
+    "intercept": -6.256586046243143,
+    "coefficients": {
+      "is_ntlm": 1.4463940526471586,
+      "source_fan_out": 3.9020637251074213,
+      "dst_in_degree": -0.25840829585965513,
+      "is_network_logon": -0.3585455456373878,
+      "dst_fan_out_ratio": 0.20341504251914658
+    },
+    "solver": "liblinear",
+    "regularization": "L2 (default C=1.0)",
+    "class_weight": "balanced"
+  },
+  "delta_eval_auc_optimizer_minus_lr": -0.005187867478728125
+}
