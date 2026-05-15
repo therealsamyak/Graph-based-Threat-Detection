@@ -35,7 +35,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
+from sklearn.preprocessing import StandardScaler
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -68,6 +70,63 @@ def _score_with_weights(features_df: pd.DataFrame, weights: dict[str, float]) ->
             col = pd.Series(col).rank(pct=True).to_numpy()
         score += w * col
     return score
+
+
+def _transform_for_lr(features_df: pd.DataFrame, feature_list: list[str]) -> np.ndarray:
+    """Apply the same per-feature transformation the WeightOptimizer applies
+    (percentile rank for RANK_TRANSFORM_FEATURES, raw otherwise). Returns a
+    plain ndarray suitable for sklearn estimators.
+    """
+    cols: list[np.ndarray] = []
+    for name in feature_list:
+        col = features_df[name].to_numpy(dtype=float, copy=True)
+        if name in RANK_TRANSFORM_FEATURES:
+            col = pd.Series(col).rank(pct=True).to_numpy()
+        cols.append(col)
+    return np.column_stack(cols)
+
+
+def _logistic_regression_baseline(
+    cal_features: pd.DataFrame,
+    cal_labels: np.ndarray,
+    eval_features: pd.DataFrame,
+    eval_labels: np.ndarray,
+    feature_list: list[str],
+    seed: int,
+) -> dict:
+    """Train logistic regression on the calibration half and evaluate on the
+    held-out half, with the same per-feature transformation the optimizer uses
+    and standardization on top (standard sklearn practice for linear models).
+    Returns calibration AUC, eval AUC, and the gap.
+    """
+    X_cal = _transform_for_lr(cal_features, feature_list)
+    X_eval = _transform_for_lr(eval_features, feature_list)
+    scaler = StandardScaler().fit(X_cal)
+    X_cal_s = scaler.transform(X_cal)
+    X_eval_s = scaler.transform(X_eval)
+
+    lr = LogisticRegression(
+        class_weight="balanced",
+        max_iter=2000,
+        random_state=seed,
+        solver="liblinear",
+    )
+    lr.fit(X_cal_s, cal_labels)
+    cal_scores = lr.predict_proba(X_cal_s)[:, 1]
+    eval_scores = lr.predict_proba(X_eval_s)[:, 1]
+    cal_auc = float(roc_auc_score(cal_labels, cal_scores))
+    eval_auc = float(roc_auc_score(eval_labels, eval_scores))
+    coefs = {name: float(lr.coef_[0, i]) for i, name in enumerate(feature_list)}
+    return {
+        "auc_calibration": cal_auc,
+        "auc_eval": eval_auc,
+        "overfit_gap_cal_minus_eval": cal_auc - eval_auc,
+        "intercept": float(lr.intercept_[0]),
+        "coefficients": coefs,
+        "solver": "liblinear",
+        "regularization": "L2 (default C=1.0)",
+        "class_weight": "balanced",
+    }
 
 
 def main() -> int:
@@ -130,6 +189,13 @@ def main() -> int:
     gap = cal_auc_optimized - eval_auc_optimized
     rel_gap = gap / max(cal_auc_optimized, 1e-9)
 
+    logger.info("Running logistic-regression baseline on calibration half...")
+    lr_result = _logistic_regression_baseline(
+        cal_features, cal_labels, eval_features, eval_labels, feature_list, args.seed
+    )
+    lr_gap = lr_result["overfit_gap_cal_minus_eval"]
+    delta_vs_lr = eval_auc_optimized - lr_result["auc_eval"]
+
     payload = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "input_run_dir": str(args.run_dir.resolve()),
@@ -140,32 +206,42 @@ def main() -> int:
         "n_eval": int(len(eval_idx)),
         "redteam_calibration": int(cal_labels.sum()),
         "redteam_eval": int(eval_labels.sum()),
-        "weights": weights,
-        "auc_calibration_optimized": cal_auc_optimized,
-        "auc_eval_optimized": eval_auc_optimized,
-        "auc_full_optimized_for_reference": full_auc_optimized,
-        "auc_full_equal_weights_baseline": full_auc_equal,
-        "overfit_gap_cal_minus_eval": gap,
-        "overfit_gap_relative": rel_gap,
-        "optimizer_iterations": int(result["iterations"]),
-        "optimizer_converged": bool(result["converged"]),
-        "optimizer_seconds": float(result["total_time_seconds"]),
+        "optimizer": {
+            "method": "nelder-mead",
+            "weights": weights,
+            "auc_calibration": cal_auc_optimized,
+            "auc_eval": eval_auc_optimized,
+            "auc_full_for_reference": full_auc_optimized,
+            "auc_full_equal_weights_baseline": full_auc_equal,
+            "overfit_gap_cal_minus_eval": gap,
+            "overfit_gap_relative": rel_gap,
+            "iterations": int(result["iterations"]),
+            "converged": bool(result["converged"]),
+            "seconds": float(result["total_time_seconds"]),
+        },
+        "logistic_regression": lr_result,
+        "delta_eval_auc_optimizer_minus_lr": delta_vs_lr,
     }
 
     logger.info("=" * 70)
-    logger.info("Held-out optimization results")
-    logger.info(f"  Calibration AUC (optimized weights, trained on cal):    {cal_auc_optimized:.6f}")
-    logger.info(f"  Eval AUC        (optimized weights, evaluated on eval): {eval_auc_optimized:.6f}")
-    logger.info(f"  Full AUC        (optimized weights, evaluated on full): {full_auc_optimized:.6f}")
-    logger.info(f"  Full AUC        (equal weights, baseline):              {full_auc_equal:.6f}")
-    logger.info(f"  Overfit gap     (cal AUC minus eval AUC):               {gap:+.6f} ({rel_gap*100:+.2f}%)")
+    logger.info("Held-out comparison: optimizer vs logistic regression")
+    logger.info(f"  Optimizer (Nelder-Mead)  cal AUC:  {cal_auc_optimized:.6f}")
+    logger.info(f"  Optimizer (Nelder-Mead)  eval AUC: {eval_auc_optimized:.6f}  (gap {gap:+.6f})")
+    logger.info(f"  Logistic regression      cal AUC:  {lr_result['auc_calibration']:.6f}")
+    logger.info(f"  Logistic regression      eval AUC: {lr_result['auc_eval']:.6f}  (gap {lr_gap:+.6f})")
+    logger.info(f"  Eval-AUC delta (optimizer - LR):   {delta_vs_lr:+.6f}")
+    logger.info(f"  Equal-weights reference  full AUC: {full_auc_equal:.6f}")
     logger.info("=" * 70)
     if abs(gap) < 0.005:
-        logger.info("  Gap < 0.005 — optimization is generalizing; the AUC is defensible.")
+        logger.info("  Optimizer gap < 0.005 — generalizing; AUC is defensible.")
     elif gap > 0:
-        logger.warning(f"  Gap > 0.005 — calibration AUC overstates eval performance by {gap:.4f}.")
+        logger.warning(f"  Optimizer gap > 0.005 — calibration AUC overstates eval by {gap:.4f}.")
+    if abs(delta_vs_lr) < 0.005:
+        logger.info("  Optimizer and logistic regression are within 0.005 on eval — they capture roughly the same signal.")
+    elif delta_vs_lr > 0:
+        logger.info(f"  Optimizer beats LR on eval by {delta_vs_lr:.4f} — AUC-direct objective is doing real work.")
     else:
-        logger.info("  Eval AUC exceeds calibration AUC — variance favors held-out side this seed.")
+        logger.info(f"  LR beats optimizer on eval by {-delta_vs_lr:.4f} — Nelder-Mead may be under-converged or the objective is suboptimal for this problem.")
 
     if args.output_dir is None:
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
