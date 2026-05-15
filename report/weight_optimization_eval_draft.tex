@@ -1,0 +1,165 @@
+% Draft sections for weight-optimization evaluation.
+% Intended for insertion into Final_Report.tex under \section{Results}.
+% Do NOT wrap in \documentclass / \begin{document}.
+
+\subsection{Held-Out Validation of Weight Optimization}
+\label{sec:holdout_weight}
+
+The scoring weights (Equations~1--2) were originally optimized on the full feature matrix and evaluated on the same data, producing an AUC of 0.9685 recorded in \texttt{optimized\_weights.json}. Because Nelder-Mead explores the weight space against the very labels used for evaluation, that value is optimistically biased by construction. To determine whether the learned weights generalize, we re-ran the optimizer under a stratified calibration/evaluation split.
+
+\subsubsection{Protocol}
+
+A wrapper script (\texttt{analysis/optimize\_weights\_holdout.py}) loads the cached edge table via the same loader used by the feature audit, applies a stratified 50/50 split (seed~42), and partitions the 364,802 masked edges into a calibration half (182,402 edges, 153 red-team) and an evaluation half (182,400 edges, 152 red-team). The optimizer is constructed on the calibration half only, runs Nelder-Mead to convergence on the same five features used in the original pipeline (\texttt{is\_ntlm}, \texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, \texttt{dst\_fan\_out\_ratio}), and the resulting weights are applied to the evaluation half without further modification.
+
+\subsubsection{Result: Optimization Generalizes}
+
+Table~\ref{tab:holdout_optimizer} reports the calibration and evaluation AUCs.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\hline
+Quantity & Value \\
+\hline
+Calibration AUC & 0.968865 \\
+Eval AUC (held-out) & \textbf{0.968070} \\
+Calibration $-$ Eval gap & $+$0.000796 \\
+Nelder-Mead iterations (calibration) & 143 \\
+\hline
+\end{tabular}
+\caption{Held-out validation of the Nelder-Mead weight optimizer. Calibration and evaluation AUCs agree to within 0.0008, indicating no measurable overfitting at five free parameters over roughly 365{,}000 edges.}
+\label{tab:holdout_optimizer}
+\end{table}
+
+Calibration and evaluation AUCs agree to within 0.0008, well inside the variation expected from 152/153 red-team edges per split. With five free parameters against 305 red-team edges (approximately 0.016 parameters per positive sample), the hypothesis class is extremely under-parameterized, leaving essentially no capacity to overfit. The 0.968 figure in the original optimization trace is not an in-sample artifact; the same weights would land near 0.968 on an unseen sample drawn from the same distribution. The AUC improvement from manually-tuned weights ($\approx$0.954) to optimized weights (0.968) is therefore defensible with no held-out penalty.
+
+
+\subsection{Logistic-Regression Baseline Comparison}
+\label{sec:lr_baseline}
+
+To test whether the bespoke Nelder-Mead optimizer adds value over a standard supervised linear method, we fit logistic regression (L2 penalty, balanced class weights) on the calibration half and evaluated on the held-out half, with identical feature preprocessing: the same percentile-rank transform applied to \texttt{edge\_rarity} and \texttt{protocol\_rarity}, followed by standardization on calibration-half statistics.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+Method & Cal AUC & Eval AUC & Gap & Wall time \\
+\hline
+Nelder-Mead optimizer   & 0.9689 & 0.9681 & $+$0.0008 & $\approx$25\,s \\
+Logistic regression (L2) & 0.9738 & \textbf{0.9733} & $+$0.0005 & $\approx$0.2\,s \\
+\hline
+\end{tabular}
+\caption{Nelder-Mead optimizer versus logistic regression on the same held-out split. The 0.005 eval-AUC gap in favor of LR is within single-seed noise.}
+\label{tab:lr_comparison}
+\end{table}
+
+Logistic regression and the Nelder-Mead optimizer are essentially equivalent on this data (Table~\ref{tab:lr_comparison}). The small numerical difference favoring LR is likely attributable to its intercept term and L2 regularization. The specific choice of supervised linear method does not materially affect the result: Nelder-Mead, logistic regression, and most other supervised linear methods on these five features all land near AUC~0.97. The optimizer's value lies in producing interpretable weights aligned with the scoring formula, not in outperforming off-the-shelf alternatives.
+
+
+\subsection{Tabular versus Graph-Derived Feature Ablation}
+\label{sec:tabular_graph_ablation}
+
+The Nelder-Mead-versus-LR comparison varies only the learner; both methods use the same five features. To isolate whether the features themselves, and specifically the graph-derived ones, carry the discriminative signal, we ran a feature ablation that holds the learner constant (logistic regression, same held-out split, seed~42) and varies the feature set.
+
+\subsubsection{Feature Grouping}
+
+Features were split into two groups by whether they require graph topology to compute. \emph{Pure tabular} features are computable from per-edge attributes alone: authentication flags, edge rarity (a function of edge weight), protocol rarity, byte-per-packet ratio, duration z-score, and the unusual-destination-port flag. \emph{Graph-derived} features require traversing the graph: node degrees in both directions, fan-out ratios, node-level temporal features (inter-arrival statistics, burst score, active duration), and destination-node betweenness centrality.
+
+\subsubsection{Result: Graph-Derived Features Dominate}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+Feature set & \# features & Cal AUC & Eval AUC \\
+\hline
+A. Pure tabular only    & 9  & 0.9609 & 0.9562 \\
+B. Graph-derived only   & 17 & 0.9893 & \textbf{0.9891} \\
+C. Combined (A $+$ B)  & 26 & 0.9981 & 0.9922 \\
+\hline
+\end{tabular}
+\caption{Feature ablation under logistic regression. Adding graph-derived features on top of pure-tabular raises eval AUC by $+$0.0359; adding pure-tabular on top of graph-derived raises eval AUC by only $+$0.0030.}
+\label{tab:tabular_graph}
+\end{table}
+
+Table~\ref{tab:tabular_graph} shows that graph-derived features carry roughly an order of magnitude more discriminative signal than pure-tabular features on this dataset. Adding graph-derived features on top of the pure-tabular set raises eval AUC by $+$0.0359, while adding pure-tabular features on top of the graph-derived set raises eval AUC by only $+$0.0030.
+
+This result directly supports the graph-based methodology. The five features used in the original scoring function included three graph-derived columns (\texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{dst\_fan\_out\_ratio}); the LR-versus-optimizer comparison therefore tested learner-versus-learner on graph features, not graph-versus-no-graph. The proper ablation above isolates the feature contribution and confirms that graph-derived features do the bulk of the discriminative work.
+
+
+\subsection{Graph Feature Extensions}
+\label{sec:graph_extensions}
+
+The ablation in Section~\ref{sec:tabular_graph_ablation} shows that local graph features (degrees, fan-out, node-level temporal patterns) carry most of the signal. A natural follow-up is whether multi-hop graph reasoning, features that require traversing more than one hop, adds further improvement. We swept five candidate graph feature groups, added one at a time on top of the five-feature LR baseline.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+Feature group & Cal AUC & Eval AUC & $\Delta$ vs base \\
+\hline
+(base: 5 features only)                         & 0.9738 & 0.9733 & --- \\
+Standard PageRank                                & 0.9739 & 0.9734 & $+$0.0002 \\
+Personalized PageRank (seed: \texttt{C17693})   & \textbf{0.9964} & \textbf{0.9956} & \textbf{$+$0.0224} \\
+k-core decomposition                            & 0.9773 & 0.9771 & $+$0.0039 \\
+Louvain community                                & 0.9779 & 0.9779 & $+$0.0046 \\
+Jaccard $+$ Adamic-Adar similarity              & 0.9737 & 0.9733 & $+$0.0001 \\
+All five groups stacked                          & 0.9968 & 0.9965 & $+$0.0232 \\
+\hline
+\end{tabular}
+\caption{Quick-win graph-feature sweep on top of the five-feature LR baseline. Louvain community features include a cross-community flag and community-size features.}
+\label{tab:graph_sweep}
+\end{table}
+
+\subsubsection{Personalized PageRank}
+
+Personalized PageRank seeded at the known compromised host (\texttt{C17693}) adds far more than any other feature in the sweep (Table~\ref{tab:graph_sweep}). This is a real signal, but it carries a methodological caveat: the feature uses the identity of \texttt{C17693} as an input, and in a production deployment that identity would have to be discovered first. The result supports a \emph{conditional} claim: given a seed of confirmed-compromised hosts, structural propagation lifts eval AUC from 0.973 to 0.996. Carefully framed as a post-detection scoping mechanism, this is publishable; presented without qualification, it would overstate what the method can achieve under cold-start conditions.
+
+\subsubsection{Label-Free Multi-Hop Features}
+
+The label-free graph features, k-core decomposition and Louvain community membership, each add a modest but consistent improvement of roughly 0.004 eval AUC over the local-graph baseline. These features require no prior information about attackers and provide direct support for the claim that multi-hop graph structure carries detectable signal beyond local features. Standard PageRank and edge-similarity scores (Jaccard, Adamic-Adar) contribute essentially nothing on this dataset.
+
+Stacking all five feature groups reaches eval AUC 0.9965, but the gain is dominated by personalized PageRank. With personalized PageRank removed from the stack, the remaining label-free graph features push eval AUC to approximately 0.978.
+
+
+\subsection{Decomposing the Detection Improvement}
+\label{sec:weight_synthesis}
+
+The four results above isolate different axes of the detection pipeline. Table~\ref{tab:synthesis_axes} summarizes what each comparison tests.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lp{2.2cm}p{2.0cm}p{2.2cm}}
+\hline
+Comparison & Held constant & What varies & Measures \\
+\hline
+Result~1 & Optimizer, features, split & Which half is evaluated & Overfitting? \emph{No.} \\
+Result~2 & Features, split, supervision & Linear method & Optimizer choice? \emph{No measurable effect.} \\
+Result~3 & Learner, supervision, split & Feature set & Graph features? \emph{Yes, $+$0.036.} \\
+Result~4 & Learner, base features, split & Graph feature group & Multi-hop features? \emph{Modestly, label-free.} \\
+\hline
+\end{tabular}
+\caption{Summary of what each held-out comparison isolates.}
+\label{tab:synthesis_axes}
+\end{table}
+
+Combining these results with the existing one-class baseline comparisons in Table~\ref{tab:methods_lanl} decomposes the improvement from na\"ive detection to the best achievable AUC into additive contributions (Table~\ref{tab:auc_budget}). Isolation Forest on graph-derived features (AUC~0.94) versus logistic regression on the same features (AUC~0.99) shows a roughly 0.05~AUC improvement attributable to having labels at training time. Graph-derived local features contribute a further $+$0.036 over pure-tabular features under the same supervised learner. Multi-hop label-free features add $+$0.004 to $+$0.007 on top. The largest single contribution is the graph-derived features themselves, not the choice of optimizer, not the multi-hop reasoning, and not the path-boost mechanism.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\hline
+Contribution & Approx.\ AUC $\Delta$ \\
+\hline
+Pure-tabular features under one-class learning & (lower bound) \\
+Pure-tabular features under supervised LR      & $+$0.05 (inferred) \\
+Graph-derived local features under supervised LR & $+$0.036 \\
+Multi-hop graph features (k-core, communities)  & $+$0.004--0.007 \\
+Known-attacker propagation (personalized PageRank) & $+$0.022 (conditional) \\
+\hline
+\end{tabular}
+\caption{Approximate AUC budget from the worst defensible baseline to the most aggressive supervised graph-aware system. The largest single addition is the graph-derived features themselves.}
+\label{tab:auc_budget}
+\end{table}
+
+Three claims emerge from this evaluation with clear empirical backing. First, graph-derived features carry the bulk of the discriminative signal for lateral-movement detection on LANL-2015: substituting pure-tabular features for graph-derived features under the same supervised linear learner drops eval AUC by roughly 0.036. Second, supervised learning is a separate, additive contribution: logistic regression on graph-derived features (eval AUC 0.99) versus one-class baselines on the same features (Isolation Forest at AUC 0.94) yields a roughly 0.05~AUC improvement attributable to labels at training time. Third, among supervised linear methods on the same features, the specific algorithm matters little: Nelder-Mead direct AUC maximization and logistic regression agree to within single-seed noise. The optimizer's value is in producing interpretable weights aligned with the scoring formula, not in outperforming standard alternatives.

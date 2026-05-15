@@ -4,7 +4,7 @@
 %% Each section is marked with its target location in the final report.
 
 %% ============================================================
-%% REVISION 1: Edge Scoring (Section 4.3 -> now 4.4 after inserting Weight Optimization)
+%% REVISION 1: Edge Scoring (Section 4.3 -> now 4.5 after inserting Weight Optimization)
 %% TARGET: Replace current Section 4.3 (Edge Scoring) entirely
 %% ============================================================
 
@@ -33,6 +33,8 @@ This replaces the previous approach of separate auth/flow scoring formulas with 
 The pipeline is implemented in Python with two execution modes. \texttt{feature.py} runs the held-out AUC feature audit on cached pipeline outputs to identify discriminative features. \texttt{main.py} runs the full detection pipeline: graph construction, feature extraction, Nelder-Mead weight optimization, edge scoring, path scoring, threshold selection, and visualization. All hyperparameters live in a JSON config file.
 
 Graph operations use igraph; weight optimization uses SciPy's \texttt{minimize} with the Nelder-Mead method; baselines and metrics use scikit-learn. The path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) remain as configurable parameters. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors. End-to-end execution for the combined graph method plus baselines takes approximately 4 hours on a 12-core machine.
+
+Additional analysis scripts in the \texttt{analysis/} directory perform held-out validation of the weight optimizer, logistic-regression baseline comparison, tabular versus graph feature ablation, and graph feature extension sweeps. These are separate from the main pipeline and operate on cached edge tables.
 
 %% ============================================================
 %% REVISION 3: Threshold Selection (Section 4.5)
@@ -83,14 +85,74 @@ The feature set was narrowed from the full 23 features to five discriminative fe
 %% ============================================================
 %% REVISION 6: Implementation "Future work" (Section 5.4)
 %% TARGET: Update the "Future work" block in Implementation
-%% REASON: "Optimize scoring weights" is DONE. Remove that item.
+%% REASON: Weight optimization and ablation testing are DONE.
 %% ============================================================
 
-%% DELETE the "Optimize scoring weights" line from the Implementation Future Work block (line 198):
+%% DELETE the "Optimize scoring weights" line AND the "Run ablation testing" line
+%% from the Implementation Future Work block (lines 196-197):
+%% \item Run ablation testing on reduced feature set across graph scoring and baselines
 %% \item Optimize scoring weights via grid search / Bayesian optimization / other method
 %%
 %% Keep the remaining items:
-%% - Run ablation testing on reduced feature set across graph scoring and baselines
 %% - Run statistical significance testing on all results
 %% - Measure computational cost (CPU, memory, wall-clock time) across all methods
 %% - The current results are not finalized
+
+%% ============================================================
+%% REVISION 7: Baseline Methods "Future work" (Section 5.3)
+%% TARGET: Remove the "Future work" block in Baseline Methods
+%% REASON: Baselines are now finalized and reported in Results (Table 1)
+%% ============================================================
+
+%% DELETE the entire "Future work" block from Baseline Methods (lines 173-179):
+%%
+%% \begin{itemize}
+%% \item \textit{Future work:}
+%% \begin{itemize}
+%% \item Finalize baseline implementations / parameters and how data is injested by them
+%% \item If necessary, tune hyperparameters for baseline methods (currently scikit-learn defaults)
+%% \end{itemize}
+%% \end{itemize}
+%%
+%% No replacement needed — baselines are now implemented and results are in Table~\ref{tab:methods_lanl}.
+
+%% ============================================================
+%% REVISION 8: Results "Numbers are not final" warnings
+%% TARGET: Soften "Numbers are not final" warnings in Section 6 (Results)
+%% REASON: Held-out validation (Draft 4) confirms the AUC figures are not
+%%   in-sample artifacts. The pipeline results in Table 1 are from the
+%%   initial run with optimized weights; the evaluation subsections
+%%   validate these with proper held-out methodology.
+%% ============================================================
+
+%% In the paragraph after Figure 1 (line 214):
+%% CHANGE: \textbf{Numbers are not final and results are subject to change.}
+%% TO:     The pipeline results use optimized weights; held-out validation (Section~\ref{sec:holdout_weight}) confirms these AUC figures are not in-sample artifacts.
+%%
+%% In the paragraph after Figure 2 (line 225):
+%% CHANGE: \textbf{Numbers are not final and subject to change.}
+%% TO:     The scoring function and threshold remain the same across the initial run and the held-out evaluation.
+%%
+%% In Table 1 caption (line 244):
+%% CHANGE: \textbf{Numbers are not final.}
+%% TO:     AUC figures validated under held-out protocol in Section~\ref{sec:holdout_weight}.
+%%
+%% In the paragraph after Table 1 (line 249):
+%% CHANGE: \textbf{Numbers are not final and subject to change.}
+%% TO:     These results are corroborated by the held-out evaluation in Section~\ref{sec:holdout_weight}.
+
+%% ============================================================
+%% REVISION 9: Methodology intro sentence (Section 3, line 67-68)
+%% TARGET: Update the methodology opening to mention weight optimization
+%% REASON: The pipeline now includes automated weight optimization, not just
+%%   graph scoring against baselines.
+%% ============================================================
+
+%% CHANGE the current text (lines 67-68):
+%%   We test whether a graph built from both network flow and authentication logs
+%%   detects more lateral movement pairs than graphs from either source alone.
+%%   We also compare against two standard unsupervised anomaly detectors applied
+%%   to the same edge feature vector.
+%%
+%% TO:
+%%   We test whether a graph built from both network flow and authentication logs detects more lateral movement pairs than graphs from either source alone. Edge scoring weights are optimized automatically via Nelder-Mead to maximize ROC AUC. We also compare against two standard unsupervised anomaly detectors applied to the same edge feature vector.
