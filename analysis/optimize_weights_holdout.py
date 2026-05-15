@@ -17,7 +17,7 @@ Does not modify src/optimization/optimizer.py or any teammate-owned
 file. Reuses the audit module's loader and stratified_split functions.
 
 Usage:
-    uv run python scripts/optimize_weights_holdout.py \
+    uv run python analysis/optimize_weights_holdout.py \
         --run-dir results/20260504_183345/combined \
         --features is_ntlm,source_fan_out,dst_in_degree,is_network_logon,dst_fan_out_ratio \
         --holdout-frac 0.5 \
