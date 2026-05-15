@@ -171,13 +171,11 @@ class WeightOptimizer:
         out.mkdir(parents=True, exist_ok=True)
         ts = datetime.now(timezone.utc).isoformat()
 
-        # optimization_log.json
         log_path = out / "optimization_log.json"
         with open(log_path, "w") as f:
             json.dump({"timestamp": ts, "trace": self._log}, f, indent=2)
         logger.info(f"Saved optimization log to {log_path}")
 
-        # optimized_weights.json
         weights_path = out / "optimized_weights.json"
         weights_payload = {
             "timestamp": ts,
@@ -195,7 +193,6 @@ class WeightOptimizer:
             json.dump(weights_payload, f, indent=2)
         logger.info(f"Saved optimized weights to {weights_path}")
 
-        # feature_contribution.csv
         scores = self._score_with_weights(optimal_w)
         contrib_df = self.features_df[self.feature_names].copy()
         for i, name in enumerate(self.feature_names):
@@ -209,7 +206,6 @@ class WeightOptimizer:
         contrib_df.to_csv(contrib_path, index=False)
         logger.info(f"Saved feature contribution to {contrib_path}")
 
-        # optimization_comparison.json
         comparison = {
             "timestamp": ts,
             "equal_weight_auc": float(initial_auc),
@@ -256,20 +252,17 @@ def load_run_data(run_dir: str) -> tuple[pd.DataFrame, np.ndarray]:
     redteam_set = {(p["src"], p["dst"]) for p in redteam_pairs}
     logger.info(f"  redteam_pairs.json: {len(redteam_pairs)} pairs, {len(redteam_set)} unique")
 
-    # Join dst_fan_out_ratio from node_features
     fan_out_map = node_features.set_index("node")["fan_out_ratio"]
     dst_nodes = graph_edges["dst"].values
     edge_features["dst_fan_out_ratio"] = pd.Series(dst_nodes).map(fan_out_map).values
     nan_count = edge_features["dst_fan_out_ratio"].isna().sum()
     logger.info(f"  Joined dst_fan_out_ratio: {nan_count} NaN values")
 
-    # Create binary labels
     src_dst = list(zip(graph_edges["src"].values, graph_edges["dst"].values))
     labels = np.array([1 if pair in redteam_set else 0 for pair in src_dst], dtype=np.int32)
     logger.info(f"  Labels: {int(labels.sum())} positive, {int((labels == 0).sum())} negative "
                 f"({labels.sum() / len(labels) * 100:.2f}% positive)")
 
-    # Filter valid edges
     valid_mask = (edge_features["is_self_loop"].values == 0) & (edge_features["is_user_edge"].values == 0)
     valid_count = valid_mask.sum()
     total_count = len(edge_features)
@@ -291,7 +284,6 @@ def load_run_data(run_dir: str) -> tuple[pd.DataFrame, np.ndarray]:
     else:
         logger.info("  No NaN values in features")
 
-    # Store filtered edges index for reference
     filtered_features.attrs["graph_edges"] = filtered_edges
 
     return filtered_features, filtered_labels

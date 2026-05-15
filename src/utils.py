@@ -11,5 +11,3 @@ def compute_edge_pair_names(g: ig.Graph) -> list[tuple[str, str]]:
         (g.vs[e.source]["name"], g.vs[e.target]["name"])
         for e in g.es
     ]
-
-

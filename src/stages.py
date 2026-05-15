@@ -101,21 +101,17 @@ def _score_detect_graph(
     )
     labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
 
-    try:
-        logger.info("  Running weight optimization...")
-        opt = WeightOptimizer(
-            ef[mask_valid].reset_index(drop=True),
-            labels[mask_valid],
-            OPTIMIZED_FEATURE_NAMES,
-        )
-        opt_output_dir = str(Path(output_dir) / "optimization") if output_dir else None
-        opt_result = opt.optimize(output_dir=opt_output_dir)
-        weights_dict = {k: v for k, v in opt_result.items() if k in OPTIMIZED_FEATURE_NAMES}
-        logger.info(f"  Optimized weights: {weights_dict}")
-        logger.info(f"  Optimized AUC: {opt_result['auc']:.4f}")
-    except Exception as e:
-        logger.warning(f"  Optimization failed: {e}, falling back to equal weights")
-        weights_dict = {name: 1.0 / len(OPTIMIZED_FEATURE_NAMES) for name in OPTIMIZED_FEATURE_NAMES}
+    logger.info("  Running weight optimization...")
+    opt = WeightOptimizer(
+        ef[mask_valid].reset_index(drop=True),
+        labels[mask_valid],
+        OPTIMIZED_FEATURE_NAMES,
+    )
+    opt_output_dir = str(Path(output_dir) / "optimization") if output_dir else None
+    opt_result = opt.optimize(output_dir=opt_output_dir)
+    weights_dict = {k: v for k, v in opt_result.items() if k in OPTIMIZED_FEATURE_NAMES}
+    logger.info(f"  Optimized weights: {weights_dict}")
+    logger.info(f"  Optimized AUC: {opt_result['auc']:.4f}")
 
     edge_scores = score_edges(g, ef, weights=weights_dict, config=config.to_dict())
     logger.info("  Edge scores computed, enumerating paths (this may take a while)...")
@@ -250,4 +246,3 @@ def run_method_pipeline(
         config=config,
         output_dir=output_dir,
     )
-
