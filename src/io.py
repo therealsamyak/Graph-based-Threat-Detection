@@ -33,9 +33,10 @@ def save_method_results(
     """
     method_dir = Path(output_dir)
     method_dir.mkdir(parents=True, exist_ok=True)
+    tag = f"[{method}]"
 
     edge_scores.to_csv(method_dir / "edge_scores.csv", header=["score"])
-    logger.info(f"  Saved edge_scores.csv ({len(edge_scores):,} edges)")
+    logger.info(f"  {tag} Saved edge_scores.csv ({len(edge_scores):,} edges)")
 
     if len(paths) > 0:
         paths_save = paths.copy()
@@ -46,18 +47,18 @@ def save_method_results(
             lambda x: ",".join(str(i) for i in x) if isinstance(x, list) else str(x)
         )
         paths_save.to_csv(method_dir / "paths.csv", index=False)
-        logger.info(f"  Saved paths.csv ({len(paths_save):,} paths)")
+        logger.info(f"  {tag} Saved paths.csv ({len(paths_save):,} paths)")
 
     if len(anomalous_pairs) > 0:
         ap_rows = [{"src": s, "dst": d} for s, d in anomalous_pairs]
         pd.DataFrame(ap_rows).to_csv(method_dir / "anomalous_paths.csv", index=False)
-        logger.info(f"  Saved anomalous_paths.csv ({len(ap_rows):,} anomalous edges)")
+        logger.info(f"  {tag} Saved anomalous_paths.csv ({len(ap_rows):,} anomalous edges)")
 
     node_features.to_csv(method_dir / "node_features.csv")
     edge_features.to_csv(method_dir / "edge_features.csv")
     with open(method_dir / "graph_features.json", "w") as f:
         json.dump(graph_features, f, indent=2)
-    logger.info("  Saved node_features.csv, edge_features.csv, graph_features.json")
+    logger.info(f"  {tag} Saved node_features.csv, edge_features.csv, graph_features.json")
 
     # graph_edges.csv
     edge_rows = []
@@ -80,7 +81,7 @@ def save_method_results(
     ]
     pd.DataFrame(node_rows).to_csv(method_dir / "graph_nodes.csv", index=False)
     logger.info(
-        f"  Saved graph_edges.csv ({g.ecount():,}), graph_nodes.csv ({g.vcount():,})"
+        f"  {tag} Saved graph_edges.csv ({g.ecount():,}), graph_nodes.csv ({g.vcount():,})"
     )
 
     if detected_pairs:
@@ -89,7 +90,7 @@ def save_method_results(
                 [{"src": s, "dst": d} for s, d in sorted(detected_pairs)], f, indent=2
             )
         logger.info(
-            f"  Saved detected_redteam_pairs.json ({len(detected_pairs)} pairs)"
+            f"  {tag} Saved detected_redteam_pairs.json ({len(detected_pairs)} pairs)"
         )
 
 
