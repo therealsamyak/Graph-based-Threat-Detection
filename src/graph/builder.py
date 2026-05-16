@@ -1,14 +1,13 @@
-"""Streaming graph construction: build igraph incrementally from gz event streams."""
+"""Streaming graph construction: build igraph incrementally from event streams."""
 
 from __future__ import annotations
 
-import gzip
 import logging
 
 import igraph as ig
 import pandas as pd
 
-from src.data.lanl import time_in_any_window
+from src.data.lanl import open_data_file, resolve_data_file, time_in_any_window
 
 logger = logging.getLogger(__name__)
 
@@ -117,13 +116,6 @@ class StreamingGraphBuilder:
         return self._g
 
 
-def _open_auto(path: str):
-    """Open a file as gzip if it ends with .gz, otherwise as plain text."""
-    if path.endswith(".gz"):
-        return gzip.open(path, "rt", encoding="utf-8")
-    return open(path, "r", encoding="utf-8")
-
-
 def stream_gz_to_graph(
     gz_path: str,
     columns: list[str],
@@ -134,9 +126,14 @@ def stream_gz_to_graph(
     progress_every: int = 500000,
     max_events: int | None = None,
 ) -> int:
-    """Stream gz or plain text file through windows, feed events to graph, return row count."""
+    """Stream data file through windows, feed events to graph, return row count.
+
+    Supports both .txt.gz and .txt files (prefers .txt.gz when both exist).
+    """
     if not windows:
         return 0
+
+    resolved = resolve_data_file(gz_path)
 
     first_start = windows[0][0]
     last_end = windows[-1][1]
@@ -145,7 +142,7 @@ def stream_gz_to_graph(
     past_start = False
     _starts = [w[0] for w in windows]
 
-    with _open_auto(gz_path) as f:
+    with open_data_file(resolved) as f:
         for raw_line in f:
             parts = raw_line.strip().split(",")
             if len(parts) != len(columns):
@@ -177,6 +174,6 @@ def stream_gz_to_graph(
             if max_events is not None and count >= max_events:
                 break
             if count % progress_every == 0:
-                logger.info(f"  {gz_path}: {count:,} events processed...")
+                logger.info(f"  {resolved}: {count:,} events processed...")
 
     return count

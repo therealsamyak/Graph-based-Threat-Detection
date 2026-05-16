@@ -71,8 +71,8 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     args = _parse_args(argv)
     config: PipelineConfig = load_config()
 
-    data_dir = "data/LANL-Dataset-2015"
-    window_seconds = 3600
+    data_dir = config.data.lanl_dir
+    window_seconds = config.data.window_size
 
     logger.info(f"Loading LANL data from {data_dir} (window={window_seconds}s)")
 
