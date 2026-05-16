@@ -99,10 +99,3 @@ def detect_duplicates(
                 pairs.append((columns[i], columns[j]))
     return pairs
 
-
-def drop_duplicates(
-    X: np.ndarray, columns: list[str], dup_pairs: list[tuple[str, str]]
-) -> tuple[np.ndarray, list[str]]:
-    duplicate_columns = {duplicate for _, duplicate in dup_pairs}
-    keep_idx = [i for i, column in enumerate(columns) if column not in duplicate_columns]
-    return X[:, keep_idx], [columns[i] for i in keep_idx]
