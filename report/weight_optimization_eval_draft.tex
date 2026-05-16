@@ -9,7 +9,7 @@ The scoring weights (Equations~1--2) were originally optimized on the full featu
 
 \subsubsection{Protocol}
 
-A wrapper script (\texttt{analysis/optimize\_weights\_holdout.py}) loads the cached edge table via the same loader used by the feature audit, applies a stratified 50/50 split (seed~42), and partitions the 364,802 masked edges into a calibration half (182,402 edges, 153 red-team) and an evaluation half (182,400 edges, 152 red-team). The optimizer is constructed on the calibration half only, runs Nelder-Mead to convergence on the same five features used in the original pipeline (\texttt{is\_ntlm}, \texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, \texttt{dst\_fan\_out\_ratio}), and the resulting weights are applied to the evaluation half without further modification.
+A held-out evaluation wrapper loads the cached edge table via the same loader used by the feature audit, applies a stratified 50/50 split (seed~42), and partitions the 364,802 masked edges into a calibration half (182,402 edges, 153 red-team) and an evaluation half (182,400 edges, 152 red-team). The optimizer is constructed on the calibration half only, runs Nelder-Mead to convergence on the same five features used in the original pipeline (\texttt{is\_ntlm}, \texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, \texttt{dst\_fan\_out\_ratio}), and the resulting weights are applied to the evaluation half without further modification.
 
 \subsubsection{Result: Optimization Generalizes}
 
