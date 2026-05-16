@@ -182,6 +182,7 @@ def main() -> None:
     run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     output_dir = args.output_root / run_id
     output_dir.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Eval input: {run_dir} (combined variant)")
     logger.info(f"Eval output: {output_dir}")
 
     command = args.command  # None = run all
