@@ -119,17 +119,3 @@ def save_pipeline_config(results_dir: str, config) -> None:
         json.dump(data, f, indent=2)
     logger.info(f"  Saved pipeline_config.json to {results_path}")
 
-
-def save_experiment_summary(
-    results_dir: str,
-    all_results: list[dict],
-) -> None:
-    """Write metrics.csv and results JSON to *results_dir*."""
-    results_path = Path(results_dir)
-    results_path.mkdir(parents=True, exist_ok=True)
-
-    df = pd.DataFrame(all_results)
-    df.to_csv(results_path / "metrics.csv", index=False)
-    with open(results_path / "experiment_results.json", "w") as f:
-        json.dump(all_results, f, indent=2)
-    logger.info(f"  Saved metrics.csv ({len(all_results)} rows) to {results_path}")

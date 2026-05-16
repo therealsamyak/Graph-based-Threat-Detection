@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -139,22 +139,6 @@ class PipelineConfig:
     def default(cls) -> PipelineConfig:
         return cls()
 
-    def with_overrides(self, **kwargs) -> PipelineConfig:
-        """Return a new PipelineConfig with nested overrides applied.
-
-        Supports nested dict overrides like data={"lanl_dir": "/new"}.
-        """
-        updates: dict = {}
-        for k, v in kwargs.items():
-            section = getattr(self, k, None)
-            if section is not None and isinstance(v, dict) and hasattr(section, "from_dict"):
-                updates[k] = section.__class__.from_dict(
-                    {**section.to_dict(), **v}
-                )
-            elif k in self.__dataclass_fields__:
-                updates[k] = v
-        return replace(self, **updates)
-
 
 # ── Experiment result ───────────────────────────────────────────────
 
@@ -169,18 +153,6 @@ class ExperimentResult:
     red_pairs: frozenset = field(default_factory=frozenset)
     redteam_times: object = None
     method_results: tuple = field(default_factory=tuple)
-
-
-# ── Optimized weights ───────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class OptimizedWeights:
-    is_ntlm: float = 0.2
-    source_fan_out: float = 0.2
-    dst_in_degree: float = 0.2
-    is_network_logon: float = 0.2
-    dst_fan_out_ratio: float = 0.2
 
 
 # ── Detection params ────────────────────────────────────────────────
