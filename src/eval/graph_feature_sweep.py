@@ -1,15 +1,4 @@
-"""Sweep quick-win graph features and report eval-AUC delta over LR baseline.
-
-For each candidate graph feature (or feature group), we:
-  1. Compute it on the full graph reconstructed from graph_edges.csv
-  2. Apply the same self-loop / user-edge mask the audit/loader uses
-  3. Add the new column(s) on top of the 5-feature LR baseline
-  4. Fit logistic regression on the calibration half, evaluate on the held-out half
-  5. Report eval AUC and the delta vs LR-on-5-features-alone
-
-Output: <output_dir>/graph_features_test.json
-and a brief stdout summary.
-"""
+"""Sweep graph features and report eval-AUC delta over LR baseline."""
 
 from __future__ import annotations
 
@@ -30,7 +19,6 @@ from src.feature_audit.loader import load_feature_frame
 from src.feature_audit.scorer import stratified_split
 from src.optimization.optimizer import RANK_TRANSFORM_FEATURES
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("test_graph_features")
 
 BASE_FEATURES = [
@@ -70,7 +58,7 @@ def _compute_quick_win_features(
     attacker_name: str | None,
     name_to_idx: dict[str, int],
 ) -> dict[str, dict[str, np.ndarray]]:
-    """Return {group_name: {col_name: per-edge ndarray}} for each quick-win group."""
+    """Return {group_name: {col_name: per-edge ndarray}} for each feature group."""
     groups: dict[str, dict[str, np.ndarray]] = {}
 
     # A) PageRank (standard, directed)
@@ -141,7 +129,6 @@ def _compute_quick_win_features(
 
 
 def _adamic_adar_per_edge(g: ig.Graph, src_idx: np.ndarray, dst_idx: np.ndarray) -> np.ndarray:
-    """AA(u, v) = sum_{w in N(u) cap N(v)} 1 / log(deg(w))."""
     deg = np.array(g.degree(), dtype=float)
     log_deg_safe = np.where(deg > 1.0, np.log(deg), 0.0)
     inv = np.where(log_deg_safe > 0, 1.0 / log_deg_safe, 0.0)
@@ -189,19 +176,6 @@ def run_graph_feature_sweep(
     seed: int = 42,
     output_dir: Path | None = None,
 ) -> dict:
-    """Run graph feature sweep.
-
-    Args:
-        run_dir: Path to run directory containing feature frames.
-        attacker_host: Known attacker hostname for personalized PageRank.
-        holdout_frac: Fraction of data to hold out for evaluation.
-        seed: Random seed for reproducibility.
-        output_dir: Output directory for results. Defaults to
-            analysis_results/<timestamp>/graph_features_test.
-
-    Returns:
-        Dict containing sweep results (same payload written to JSON).
-    """
     logger.info(f"Loading features from {run_dir}")
     features_df, labels, available_cols = load_feature_frame(run_dir)
     missing = [f for f in BASE_FEATURES if f not in features_df.columns]
