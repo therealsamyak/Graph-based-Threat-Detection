@@ -58,7 +58,7 @@ def _extract_node_times(g: ig.Graph) -> dict[int, list[float]]:
     return node_times
 
 
-def extract_node_features(g: ig.Graph, config: dict | None = None) -> pd.DataFrame:
+def extract_node_features(g: ig.Graph, config: dict | None = None, inner_workers: int | None = None, variant_name: str | None = None) -> pd.DataFrame:
     feat_cfg = (config or {}).get("features", {})
     betweenness_node_limit = feat_cfg.get("betweenness_node_limit", 5000)
     burst_window_pct = feat_cfg.get("temporal_burst_window_pct", 0.1)
@@ -94,6 +94,16 @@ def extract_node_features(g: ig.Graph, config: dict | None = None) -> pd.DataFra
                               inter_arr_mean, inter_arr_std, burst_score, active_duration)
 
     n_workers = min(os.cpu_count() or 1, max_workers)
+    
+    # Apply inner worker cap (default if not explicitly set)
+    from src.utils import compute_inner_worker_budget
+    effective_inner_workers = inner_workers or compute_inner_worker_budget()
+    n_workers = min(n_workers, effective_inner_workers)
+    
+    variant_str = f" (variant: {variant_name})" if variant_name else ""
+    logger.info(
+        f"Worker budget for node features: {n_workers} inner workers{variant_str}"
+    )
     items = list(node_times.items())
 
     if n_workers <= 1 or len(items) < n_workers * 10:

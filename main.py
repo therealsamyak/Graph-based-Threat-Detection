@@ -12,8 +12,7 @@ import pandas as pd
 
 from src.config import load_config
 from src.reporting import generate_comparison
-from src.types import ExperimentResult, PipelineConfig
-from src.utils import compute_edge_pair_names
+from src.types import PipelineConfig
 
 LOG_FMT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 
@@ -48,13 +47,18 @@ def _print_summary(df: pd.DataFrame) -> None:
         print("\nNo results to display.")
         return
 
-    cols = ["method", "dataset", "recall", "fpr", "f1", "auc", "latency", "throughput",
-            "rt_pairs_in_graph", "anomalous_pairs", "threshold"]
+    # Only include columns that exist in the DataFrame
+    base_cols = ["method", "dataset", "recall", "fpr", "f1", "auc", "latency", "throughput"]
+    optional_cols = ["rt_pairs_in_graph", "anomalous_pairs", "threshold"]
+    cols = [c for c in base_cols + optional_cols if c in df.columns]
     display_df = df[cols].copy()
     for c in ["recall", "fpr", "f1", "auc"]:
-        display_df[c] = display_df[c].map(lambda v: f"{v:.4f}")
-    display_df["latency"] = display_df["latency"].map(lambda v: f"{v:.2f}s")
-    display_df["throughput"] = display_df["throughput"].map(lambda v: f"{v:.0f}/s")
+        if c in display_df.columns:
+            display_df[c] = display_df[c].map(lambda v: f"{v:.4f}")
+    if "latency" in display_df.columns:
+        display_df["latency"] = display_df["latency"].map(lambda v: f"{v:.2f}s")
+    if "throughput" in display_df.columns:
+        display_df["throughput"] = display_df["throughput"].map(lambda v: f"{v:.0f}/s")
 
     print("\n" + "=" * 120)
     print("EXPERIMENT RESULTS SUMMARY")
@@ -70,27 +74,16 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     data_dir = "data/LANL-Dataset-2015"
     window_seconds = 3600
 
-    all_results: list[dict] = []
-    experiment_result: ExperimentResult | None = None
-    results_base = "results/pending"
-
     logger.info(f"Loading LANL data from {data_dir} (window={window_seconds}s)")
-    try:
-        from src.pipeline import run_streaming_experiment
-        lanl_results, experiment_result_raw, results_base = run_streaming_experiment(
-            data_dir=data_dir,
-            window_seconds=window_seconds,
-            max_events=args.sample,
-            config=config,
-        )
-        all_results.extend(lanl_results)
-        if isinstance(experiment_result_raw, dict):
-            from src.types import ExperimentResult
-            experiment_result = ExperimentResult(**experiment_result_raw)
-        else:
-            experiment_result = experiment_result_raw
-    except Exception as e:
-        logger.warning(f"LANL experiment failed: {e}")
+
+    from src.pipeline import run_streaming_experiment_variants
+
+    all_results, results_base, combined_result = run_streaming_experiment_variants(
+        data_dir=data_dir,
+        window_seconds=window_seconds,
+        max_events=args.sample,
+        config=config,
+    )
 
     results_df = pd.DataFrame(all_results)
 
@@ -118,41 +111,19 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     generate_comparison(results_dir=str(results_dir))
 
     from src.visualization import (
-        plot_graph_snapshot,
-        plot_score_distribution,
-        plot_roc_curves,
-        plot_detection_timeline,
         plot_method_comparison,
+        plot_roc_curves,
     )
+
+    # Log plot source for evidence: graph-specific plots use combined variant only
+    logger.info("Plot source: Graph and score visualizations (if generated) use combined variant only")
+    if combined_result is not None:
+        logger.info(f"Combined variant graph loaded for visualization: {results_base}/LANL-2015/combined/")
+    else:
+        logger.warning("Combined variant result not available - graph-specific visualizations cannot be generated")
 
     figures_dir = results_dir / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
-
-    g = experiment_result.combined_graph if experiment_result else None
-    if g is not None:
-        plot_graph_snapshot(g, str(figures_dir / "graph_snapshot.png"), title=f"Combined Auth+Flow Graph ({g.vcount():,} nodes, {g.ecount():,} edges)")
-        logger.info("Saved graph_snapshot.png")
-
-    edge_scores = experiment_result.combined_edge_scores if experiment_result else None
-    if edge_scores is not None and not edge_scores.empty and g is not None:
-        red_pairs = experiment_result.red_pairs
-        threshold = experiment_result.combined_threshold
-
-        edge_pair_names = compute_edge_pair_names(g)
-        labels = pd.Series([
-            1.0 if pair in red_pairs else 0.0
-            for pair in edge_pair_names
-        ], index=edge_scores.index)
-        plot_score_distribution(edge_scores, labels, str(figures_dir / "score_distribution.png"), threshold=threshold, title="Edge Anomaly Score Distribution")
-        logger.info("Saved score_distribution.png")
-
-        times = pd.Series(
-            [g.es[i]["time"] if "time" in g.es[i].attributes() else 0 for i in range(g.ecount())],
-            index=edge_scores.index,
-        )
-        rt_edge_indices = {i for i, pair in enumerate(edge_pair_names) if pair in red_pairs}
-        plot_detection_timeline(times, edge_scores, threshold, str(figures_dir / "detection_timeline.png"), redteam_edge_indices=rt_edge_indices, title="Anomaly Score Timeline with Red Team Events")
-        logger.info("Saved detection_timeline.png")
 
     roc_data = []
     for r in all_results:
