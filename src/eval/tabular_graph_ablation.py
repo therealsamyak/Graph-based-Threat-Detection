@@ -1,16 +1,4 @@
-"""Pure-tabular vs graph-derived feature ablation under held-out LR.
-
-Splits the available features into two groups by whether they require graph
-topology to compute:
-  - Pure tabular: per-edge attributes only (auth flags, rarity, byte stats, ...)
-  - Graph-derived: degrees, fan-out ratios, node-level temporal patterns, ...
-
-Trains logistic regression on each set under the same stratified held-out
-split used by the other ablations, then reports eval AUC and the marginal
-contribution of each group.
-
-Output: JSON to <output-dir>/tabular_vs_graph_ablation.json
-"""
+"""Pure-tabular vs graph-derived feature ablation under held-out LR."""
 
 from __future__ import annotations
 
@@ -67,18 +55,6 @@ def run_tabular_graph_ablation(
     seed: int = 42,
     output_dir: Path | None = None,
 ) -> dict:
-    """Run tabular vs graph feature ablation.
-
-    Args:
-        run_dir: Path to run directory containing feature frames.
-        holdout_frac: Fraction of data to hold out for evaluation.
-        seed: Random seed for reproducibility.
-        output_dir: Output directory for results. Defaults to
-            analysis_results/<timestamp>/tabular_vs_graph_ablation.
-
-    Returns:
-        Dict containing ablation results (same payload written to JSON).
-    """
     features_df, labels, _ = load_feature_frame(run_dir)
     tabular_avail = [c for c in PURE_TABULAR if c in features_df.columns]
     graph_avail = [c for c in GRAPH_DERIVED if c in features_df.columns]
