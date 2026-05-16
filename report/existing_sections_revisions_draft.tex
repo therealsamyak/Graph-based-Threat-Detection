@@ -34,7 +34,7 @@ The pipeline is implemented in Python with two execution modes. \texttt{feature.
 
 Graph operations use igraph; weight optimization uses SciPy's \texttt{minimize} with the Nelder-Mead method; baselines and metrics use scikit-learn. The path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) remain as configurable parameters. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors. End-to-end execution for the combined graph method plus baselines takes approximately 4 hours on a 12-core machine.
 
-Additional analysis scripts in the \texttt{analysis/} directory perform held-out validation of the weight optimizer, logistic-regression baseline comparison, tabular versus graph feature ablation, and graph feature extension sweeps. These are separate from the main pipeline and operate on cached edge tables.
+A separate evaluation module performs held-out validation of the weight optimizer, logistic-regression baseline comparison, tabular versus graph feature ablation, and graph feature extension sweeps. These analyses are independent of the main pipeline and operate on cached edge tables.
 
 %% ============================================================
 %% REVISION 3: Threshold Selection (Section 4.5)
