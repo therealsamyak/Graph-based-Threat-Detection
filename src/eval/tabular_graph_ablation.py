@@ -10,17 +10,11 @@ split used by the other ablations, then reports eval AUC and the marginal
 contribution of each group.
 
 Output: JSON to <output-dir>/tabular_vs_graph_ablation.json
-
-Usage:
-    uv run python analysis/tabular_vs_graph_ablation.py \\
-        --run-dir results/20260515_002159/combined
 """
 
 from __future__ import annotations
 
-import argparse
 import json
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -30,12 +24,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from src.feature_audit.loader import load_feature_frame  # noqa: E402
-from src.feature_audit.scorer import stratified_split  # noqa: E402
+from src.feature_audit.loader import load_feature_frame
+from src.feature_audit.scorer import stratified_split
 
 PURE_TABULAR = [
     "is_ntlm", "is_network_logon", "is_success_auth",
@@ -71,30 +61,40 @@ def _evaluate(features_df: pd.DataFrame, labels: np.ndarray, cols: list[str],
     return cal_auc, eval_auc
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", type=Path, required=True)
-    parser.add_argument("--holdout-frac", type=float, default=0.5)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--output-dir", type=Path, default=None)
-    args = parser.parse_args()
+def run_tabular_graph_ablation(
+    run_dir: Path,
+    holdout_frac: float = 0.5,
+    seed: int = 42,
+    output_dir: Path | None = None,
+) -> dict:
+    """Run tabular vs graph feature ablation.
 
-    features_df, labels, _ = load_feature_frame(args.run_dir)
+    Args:
+        run_dir: Path to run directory containing feature frames.
+        holdout_frac: Fraction of data to hold out for evaluation.
+        seed: Random seed for reproducibility.
+        output_dir: Output directory for results. Defaults to
+            analysis_results/<timestamp>/tabular_vs_graph_ablation.
+
+    Returns:
+        Dict containing ablation results (same payload written to JSON).
+    """
+    features_df, labels, _ = load_feature_frame(run_dir)
     tabular_avail = [c for c in PURE_TABULAR if c in features_df.columns]
     graph_avail = [c for c in GRAPH_DERIVED if c in features_df.columns]
     print(f"Pure-tabular features available: {len(tabular_avail)} of {len(PURE_TABULAR)}")
     print(f"Graph-derived features available: {len(graph_avail)} of {len(GRAPH_DERIVED)}")
 
     base_X = features_df[tabular_avail + graph_avail].to_numpy()
-    cal_idx, eval_idx = stratified_split(base_X, labels, args.holdout_frac, args.seed)
+    cal_idx, eval_idx = stratified_split(base_X, labels, holdout_frac, seed)
     print(
         f"Stratified split: cal {len(cal_idx):,} ({int(labels[cal_idx].sum())} red-team), "
         f"eval {len(eval_idx):,} ({int(labels[eval_idx].sum())} red-team)"
     )
 
-    cal_t, eval_t = _evaluate(features_df, labels, tabular_avail, cal_idx, eval_idx, args.seed)
-    cal_g, eval_g = _evaluate(features_df, labels, graph_avail, cal_idx, eval_idx, args.seed)
-    cal_c, eval_c = _evaluate(features_df, labels, tabular_avail + graph_avail, cal_idx, eval_idx, args.seed)
+    cal_t, eval_t = _evaluate(features_df, labels, tabular_avail, cal_idx, eval_idx, seed)
+    cal_g, eval_g = _evaluate(features_df, labels, graph_avail, cal_idx, eval_idx, seed)
+    cal_c, eval_c = _evaluate(features_df, labels, tabular_avail + graph_avail, cal_idx, eval_idx, seed)
 
     results = [
         {"name": "pure_tabular_only", "columns": tabular_avail, "n_features": len(tabular_avail),
@@ -107,9 +107,9 @@ def main() -> int:
     ]
     payload = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "input_run_dir": str(args.run_dir.resolve()),
-        "holdout_frac": args.holdout_frac,
-        "seed": args.seed,
+        "input_run_dir": str(run_dir.resolve()),
+        "holdout_frac": holdout_frac,
+        "seed": seed,
         "n_calibration": int(len(cal_idx)),
         "n_eval": int(len(eval_idx)),
         "results": results,
@@ -125,17 +125,13 @@ def main() -> int:
     print(f"Δ eval AUC from adding graph to tabular: {payload['delta_adding_graph_to_tabular']:+.6f}")
     print(f"Δ eval AUC from adding tabular to graph: {payload['delta_adding_tabular_to_graph']:+.6f}")
 
-    if args.output_dir is None:
+    if output_dir is None:
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        out_dir = REPO_ROOT / "results" / ts / "tabular_vs_graph_ablation"
+        out_dir = Path("analysis_results") / ts
+        out_dir.mkdir(parents=True, exist_ok=True)
     else:
-        out_dir = args.output_dir.resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = output_dir.resolve()
     out_path = out_dir / "tabular_vs_graph_ablation.json"
     out_path.write_text(json.dumps(payload, indent=2))
     print(f"\nWrote {out_path}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    return payload
