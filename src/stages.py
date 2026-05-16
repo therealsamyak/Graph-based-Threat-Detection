@@ -26,6 +26,7 @@ from src.scoring.edges import boost_edges_from_paths, score_edges
 from src.scoring.paths import score_graph, score_paths
 from src.types import DetectionParams, PipelineConfig
 from src.utils import compute_edge_pair_names
+from src.variants import get_variant
 
 logger = logging.getLogger(__name__)
 
@@ -51,14 +52,6 @@ MethodResult = namedtuple(
         "result_dict",
     ],
 )
-
-OPTIMIZED_FEATURE_NAMES = [
-    "is_ntlm",
-    "source_fan_out",
-    "dst_in_degree",
-    "is_network_logon",
-    "dst_fan_out_ratio",
-]
 
 
 def _resolve_data_file(data_dir: str, base_name: str) -> str:
@@ -94,6 +87,10 @@ def _score_detect_graph(
     config: PipelineConfig,
     output_dir: str | None = None,
 ) -> MethodResult:
+    # Get variant descriptor for feature whitelist
+    descriptor = get_variant(method_name)
+    feature_whitelist = list(descriptor.feature_whitelist)
+
     scoring = config.scoring
     edge_pair_names = compute_edge_pair_names(g)
     graph_edges = set(edge_pair_names)
@@ -104,7 +101,7 @@ def _score_detect_graph(
     logger.info(
         f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)..."
     )
-    all_feat = extract_all_features(g, config=config.to_dict())
+    all_feat = extract_all_features(g, config=config.to_dict(), inner_workers=config.features.inner_workers, variant_name=method_name)
     logger.info(
         f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges..."
     )
@@ -113,15 +110,26 @@ def _score_detect_graph(
     mask_valid = (ef["is_self_loop"].values == 0.0) & (ef["is_user_edge"].values == 0.0)
     labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
 
+    # Validate that all whitelist features exist in edge features
+    available_features = set(ef.columns)
+    missing_features = [feat for feat in feature_whitelist if feat not in available_features]
+    if missing_features:
+        raise ValueError(
+            f"Variant '{method_name}': Missing {len(missing_features)} feature(s) from whitelist: {missing_features}. "
+            f"Available features: {sorted(available_features)}"
+        )
+
+    logger.info(f"  Variant '{method_name}': Feature whitelist ({len(feature_whitelist)}): {feature_whitelist}")
+
     logger.info("  Running weight optimization...")
     opt = WeightOptimizer(
         ef[mask_valid].reset_index(drop=True),
         labels[mask_valid],
-        OPTIMIZED_FEATURE_NAMES,
+        feature_whitelist,
     )
     opt_output_dir = str(Path(output_dir) / "optimization") if output_dir else None
     opt_result = opt.optimize(output_dir=opt_output_dir)
-    weights_dict = {k: v for k, v in opt_result.items() if k in OPTIMIZED_FEATURE_NAMES}
+    weights_dict = {k: v for k, v in opt_result.items() if k in feature_whitelist}
     logger.info(f"  Optimized weights: {weights_dict}")
     logger.info(f"  Optimized AUC: {opt_result['auc']:.4f}")
 
@@ -135,6 +143,8 @@ def _score_detect_graph(
         top_k=scoring.top_k_paths,
         top_outgoing=scoring.top_outgoing_per_node,
         max_workers=config.features.max_workers,
+        inner_workers=config.features.inner_workers,
+        variant_name=method_name,
     )
     logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
 
@@ -218,37 +228,49 @@ def run_method_pipeline(
     config: PipelineConfig,
     max_events: int | None = None,
     output_dir: str | None = None,
+    variant: str = "combined",
 ) -> MethodResult:
     data_path = Path(data_dir)
-    method_name = "combined"
-    logger.info(f"Streaming + building: {method_name}")
+    descriptor = get_variant(variant)
+    method_name = descriptor.name
+    event_filter = descriptor.event_filter
+    logger.info(f"Streaming + building: {method_name} (event_filter={event_filter})")
     t0 = time.perf_counter()
 
     graph = StreamingGraphBuilder()
-    n_auth = stream_gz_to_graph(
-        _resolve_data_file(str(data_path), "auth.txt"),
-        AUTH_COLUMNS,
-        windows,
-        AUTH_NUMERIC,
-        graph,
-        graph.feed_auth_event,
-        progress_every=config.graph.progress_every,
-        max_events=max_events,
-    )
-    n_flow = stream_gz_to_graph(
-        _resolve_data_file(str(data_path), "flows.txt"),
-        FLOW_COLUMNS,
-        windows,
-        FLOW_NUMERIC,
-        graph,
-        graph.feed_flow_event,
-        progress_every=config.graph.progress_every,
-        max_events=max_events,
-    )
+    n_auth = 0
+    n_flow = 0
+
+    if event_filter in ("both", "auth"):
+        n_auth = stream_gz_to_graph(
+            _resolve_data_file(str(data_path), "auth.txt"),
+            AUTH_COLUMNS,
+            windows,
+            AUTH_NUMERIC,
+            graph,
+            graph.feed_auth_event,
+            progress_every=config.graph.progress_every,
+            max_events=max_events,
+        )
+
+    if event_filter in ("both", "flow"):
+        n_flow = stream_gz_to_graph(
+            _resolve_data_file(str(data_path), "flows.txt"),
+            FLOW_COLUMNS,
+            windows,
+            FLOW_NUMERIC,
+            graph,
+            graph.feed_flow_event,
+            progress_every=config.graph.progress_every,
+            max_events=max_events,
+        )
 
     g = graph.build()
     build_time = time.perf_counter() - t0
-    logger.info(f"  Streamed {n_auth:,} auth + {n_flow:,} flow in {build_time:.1f}s")
+    logger.info(
+        f"  Streamed {n_auth:,} auth + {n_flow:,} flow in {build_time:.1f}s "
+        f"(variant={method_name})"
+    )
     logger.info(f"  Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
     del graph
 

@@ -78,6 +78,8 @@ def score_paths(
     top_k: int = 50,
     top_outgoing: int = 10,
     max_workers: int = 12,
+    inner_workers: int | None = None,
+    variant_name: str | None = None,
 ) -> pd.DataFrame:
     """BFS path enumeration with anomaly scoring.
 
@@ -87,6 +89,16 @@ def score_paths(
     """
     total_nodes = g.vcount()
     n_workers = min(os.cpu_count() or 1, max_workers)
+    
+    # Apply inner worker cap (default if not explicitly set)
+    from src.utils import compute_inner_worker_budget
+    effective_inner_workers = inner_workers or compute_inner_worker_budget()
+    n_workers = min(n_workers, effective_inner_workers)
+    
+    variant_str = f" (variant: {variant_name})" if variant_name else ""
+    logger.info(
+        f"Worker budget for path enumeration: {n_workers} inner workers{variant_str}"
+    )
     edge_scores_arr = edge_scores.values
 
     node_names = [g.vs[i]["name"] for i in range(total_nodes)]
