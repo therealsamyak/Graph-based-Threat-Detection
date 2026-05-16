@@ -15,21 +15,12 @@ report AUC on the eval half.
 
 Does not modify src/optimization/optimizer.py or any teammate-owned
 file. Reuses the audit module's loader and stratified_split functions.
-
-Usage:
-    uv run python analysis/optimize_weights_holdout.py \
-        --run-dir results/20260504_183345/combined \
-        --features is_ntlm,source_fan_out,dst_in_degree,is_network_logon,dst_fan_out_ratio \
-        --holdout-frac 0.5 \
-        --output-dir results/<timestamp>/optimization_holdout
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import logging
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,13 +30,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from src.feature_audit.loader import load_feature_frame  # noqa: E402
-from src.feature_audit.scorer import stratified_split  # noqa: E402
-from src.optimization.optimizer import RANK_TRANSFORM_FEATURES, WeightOptimizer  # noqa: E402
+from src.feature_audit.loader import load_feature_frame
+from src.feature_audit.scorer import stratified_split
+from src.optimization.optimizer import RANK_TRANSFORM_FEATURES, WeightOptimizer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("optimize_weights_holdout")
@@ -129,41 +116,56 @@ def _logistic_regression_baseline(
     }
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", type=Path, required=True,
-                        help="Cached combined run dir (e.g. results/20260504_183345/combined).")
-    parser.add_argument("--features", type=str, default=",".join(DEFAULT_FEATURES),
-                        help="Comma-separated feature names to optimize over.")
-    parser.add_argument("--holdout-frac", type=float, default=0.5,
-                        help="Fraction held out for evaluation (default: 0.5).")
-    parser.add_argument("--seed", type=int, default=42,
-                        help="Random seed for stratified split (default: 42).")
-    parser.add_argument("--output-dir", type=Path, default=None,
-                        help="Output directory for results JSON (defaults to results/<timestamp>/optimization_holdout).")
-    args = parser.parse_args()
+def _full_set_baseline_auc(features_df: pd.DataFrame, labels: np.ndarray, feature_list: list[str]) -> float:
+    n = len(feature_list)
+    eq_w = {name: 1.0 / n for name in feature_list}
+    scores = _score_with_weights(features_df[feature_list], eq_w)
+    return float(roc_auc_score(labels, scores))
 
-    feature_list = [f.strip() for f in args.features.split(",") if f.strip()]
+
+def run_holdout_optimization(
+    run_dir: Path,
+    feature_list: list[str] | None = None,
+    holdout_frac: float = 0.5,
+    seed: int = 42,
+    output_dir: Path | None = None,
+) -> dict:
+    """Run held-out evaluation of WeightOptimizer.
+
+    Args:
+        run_dir: Path to run directory containing feature frames.
+        feature_list: Features to optimize over. Defaults to DEFAULT_FEATURES.
+        holdout_frac: Fraction held out for evaluation (default: 0.5).
+        seed: Random seed for stratified split (default: 42).
+        output_dir: Output directory for results JSON. Defaults to
+            analysis_results/<timestamp>/optimization_holdout.
+
+    Returns:
+        Dict containing optimization results (same payload written to JSON).
+    """
+    if feature_list is None:
+        feature_list = list(DEFAULT_FEATURES)
+
     logger.info(f"Features to optimize: {feature_list}")
 
-    logger.info(f"Loading features from {args.run_dir}")
-    features_full_df, labels_full, available_cols = load_feature_frame(args.run_dir)
+    logger.info(f"Loading features from {run_dir}")
+    features_full_df, labels_full, available_cols = load_feature_frame(run_dir)
 
     missing = [f for f in feature_list if f not in features_full_df.columns]
     if missing:
         logger.error(f"Requested features not in loaded matrix: {missing}")
         logger.error(f"Available columns ({len(available_cols)}): {available_cols[:10]}{'...' if len(available_cols) > 10 else ''}")
-        return 1
+        raise ValueError(f"Requested features not in loaded matrix: {missing}")
 
     features_df = features_full_df[feature_list].reset_index(drop=True)
     labels = labels_full.astype(np.float64)
     logger.info(f"Loaded matrix: {len(features_df):,} edges, {int(labels.sum())} red-team")
 
     cal_idx, eval_idx = stratified_split(
-        features_df.to_numpy(), labels, holdout_frac=args.holdout_frac, seed=args.seed
+        features_df.to_numpy(), labels, holdout_frac=holdout_frac, seed=seed
     )
     logger.info(
-        f"Stratified split (seed {args.seed}): "
+        f"Stratified split (seed {seed}): "
         f"calibration {len(cal_idx):,} edges ({int(labels[cal_idx].sum())} red-team), "
         f"eval {len(eval_idx):,} edges ({int(labels[eval_idx].sum())} red-team)"
     )
@@ -191,17 +193,17 @@ def main() -> int:
 
     logger.info("Running logistic-regression baseline on calibration half...")
     lr_result = _logistic_regression_baseline(
-        cal_features, cal_labels, eval_features, eval_labels, feature_list, args.seed
+        cal_features, cal_labels, eval_features, eval_labels, feature_list, seed
     )
     lr_gap = lr_result["overfit_gap_cal_minus_eval"]
     delta_vs_lr = eval_auc_optimized - lr_result["auc_eval"]
 
     payload = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "input_run_dir": str(args.run_dir.resolve()),
+        "input_run_dir": str(run_dir.resolve()),
         "features": feature_list,
-        "holdout_frac": args.holdout_frac,
-        "seed": args.seed,
+        "holdout_frac": holdout_frac,
+        "seed": seed,
         "n_calibration": int(len(cal_idx)),
         "n_eval": int(len(eval_idx)),
         "redteam_calibration": int(cal_labels.sum()),
@@ -243,25 +245,14 @@ def main() -> int:
     else:
         logger.info(f"  LR beats optimizer on eval by {-delta_vs_lr:.4f} — Nelder-Mead may be under-converged or the objective is suboptimal for this problem.")
 
-    if args.output_dir is None:
+    if output_dir is None:
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        out_dir = REPO_ROOT / "results" / ts / "optimization_holdout"
+        out_dir = Path("analysis_results") / ts
+        out_dir.mkdir(parents=True, exist_ok=True)
     else:
-        out_dir = args.output_dir.resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = output_dir.resolve()
     out_path = out_dir / "holdout_results.json"
     out_path.write_text(json.dumps(payload, indent=2))
     logger.info(f"Wrote {out_path}")
 
-    return 0
-
-
-def _full_set_baseline_auc(features_df: pd.DataFrame, labels: np.ndarray, feature_list: list[str]) -> float:
-    n = len(feature_list)
-    eq_w = {name: 1.0 / n for name in feature_list}
-    scores = _score_with_weights(features_df[feature_list], eq_w)
-    return float(roc_auc_score(labels, scores))
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    return payload

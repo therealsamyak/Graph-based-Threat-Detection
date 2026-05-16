@@ -1,4 +1,4 @@
-.PHONY: i pipeline feature feature_audit check lint
+.PHONY: i pipeline feature feature_audit eval check lint
 
 i:
 	uv sync
@@ -8,6 +8,9 @@ pipeline:
 
 feature feature_audit:
 	uv run feature.py
+
+eval:
+	uv run eval.py
 
 check lint:
 	uvx ruff check --fix .

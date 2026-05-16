@@ -7,21 +7,14 @@ For each candidate graph feature (or feature group), we:
   4. Fit logistic regression on the calibration half, evaluate on the held-out half
   5. Report eval AUC and the delta vs LR-on-5-features-alone
 
-Output: results/<timestamp>/graph_features_test/graph_features_test.json
+Output: <output_dir>/graph_features_test.json
 and a brief stdout summary.
-
-Usage:
-    uv run python analysis/test_graph_features.py \
-        --run-dir results/20260515_002159/combined \
-        [--attacker-host C17693]
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import logging
-import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,13 +26,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from src.feature_audit.loader import load_feature_frame  # noqa: E402
-from src.feature_audit.scorer import stratified_split  # noqa: E402
-from src.optimization.optimizer import RANK_TRANSFORM_FEATURES  # noqa: E402
+from src.feature_audit.loader import load_feature_frame
+from src.feature_audit.scorer import stratified_split
+from src.optimization.optimizer import RANK_TRANSFORM_FEATURES
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("test_graph_features")
@@ -193,23 +182,34 @@ def _evaluate(
     return cal_auc, eval_auc
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", type=Path, required=True)
-    parser.add_argument("--attacker-host", type=str, default="C17693")
-    parser.add_argument("--holdout-frac", type=float, default=0.5)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--output-dir", type=Path, default=None)
-    args = parser.parse_args()
+def run_graph_feature_sweep(
+    run_dir: Path,
+    attacker_host: str = "C17693",
+    holdout_frac: float = 0.5,
+    seed: int = 42,
+    output_dir: Path | None = None,
+) -> dict:
+    """Run graph feature sweep.
 
-    logger.info(f"Loading features from {args.run_dir}")
-    features_df, labels, available_cols = load_feature_frame(args.run_dir)
+    Args:
+        run_dir: Path to run directory containing feature frames.
+        attacker_host: Known attacker hostname for personalized PageRank.
+        holdout_frac: Fraction of data to hold out for evaluation.
+        seed: Random seed for reproducibility.
+        output_dir: Output directory for results. Defaults to
+            analysis_results/<timestamp>/graph_features_test.
+
+    Returns:
+        Dict containing sweep results (same payload written to JSON).
+    """
+    logger.info(f"Loading features from {run_dir}")
+    features_df, labels, available_cols = load_feature_frame(run_dir)
     missing = [f for f in BASE_FEATURES if f not in features_df.columns]
     if missing:
         logger.error(f"Base features missing: {missing}")
-        return 1
+        raise ValueError(f"Base features missing: {missing}")
 
-    edges_csv = args.run_dir / "graph_edges.csv"
+    edges_csv = run_dir / "graph_edges.csv"
     logger.info(f"Loading {edges_csv}")
     edges_df = pd.read_csv(edges_csv, low_memory=False)
     if len(edges_df) != len(features_df.index) and "is_self_loop" not in features_df.columns:
@@ -218,10 +218,10 @@ def main() -> int:
     # The loader applies the (is_self_loop == 0) & (is_user_edge == 0) mask to
     # both rows and labels. We need the same mask to align graph-derived
     # per-edge features. Re-derive the mask from the raw edge_features.csv.
-    ef_raw = pd.read_csv(args.run_dir / "edge_features.csv")
+    ef_raw = pd.read_csv(run_dir / "edge_features.csv")
     if len(ef_raw) != len(edges_df):
         logger.error(f"Edge CSV row mismatch: {len(ef_raw)} vs {len(edges_df)}")
-        return 1
+        raise ValueError(f"Edge CSV row mismatch: {len(ef_raw)} vs {len(edges_df)}")
     mask = (ef_raw["is_self_loop"].values == 0.0) & (ef_raw["is_user_edge"].values == 0.0)
     logger.info(f"Mask keeps {int(mask.sum()):,} / {len(mask):,} edges")
 
@@ -231,7 +231,7 @@ def main() -> int:
     logger.info(f"Built graph: {g.vcount():,} nodes, {g.ecount():,} edges in {time.time()-t0:.1f}s")
 
     logger.info("Computing quick-win graph features...")
-    groups = _compute_quick_win_features(g, src_idx_all, dst_idx_all, args.attacker_host, name_to_idx)
+    groups = _compute_quick_win_features(g, src_idx_all, dst_idx_all, attacker_host, name_to_idx)
 
     # Apply mask to graph features
     masked_groups: dict[str, dict[str, np.ndarray]] = {}
@@ -244,17 +244,17 @@ def main() -> int:
         for col_name, arr in cols.items():
             if len(arr) != n_after_mask:
                 logger.error(f"Length mismatch: {gname}/{col_name} {len(arr)} vs features_df {n_after_mask}")
-                return 1
+                raise ValueError(f"Length mismatch: {gname}/{col_name} {len(arr)} vs features_df {n_after_mask}")
 
     # Base evaluation
     X_base = _transform_features(features_df, BASE_FEATURES)
-    cal_idx, eval_idx = stratified_split(X_base, labels, args.holdout_frac, args.seed)
+    cal_idx, eval_idx = stratified_split(X_base, labels, holdout_frac, seed)
     logger.info(
         f"Stratified split: cal {len(cal_idx):,} ({int(labels[cal_idx].sum())} red-team), "
         f"eval {len(eval_idx):,} ({int(labels[eval_idx].sum())} red-team)"
     )
 
-    base_cal_auc, base_eval_auc = _evaluate(X_base, labels, cal_idx, eval_idx, args.seed)
+    base_cal_auc, base_eval_auc = _evaluate(X_base, labels, cal_idx, eval_idx, seed)
     logger.info(f"BASE (5 features): cal AUC {base_cal_auc:.6f}, eval AUC {base_eval_auc:.6f}")
 
     results: list[dict] = [{
@@ -271,7 +271,7 @@ def main() -> int:
         added_cols = list(cols.keys())
         added_mat = np.column_stack([cols[c] for c in added_cols])
         X_combined = np.column_stack([X_base, added_mat])
-        cal_auc, eval_auc = _evaluate(X_combined, labels, cal_idx, eval_idx, args.seed)
+        cal_auc, eval_auc = _evaluate(X_combined, labels, cal_idx, eval_idx, seed)
         delta = eval_auc - base_eval_auc
         logger.info(
             f"GROUP {gname}: +{len(added_cols)} cols ({', '.join(added_cols)}) "
@@ -296,7 +296,7 @@ def main() -> int:
     if all_added_arrays:
         added_mat = np.column_stack(all_added_arrays)
         X_combined = np.column_stack([X_base, added_mat])
-        cal_auc, eval_auc = _evaluate(X_combined, labels, cal_idx, eval_idx, args.seed)
+        cal_auc, eval_auc = _evaluate(X_combined, labels, cal_idx, eval_idx, seed)
         delta = eval_auc - base_eval_auc
         logger.info(
             f"ALL combined ({len(all_added_cols)} added): cal {cal_auc:.6f}, "
@@ -313,21 +313,21 @@ def main() -> int:
 
     payload = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "input_run_dir": str(args.run_dir.resolve()),
-        "attacker_host": args.attacker_host,
-        "holdout_frac": args.holdout_frac,
-        "seed": args.seed,
+        "input_run_dir": str(run_dir.resolve()),
+        "attacker_host": attacker_host,
+        "holdout_frac": holdout_frac,
+        "seed": seed,
         "n_calibration": int(len(cal_idx)),
         "n_eval": int(len(eval_idx)),
         "results": results,
     }
 
-    if args.output_dir is None:
+    if output_dir is None:
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        out_dir = REPO_ROOT / "results" / ts / "graph_features_test"
+        out_dir = Path("analysis_results") / ts
+        out_dir.mkdir(parents=True, exist_ok=True)
     else:
-        out_dir = args.output_dir.resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = output_dir.resolve()
     out_path = out_dir / "graph_features_test.json"
     out_path.write_text(json.dumps(payload, indent=2))
     logger.info(f"Wrote {out_path}")
@@ -337,8 +337,5 @@ def main() -> int:
     print(f"  {'name':40} {'cal AUC':>10} {'eval AUC':>10} {'Δ vs base':>10}")
     for r in results:
         print(f"  {r['name']:40} {r['cal_auc']:>10.6f} {r['eval_auc']:>10.6f} {r['eval_auc_delta_vs_base']:>+10.6f}")
-    return 0
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    return payload

@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-05-15T09:52:36.429702+00:00",
-  "input_run_dir": "/Users/ipehlivan/Documents/GitHub/Graph-based-Threat-Detection/results/20260515_002159/combined",
+  "timestamp": "2026-05-16T03:59:32.637421+00:00",
+  "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260504_183345/combined",
   "attacker_host": "C17693",
   "holdout_frac": 0.5,
   "seed": 42,
@@ -11,8 +11,8 @@
       "name": "base_5_features",
       "added_columns": [],
       "n_features": 5,
-      "cal_auc": 0.9737791686111926,
-      "eval_auc": 0.9732575525038519,
+      "cal_auc": 0.9712596838836148,
+      "eval_auc": 0.9662816048875458,
       "eval_auc_delta_vs_base": 0.0
     },
     {
@@ -22,9 +22,9 @@
         "dst_pagerank"
       ],
       "n_features": 7,
-      "cal_auc": 0.9739032404369754,
-      "eval_auc": 0.9734356289178021,
-      "eval_auc_delta_vs_base": 0.00017807641395017892
+      "cal_auc": 0.9749355238033078,
+      "eval_auc": 0.97028526690321,
+      "eval_auc_delta_vs_base": 0.004003662015664267
     },
     {
       "name": "base_plus_personalized_pagerank",
@@ -33,9 +33,9 @@
         "dst_ppr_attacker"
       ],
       "n_features": 7,
-      "cal_auc": 0.9964330703795176,
-      "eval_auc": 0.9956475549486146,
-      "eval_auc_delta_vs_base": 0.022390002444762636
+      "cal_auc": 0.993648547727908,
+      "eval_auc": 0.9935544981069317,
+      "eval_auc_delta_vs_base": 0.027272893219385974
     },
     {
       "name": "base_plus_kcore",
@@ -44,9 +44,9 @@
         "dst_kcore"
       ],
       "n_features": 7,
-      "cal_auc": 0.9773430478769243,
-      "eval_auc": 0.9771099813632121,
-      "eval_auc_delta_vs_base": 0.003852428859360213
+      "cal_auc": 0.9818223945566366,
+      "eval_auc": 0.9787345991516239,
+      "eval_auc_delta_vs_base": 0.012452994264078088
     },
     {
       "name": "base_plus_community",
@@ -56,9 +56,9 @@
         "dst_community_size"
       ],
       "n_features": 8,
-      "cal_auc": 0.9778978153539769,
-      "eval_auc": 0.9778565000688385,
-      "eval_auc_delta_vs_base": 0.004598947564986577
+      "cal_auc": 0.9809082628009491,
+      "eval_auc": 0.97672479765079,
+      "eval_auc_delta_vs_base": 0.010443192763244236
     },
     {
       "name": "base_plus_similarity",
@@ -67,9 +67,9 @@
         "adamic_adar"
       ],
       "n_features": 7,
-      "cal_auc": 0.9737216270079638,
-      "eval_auc": 0.9733459362159012,
-      "eval_auc_delta_vs_base": 8.838371204922257e-05
+      "cal_auc": 0.9746460830412694,
+      "eval_auc": 0.9685230079353115,
+      "eval_auc_delta_vs_base": 0.0022414030477657665
     },
     {
       "name": "base_plus_all_quick_wins",
@@ -87,9 +87,9 @@
         "similarity.adamic_adar"
       ],
       "n_features": 16,
-      "cal_auc": 0.9967776341203081,
-      "eval_auc": 0.9964950631178768,
-      "eval_auc_delta_vs_base": 0.023237510614024903
+      "cal_auc": 0.9959121636451429,
+      "eval_auc": 0.9949374010569536,
+      "eval_auc_delta_vs_base": 0.028655796169407832
     }
   ]
 }
