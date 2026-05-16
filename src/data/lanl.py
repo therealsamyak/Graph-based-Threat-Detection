@@ -1,10 +1,15 @@
-"""Streaming gz reader and window extraction for LANL-2015 data."""
+"""Streaming reader and window extraction for LANL-2015 data.
+
+Supports both .txt.gz (compressed) and .txt (uncompressed) files.
+Prioritizes .txt.gz when both exist.
+"""
 
 from __future__ import annotations
 
 import bisect
 import gzip
 from collections.abc import Iterator
+from pathlib import Path
 
 import pandas as pd
 
@@ -45,11 +50,52 @@ FLOW_NUMERIC = {
 REDTEAM_NUMERIC = {"time"}
 
 
-def _open_auto(filepath: str):
-    """Open a file as gzip if it ends with .gz, otherwise as plain text."""
-    if filepath.endswith(".gz"):
-        return gzip.open(filepath, "rt", encoding="utf-8")
-    return open(filepath, "r", encoding="utf-8")
+def resolve_data_file(path: str) -> Path:
+    """Resolve a data file path, preferring .txt.gz over .txt.
+
+    If *path* ends with '.txt.gz', checks for the gz first, then .txt.
+    If *path* ends with '.txt', checks as-is.
+
+    Args:
+        path: File path (typically ending in .txt.gz or .txt).
+
+    Returns:
+        Resolved Path object.
+
+    Raises:
+        FileNotFoundError: If neither compressed nor uncompressed version exists.
+    """
+    p = Path(path)
+    if p.suffix == ".gz" and p.exists():
+        return p
+    # Try uncompressed variant (.txt.gz -> .txt)
+    uncompressed = p.with_suffix("") if p.suffix == ".gz" else p
+    if uncompressed.exists():
+        return uncompressed
+    # Try compressed variant (.txt -> .txt.gz)
+    compressed = Path(str(p) + ".gz")
+    if compressed.exists():
+        return compressed
+    if p.exists():
+        return p
+    raise FileNotFoundError(
+        f"Data file not found (tried {p} and {compressed}): "
+        f"neither compressed nor uncompressed version exists"
+    )
+
+
+def open_data_file(path: Path):
+    """Open a data file for text reading, handling both .gz and plain text.
+
+    Args:
+        path: Resolved path from resolve_data_file().
+
+    Returns:
+        File-like object for text reading.
+    """
+    if str(path).endswith(".gz"):
+        return gzip.open(path, "rt", encoding="utf-8")
+    return open(path, "r", encoding="utf-8")
 
 
 def stream_gz_lines(
@@ -57,8 +103,12 @@ def stream_gz_lines(
     columns: list[str],
     max_lines: int | None = None,
 ) -> Iterator[dict]:
-    """Yield parsed lines from a gz or plain text file one at a time."""
-    with _open_auto(filepath) as f:
+    """Yield parsed lines from a data file one at a time.
+
+    Supports both .txt.gz and .txt files.
+    """
+    resolved = resolve_data_file(filepath)
+    with open_data_file(resolved) as f:
         for i, line in enumerate(f):
             if max_lines is not None and i >= max_lines:
                 break
