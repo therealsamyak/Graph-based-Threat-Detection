@@ -1,7 +1,7 @@
 # Real-Time Detection of Lateral Movement in Cloud VPC Networks via Graph-Based Analysis
 
-**ECE 239AS — Machine Learning and Data Mining for Cybersecurity**  
-**Team:** Ibrahim Pehlivan, Wesley Gunawan, Samyak Kakatur  
+**ECE 239AS — Machine Learning and Data Mining for Cybersecurity**
+**Team:** Ibrahim Pehlivan, Wesley Gunawan, Samyak Kakatur
 **University of California, Los Angeles**
 
 ## Quick Start
@@ -37,34 +37,128 @@ This project detects **lateral movement** in cloud VPC networks by combining net
 
 ## Datasets
 
-- **LANL-2015**: 58 days, 1.6B+ events, 749 red-team events (auth.txt.gz, flows.txt.gz, redteam.txt.gz)
+- **LANL-2015**: 58 days, 1.6B+ events, 749 red-team events
+
+Download from [LANL CIF Partition](https://csr.lanl.gov/data/cyber1/) and place the three required files (see file structure below).
 
 ## Project Structure
 
 ```
 Graph-Based-Lateral-Movement-Detection/
-├── main.py               # Full pipeline entry point
-├── feature.py             # Feature audit entry point
-├── eval.py                # Evaluation analyses entry point
-├── Makefile               # Build commands
-├── pyproject.toml          # Dependencies
-├── pipeline_config.json    # Pipeline configuration
-├── data/                   # Dataset files (.gz)
-├── src/                    # Source code
-├── report/                 # LaTeX report and draft sections
-├── analysis_results/       # Evaluation analysis outputs
-└── results/                # Experiment outputs and figures
+├── main.py                          # Full pipeline entry point
+├── feature.py                       # Feature audit entry point
+├── eval.py                          # Evaluation analyses entry point
+├── Makefile                         # Build commands
+├── pyproject.toml                   # Dependencies (managed by uv)
+├── pipeline_config.json             # Pipeline configuration
+│
+├── data/                            # ⚠️  NOT tracked by git — must provide locally
+│   └── LANL-Dataset-2015/           # Required dataset directory
+│       ├── auth.txt.gz              #   Authentication events
+│       ├── flows.txt.gz             #   Network flow events
+│       └── redteam.txt.gz           #   Red-team ground truth
+│
+├── src/                             # Source code
+│   ├── __init__.py
+│   ├── config.py                    #   Pipeline config loader
+│   ├── types.py                     #   Frozen dataclasses (PipelineConfig, etc.)
+│   ├── pipeline.py                  #   Pipeline orchestrator (run, variant workers)
+│   ├── stages.py                    #   Stage functions (load, build, score, detect)
+│   ├── variants.py                  #   Variant descriptors (combined, auth_only, flow_only)
+│   ├── detection.py                 #   Threshold optimization + pair metrics
+│   ├── reporting.py                 #   Comparison table generation
+│   ├── io.py                        #   Persist results, redteam data, config
+│   ├── utils.py                     #   Shared helpers
+│   │
+│   ├── data/
+│   │   ├── __init__.py
+│   │   └── lanl.py                  #   Streaming gz reader, window extraction
+│   │
+│   ├── graph/
+│   │   ├── __init__.py
+│   │   └── builder.py               #   StreamingGraphBuilder + stream_gz_to_graph
+│   │
+│   ├── features/
+│   │   ├── __init__.py
+│   │   ├── edge.py                  #   Edge feature extraction
+│   │   └── node.py                  #   Node feature extraction
+│   │
+│   ├── scoring/
+│   │   ├── __init__.py
+│   │   ├── edges.py                 #   Edge scoring + path boost
+│   │   └── paths.py                 #   Path enumeration + scoring
+│   │
+│   ├── optimization/
+│   │   ├── __init__.py
+│   │   └── optimizer.py             #   Nelder-Mead weight optimization
+│   │
+│   ├── visualization/
+│   │   ├── __init__.py
+│   │   ├── comparison.py            #   Method comparison plots
+│   │   ├── roc.py                   #   ROC curve plots
+│   │   ├── scores.py                #   Score distribution plots
+│   │   ├── snapshot.py              #   Graph snapshot visualization
+│   │   ├── style.py                 #   Shared plot styling
+│   │   └── timeline.py              #   Timeline plots
+│   │
+│   ├── eval/
+│   │   ├── __init__.py
+│   │   ├── holdout_optimizer.py     #   Held-out weight optimization eval
+│   │   ├── tabular_graph_ablation.py#   Tabular vs graph feature ablation
+│   │   └── graph_feature_sweep.py   #   Graph feature sweep eval
+│   │
+│   └── feature_audit/
+│       ├── __init__.py
+│       ├── loader.py                #   Load cached pipeline outputs
+│       ├── joiner.py                #   Join features with labels
+│       ├── scorer.py                #   Per-feature AUC scoring
+│       ├── reporter.py              #   Markdown report generation
+│       └── types.py                 #   AuditConfig dataclass
+│
+├── report/                          # LaTeX report and draft sections
+├── results/                         # Pipeline outputs (auto-generated, gitignored)
+├── feature_results/                 # Feature audit outputs (auto-generated, gitignored)
+└── analysis_results/                # Evaluation outputs (auto-generated, gitignored)
 ```
+
+### Required Data Files
+
+The pipeline expects these files relative to the repo root (configured in `pipeline_config.json`):
+
+```
+data/LANL-Dataset-2015/
+├── auth.txt.gz        # Authentication events (required)
+├── flows.txt.gz       # Network flow events (required)
+└── redteam.txt.gz     # Red-team ground truth (required)
+```
+
+To set up the dataset:
+
+1. Download from [LANL CIF Partition](https://csr.lanl.gov/data/cyber1/)
+2. Create `data/LANL-Dataset-2015/` in the repo root
+3. Place `auth.txt.gz`, `flows.txt.gz`, and `redteam.txt.gz` inside
+
+If your dataset lives elsewhere, edit `pipeline_config.json`:
+
+```json
+{
+  "data": {
+    "lanl_dir": "data/LANL-Dataset-2015"
+  }
+}
+```
+
+All paths in the config are relative to the repo root. No absolute paths are used anywhere in the codebase.
 
 ## Configuration
 
-All pipeline parameters live in `pipeline_config.json`.
+All pipeline parameters live in `pipeline_config.json`. Every path is relative to the project root — the repo can be cloned anywhere and will work as long as the dataset files are in place.
 
 ### `data` — Dataset paths
 
 | Option        | Default                    | Description                                                       |
 | ------------- | -------------------------- | ----------------------------------------------------------------- |
-| `lanl_dir`    | `"data/LANL-Dataset-2015"` | Path to LANL dataset directory                                    |
+| `lanl_dir`    | `"data/LANL-Dataset-2015"` | Path to LANL dataset directory (relative to repo root)            |
 | `window_size` | `3600`                     | Time window (seconds) around each red-team event for scoping data |
 
 ### `graph` — Graph construction
@@ -105,6 +199,8 @@ Results saved to `results/<run_id>/`:
 - `figures/` — Visualization plots (graph snapshot, ROC curves, score distribution, timeline)
 - `optimization/` — Weight optimization logs and optimized weights
 - `comparison_table.md` — Method comparison
+- `LANL-2015/<variant>/` — Per-variant outputs (edge_scores.csv, paths.csv, features, etc.)
+- `redteam/` — Red-team events and window intervals
 
 Feature audit outputs saved to `feature_results/<audit_id>/`:
 
