@@ -61,7 +61,7 @@ def _print_summary(df: pd.DataFrame) -> None:
         display_df["throughput"] = display_df["throughput"].map(lambda v: f"{v:.0f}/s")
 
     print("\n" + "=" * 120)
-    print("EXPERIMENT RESULTS SUMMARY")
+    print(f"EXPERIMENT RESULTS SUMMARY ({len(df)} pipeline variants)")
     print("=" * 120)
     print(display_df.to_string(index=False))
     print("=" * 120 + "\n")
@@ -77,6 +77,10 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     logger.info(f"Loading LANL data from {data_dir} (window={window_seconds}s)")
 
     from src.pipeline import run_streaming_experiment_variants
+    from src.variants import get_all_descriptors
+
+    variant_names = [d.name for d in get_all_descriptors()]
+    logger.info(f"Running pipeline variants: {', '.join(variant_names)}")
 
     all_results, results_base, combined_result = run_streaming_experiment_variants(
         data_dir=data_dir,
@@ -91,12 +95,12 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     results_dir.mkdir(parents=True, exist_ok=True)
     csv_path = results_dir / "metrics.csv"
     results_df.to_csv(csv_path, index=False)
-    logger.info(f"Results saved to {csv_path}")
+    logger.info(f"Results ({len(all_results)} variants) saved to {csv_path}")
 
     json_path = results_dir / "experiment_results.json"
     with open(json_path, "w") as f:
         json.dump(all_results, f, indent=2, default=str)
-    logger.info(f"Results saved to {json_path}")
+    logger.info(f"All variant results saved to {json_path}")
 
     details = {}
     for r in all_results:
@@ -106,7 +110,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     details_path = results_dir / "per_method_details.json"
     with open(details_path, "w") as f:
         json.dump(details, f, indent=2, default=str)
-    logger.info(f"Per-method details saved to {details_path}")
+    logger.info(f"Per-variant details ({len(details)} variants) saved to {details_path}")
 
     generate_comparison(results_dir=str(results_dir))
 
@@ -133,10 +137,10 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
                 "auc": r["auc"],
             })
     plot_roc_curves(roc_data, str(figures_dir / "roc_curves.png"), title="ROC Curves — Lateral Movement Detection Methods")
-    logger.info("Saved roc_curves.png")
+    logger.info(f"Saved roc_curves.png ({len(roc_data)} methods with AUC > 0)")
 
     plot_method_comparison(all_results, str(figures_dir / "method_comparison.png"), title="Method Performance Comparison")
-    logger.info("Saved method_comparison.png")
+    logger.info(f"Saved method_comparison.png (comparing {len(all_results)} variants)")
 
     _print_summary(results_df)
 

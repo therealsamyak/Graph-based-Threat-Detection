@@ -274,9 +274,10 @@ def run_streaming_experiment(
 
     with open(results_base / "pipeline_run.json", "w") as f:
         json.dump(pipeline_run, f, indent=2, default=str)
+    logger.info(f"[{variant}] Saved pipeline_run.json to {results_base}")
 
-    logger.info(f"Pipeline completed in {total_duration:.2f}s")
-    logger.info(f"Recall: {mr.metrics.get('recall'):.4f}, F1: {mr.metrics.get('f1'):.4f}, FPR: {mr.metrics.get('fpr'):.6f}")
+    logger.info(f"Pipeline completed in {total_duration:.2f}s (variant={variant})")
+    logger.info(f"  [{variant}] Recall: {mr.metrics.get('recall'):.4f}, F1: {mr.metrics.get('f1'):.4f}, FPR: {mr.metrics.get('fpr'):.6f}")
 
     return all_results, asdict(experiment_result), str(results_base)
 
