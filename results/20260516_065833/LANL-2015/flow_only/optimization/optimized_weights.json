@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-05-16T06:58:41.442735+00:00",
+  "weights": {
+    "source_fan_out": 0.3333333333333333,
+    "dst_in_degree": 0.3333333333333333,
+    "dst_fan_out_ratio": 0.3333333333333333
+  },
+  "auc": -0.0,
+  "method": "nelder-mead",
+  "iterations": 24,
+  "converged": true,
+  "initial_weights": {
+    "source_fan_out": 0.3333333333333333,
+    "dst_in_degree": 0.3333333333333333,
+    "dst_fan_out_ratio": 0.3333333333333333
+  },
+  "convergence_reason": "converged",
+  "total_time_seconds": 0.001252889633178711,
+  "feature_names": [
+    "source_fan_out",
+    "dst_in_degree",
+    "dst_fan_out_ratio"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-05-16T06:58:55.355094+00:00",
+  "weights": {
+    "is_ntlm": 0.2,
+    "source_fan_out": 0.2,
+    "dst_in_degree": 0.2,
+    "is_network_logon": 0.2,
+    "dst_fan_out_ratio": 0.2
+  },
+  "auc": -0.0,
+  "method": "nelder-mead",
+  "iterations": 42,
+  "converged": true,
+  "initial_weights": {
+    "is_ntlm": 0.2,
+    "source_fan_out": 0.2,
+    "dst_in_degree": 0.2,
+    "is_network_logon": 0.2,
+    "dst_fan_out_ratio": 0.2
+  },
+  "convergence_reason": "converged",
+  "total_time_seconds": 0.0024480819702148438,
+  "feature_names": [
+    "is_ntlm",
+    "source_fan_out",
+    "dst_in_degree",
+    "is_network_logon",
+    "dst_fan_out_ratio"
+  ]
+}
