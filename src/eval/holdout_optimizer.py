@@ -1,21 +1,4 @@
-"""Held-out evaluation of WeightOptimizer.
-
-Wraps src.optimization.optimizer.WeightOptimizer in the held-out
-calibration/evaluation split specified in
-report/Feature_Selection_Analysis.md, so the reported AUC is an
-unbiased estimate rather than a same-set training AUC.
-
-The current optimizer in src/optimization/optimizer.py trains on the
-full feature matrix and reports AUC on the same matrix. That estimate
-is optimistically biased: the optimizer has searched the weight space
-to fit the labels it is being evaluated against. To get a fair
-estimate we split the data into a calibration half (used to fit the
-weights) and an evaluation half (which the optimizer never sees) and
-report AUC on the eval half.
-
-Does not modify src/optimization/optimizer.py or any teammate-owned
-file. Reuses the audit module's loader and stratified_split functions.
-"""
+"""Held-out evaluation of WeightOptimizer."""
 
 from __future__ import annotations
 
@@ -34,7 +17,6 @@ from src.feature_audit.loader import load_feature_frame
 from src.feature_audit.scorer import stratified_split
 from src.optimization.optimizer import RANK_TRANSFORM_FEATURES, WeightOptimizer
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("optimize_weights_holdout")
 
 
@@ -60,10 +42,6 @@ def _score_with_weights(features_df: pd.DataFrame, weights: dict[str, float]) ->
 
 
 def _transform_for_lr(features_df: pd.DataFrame, feature_list: list[str]) -> np.ndarray:
-    """Apply the same per-feature transformation the WeightOptimizer applies
-    (percentile rank for RANK_TRANSFORM_FEATURES, raw otherwise). Returns a
-    plain ndarray suitable for sklearn estimators.
-    """
     cols: list[np.ndarray] = []
     for name in feature_list:
         col = features_df[name].to_numpy(dtype=float, copy=True)
@@ -81,11 +59,6 @@ def _logistic_regression_baseline(
     feature_list: list[str],
     seed: int,
 ) -> dict:
-    """Train logistic regression on the calibration half and evaluate on the
-    held-out half, with the same per-feature transformation the optimizer uses
-    and standardization on top (standard sklearn practice for linear models).
-    Returns calibration AUC, eval AUC, and the gap.
-    """
     X_cal = _transform_for_lr(cal_features, feature_list)
     X_eval = _transform_for_lr(eval_features, feature_list)
     scaler = StandardScaler().fit(X_cal)
@@ -110,9 +83,6 @@ def _logistic_regression_baseline(
         "overfit_gap_cal_minus_eval": cal_auc - eval_auc,
         "intercept": float(lr.intercept_[0]),
         "coefficients": coefs,
-        "solver": "liblinear",
-        "regularization": "L2 (default C=1.0)",
-        "class_weight": "balanced",
     }
 
 
@@ -130,19 +100,6 @@ def run_holdout_optimization(
     seed: int = 42,
     output_dir: Path | None = None,
 ) -> dict:
-    """Run held-out evaluation of WeightOptimizer.
-
-    Args:
-        run_dir: Path to run directory containing feature frames.
-        feature_list: Features to optimize over. Defaults to DEFAULT_FEATURES.
-        holdout_frac: Fraction held out for evaluation (default: 0.5).
-        seed: Random seed for stratified split (default: 42).
-        output_dir: Output directory for results JSON. Defaults to
-            analysis_results/<timestamp>/optimization_holdout.
-
-    Returns:
-        Dict containing optimization results (same payload written to JSON).
-    """
     if feature_list is None:
         feature_list = list(DEFAULT_FEATURES)
 
@@ -227,23 +184,11 @@ def run_holdout_optimization(
 
     logger.info("=" * 70)
     logger.info("Held-out comparison: optimizer vs logistic regression")
-    logger.info(f"  Optimizer (Nelder-Mead)  cal AUC:  {cal_auc_optimized:.6f}")
-    logger.info(f"  Optimizer (Nelder-Mead)  eval AUC: {eval_auc_optimized:.6f}  (gap {gap:+.6f})")
-    logger.info(f"  Logistic regression      cal AUC:  {lr_result['auc_calibration']:.6f}")
-    logger.info(f"  Logistic regression      eval AUC: {lr_result['auc_eval']:.6f}  (gap {lr_gap:+.6f})")
-    logger.info(f"  Eval-AUC delta (optimizer - LR):   {delta_vs_lr:+.6f}")
-    logger.info(f"  Equal-weights reference  full AUC: {full_auc_equal:.6f}")
+    logger.info(f"  Optimizer  cal AUC: {cal_auc_optimized:.6f}  eval AUC: {eval_auc_optimized:.6f}  (gap {gap:+.6f})")
+    logger.info(f"  LR         cal AUC: {lr_result['auc_calibration']:.6f}  eval AUC: {lr_result['auc_eval']:.6f}  (gap {lr_gap:+.6f})")
+    logger.info(f"  Eval delta (optimizer - LR): {delta_vs_lr:+.6f}")
+    logger.info(f"  Equal-weights reference full AUC: {full_auc_equal:.6f}")
     logger.info("=" * 70)
-    if abs(gap) < 0.005:
-        logger.info("  Optimizer gap < 0.005 — generalizing; AUC is defensible.")
-    elif gap > 0:
-        logger.warning(f"  Optimizer gap > 0.005 — calibration AUC overstates eval by {gap:.4f}.")
-    if abs(delta_vs_lr) < 0.005:
-        logger.info("  Optimizer and logistic regression are within 0.005 on eval — they capture roughly the same signal.")
-    elif delta_vs_lr > 0:
-        logger.info(f"  Optimizer beats LR on eval by {delta_vs_lr:.4f} — AUC-direct objective is doing real work.")
-    else:
-        logger.info(f"  LR beats optimizer on eval by {-delta_vs_lr:.4f} — Nelder-Mead may be under-converged or the objective is suboptimal for this problem.")
 
     if output_dir is None:
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")

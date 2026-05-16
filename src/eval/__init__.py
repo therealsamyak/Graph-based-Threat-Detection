@@ -1,4 +1,4 @@
-"""Eval package — analysis subcommands for holdout optimization, ablation, and graph feature sweep."""
+"""Eval package."""
 
 from src.eval.holdout_optimizer import run_holdout_optimization
 from src.eval.tabular_graph_ablation import run_tabular_graph_ablation
