@@ -87,7 +87,7 @@ Follow these steps **in order**. Each step references line numbers in `Final_Rep
 
 3. Also delete the `Run ablation testing on reduced feature set` line (now done — Draft 4)
 
-**Why:** Need to mention `feature.py`, `main.py`, and `analysis/` scripts, and reference Nelder-Mead optimization. Weight optimization and ablation testing are complete.
+**Why:** Need to mention `feature.py`, `main.py`, and `eval.py`, and reference Nelder-Mead optimization. Weight optimization and ablation testing are complete.
 
 ### Step 6: Remove Baseline Methods "Future work"
 
