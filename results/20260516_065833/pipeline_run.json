@@ -1,0 +1,122 @@
+{
+  "run_id": "20260516_065833",
+  "timestamp": "2026-05-16T06:58:55.367187+00:00",
+  "config": {
+    "data": {
+      "lanl_dir": "data/LANL-Dataset-2015",
+      "window_size": 3600
+    },
+    "graph": {
+      "progress_every": 500000
+    },
+    "scoring": {
+      "weights": {
+        "is_ntlm": 0.4,
+        "is_network_logon": 0.3,
+        "edge_rarity": 0.3
+      },
+      "threshold_mode": "auto_optimize",
+      "threshold_percentile": 99,
+      "threshold_search_range": [
+        90,
+        95,
+        97,
+        99,
+        99.5,
+        99.9
+      ],
+      "path_boost_factor": 0.1,
+      "temporal_decay_rate": 0.0,
+      "max_hops": 4,
+      "top_k_paths": 50,
+      "top_outgoing_per_node": 10
+    },
+    "features": {
+      "betweenness_node_limit": 5000,
+      "approximate_betweenness": true,
+      "betweenness_cutoff": 3,
+      "temporal_burst_window_pct": 0.1,
+      "max_workers": 12,
+      "inner_workers": 4
+    }
+  },
+  "data_stats": {
+    "data_dir": "data/LANL-Dataset-2015",
+    "window_seconds": 3600,
+    "lanl_total_events": 20,
+    "lanl_graph_nodes": 32,
+    "lanl_graph_edges": 26
+  },
+  "timing": {
+    "build_time": 20.410611291008536,
+    "score_time": 0.01174004100903403,
+    "total_duration": 20.431281499986653
+  },
+  "intermediate": {
+    "threshold": 0.9999999999999999,
+    "red_team_pairs_count": 308
+  },
+  "final_metrics": {
+    "LANL-2015": {
+      "method": "combined",
+      "dataset": "LANL-2015",
+      "recall": 0.0,
+      "fpr": 0.3462,
+      "f1": 0.0,
+      "auc": 0.0,
+      "latency": 20.42,
+      "throughput": 1.0,
+      "graph_nodes": 32,
+      "graph_edges": 26,
+      "rt_pairs_in_graph": 0,
+      "anomalous_pairs": 9,
+      "threshold": 1.0,
+      "threshold_mode": "auto_optimize",
+      "threshold_percentile_used": 90,
+      "max_path_score": 1.4,
+      "mean_edge_score": 0.4505
+    }
+  },
+  "feature_stats": {
+    "shape": [
+      26,
+      16
+    ],
+    "columns": [
+      "edge_rarity",
+      "src_out_degree",
+      "dst_in_degree",
+      "dst_fan_out_ratio",
+      "is_ntlm",
+      "is_network_logon",
+      "is_success_auth",
+      "source_fan_out",
+      "weight_norm",
+      "is_self_loop",
+      "is_user_edge",
+      "is_unusual_dst_port",
+      "protocol_rarity",
+      "byte_per_packet",
+      "duration_zscore",
+      "temporal_decay_weight"
+    ],
+    "nan_counts": {
+      "edge_rarity": 0,
+      "src_out_degree": 0,
+      "dst_in_degree": 0,
+      "dst_fan_out_ratio": 0,
+      "is_ntlm": 0,
+      "is_network_logon": 0,
+      "is_success_auth": 0,
+      "source_fan_out": 0,
+      "weight_norm": 0,
+      "is_self_loop": 0,
+      "is_user_edge": 0,
+      "is_unusual_dst_port": 0,
+      "protocol_rarity": 0,
+      "byte_per_packet": 0,
+      "duration_zscore": 0,
+      "temporal_decay_weight": 0
+    }
+  }
+}

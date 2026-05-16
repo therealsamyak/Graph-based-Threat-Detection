@@ -1,0 +1,18 @@
+name,node_type,is_machine
+C12247,computer,False
+C1065,computer,False
+ANONYMOUS LOGON@C1065,user,False
+C4429,computer,False
+C528,computer,False
+ANONYMOUS LOGON@C528,user,False
+C529,computer,False
+ANONYMOUS LOGON@C529,user,False
+C13455,computer,False
+C586,computer,False
+ANONYMOUS LOGON@C586,user,False
+C2106,computer,False
+C10045$@DOM1,user,True
+C1020$@DOM1,user,True
+C1025,computer,False
+C561,computer,False
+C1025$@DOM1,user,True

@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-05-16T06:58:48.455083+00:00",
+  "weights": {
+    "is_ntlm": 0.3333333333333333,
+    "is_network_logon": 0.3333333333333333,
+    "is_success_auth": 0.3333333333333333
+  },
+  "auc": -0.0,
+  "method": "nelder-mead",
+  "iterations": 24,
+  "converged": true,
+  "initial_weights": {
+    "is_ntlm": 0.3333333333333333,
+    "is_network_logon": 0.3333333333333333,
+    "is_success_auth": 0.3333333333333333
+  },
+  "convergence_reason": "converged",
+  "total_time_seconds": 0.0012581348419189453,
+  "feature_names": [
+    "is_ntlm",
+    "is_network_logon",
+    "is_success_auth"
+  ]
+}
