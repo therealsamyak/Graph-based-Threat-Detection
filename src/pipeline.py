@@ -321,10 +321,16 @@ def _variant_worker(
         )
         logger.info(f"Child worker DONE: variant={variant}")
         result_queue.put(("ok", (all_results, experiment_result_dict)))
+        result_queue.close()
+        result_queue.join_thread()
     except Exception as exc:
         logger.error(f"Child worker FAILED: variant={variant}, error={exc}")
-        result_queue.put(("error", str(exc)))
-        # Exit with nonzero code so parent early-failure polling detects this failure
+        try:
+            result_queue.put(("error", str(exc)))
+            result_queue.close()
+            result_queue.join_thread()
+        except Exception:
+            pass
         raise SystemExit(1)
 
 
@@ -398,8 +404,11 @@ def run_streaming_experiment_variants(
         p.start()
 
     # Monitor children for early failure or KeyboardInterrupt
+    # Safety timeout: 4 hours per variant (generous for large datasets)
+    _VARIANT_TIMEOUT_S = 4 * 60 * 60
     try:
         # Poll processes while they run to detect early failures
+        deadline = time.monotonic() + _VARIANT_TIMEOUT_S
         while any(p.is_alive() for p in processes):
             time.sleep(0.1)
             # Check if any process has exited with nonzero code while others are still alive
@@ -410,11 +419,18 @@ def run_streaming_experiment_variants(
                         f"while siblings are still alive"
                     )
                     _terminate_processes(processes)
-                    # Collect what we can and raise
                     raise RuntimeError(
                         f"Variant worker '{p.name}' failed early with exitcode={p.exitcode} "
                         f"while sibling processes were still running"
                     )
+            if time.monotonic() > deadline:
+                logger.error(
+                    f"Variant workers did not complete within {_VARIANT_TIMEOUT_S}s - terminating"
+                )
+                _terminate_processes(processes)
+                raise RuntimeError(
+                    f"Variant workers timed out after {_VARIANT_TIMEOUT_S}s"
+                )
 
         # All processes have exited - join them to ensure clean reaping
         for p in processes:
@@ -447,6 +463,9 @@ def run_streaming_experiment_variants(
         variant_results, variant_experiment_result = payload
         all_results.extend(variant_results)
         experiment_results_by_variant[variant] = variant_experiment_result
+
+    for q in result_queues:
+        q.close()
 
     if failed_variants:
         raise RuntimeError(
