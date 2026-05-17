@@ -6,6 +6,3 @@ __pycache__/
 *.pyc
 .sisyphus/
 _backup/
-# results/ — excluded on consolidated-run-0517 branch for deliverables
-analysis_results/
-feature_results/
