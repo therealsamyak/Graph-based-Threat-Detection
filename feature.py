@@ -19,11 +19,23 @@ logger = logging.getLogger(__name__)
 
 
 def _latest_combined_run(results_dir: Path) -> Path:
-    candidates = sorted(
-        (path / "combined" for path in results_dir.iterdir() if path.is_dir()),
-        key=lambda path: path.parent.name,
-        reverse=True,
-    )
+    # Search two levels deep: results/<run_id>/combined/ or results/<run_id>/<dataset>/combined/
+    candidates = []
+    for run_dir in results_dir.iterdir():
+        if not run_dir.is_dir():
+            continue
+        # Direct: results/<run_id>/combined/
+        combined = run_dir / "combined"
+        if combined.is_dir():
+            candidates.append(combined)
+        # Nested: results/<run_id>/<dataset>/combined/
+        for sub in run_dir.iterdir():
+            if sub.is_dir():
+                combined = sub / "combined"
+                if combined.is_dir():
+                    candidates.append(combined)
+
+    candidates.sort(key=lambda p: p.parent.name, reverse=True)
     for candidate in candidates:
         if (candidate / "edge_features.csv").exists() and (candidate / "graph_edges.csv").exists():
             return candidate

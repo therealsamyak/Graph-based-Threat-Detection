@@ -19,10 +19,24 @@ def _require(path: Path) -> None:
         raise FileNotFoundError(f"Missing required input: {path}")
 
 
+def _find_redteam_pairs(run_dir: Path) -> Path:
+    """Find redteam_pairs.json, searching parent dirs if needed."""
+    # Try run_dir.parent/redteam/redteam_pairs.json (same level as combined)
+    candidate = run_dir.parent / "redteam" / "redteam_pairs.json"
+    if candidate.exists():
+        return candidate
+    # Try run_dir.parent.parent/redteam/redteam_pairs.json (one level up)
+    candidate = run_dir.parent.parent / "redteam" / "redteam_pairs.json"
+    if candidate.exists():
+        return candidate
+    # Return the original path so the error message is still useful
+    return run_dir.parent / "redteam" / "redteam_pairs.json"
+
+
 def load_feature_frame(run_dir: Path) -> tuple[pd.DataFrame, np.ndarray, list[str]]:
     edge_features_path = run_dir / "edge_features.csv"
     graph_edges_path = run_dir / "graph_edges.csv"
-    redteam_pairs_path = run_dir.parent / "redteam" / "redteam_pairs.json"
+    redteam_pairs_path = _find_redteam_pairs(run_dir)
 
     for path in (edge_features_path, graph_edges_path, redteam_pairs_path):
         _require(path)
