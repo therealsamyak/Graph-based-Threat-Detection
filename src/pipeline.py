@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import multiprocessing
-import shutil
 import time
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
@@ -20,55 +19,21 @@ logger = logging.getLogger(__name__)
 
 
 def generate_run_id() -> str:
-    """Generate a unique run ID using UTC timestamp.
-
-    Returns:
-        Run ID in format YYYYMMDD_HHMMSS
-    """
     return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
 
 def get_base_output_dir(run_id: str) -> Path:
-    """Get the base results directory for a given run ID.
-
-    Args:
-        run_id: Run ID string
-
-    Returns:
-        Path to results/<run_id>
-    """
     return Path("results") / run_id
 
 
 def get_output_dir(run_id: str, variant: str = "combined") -> Path:
-    """Get the output directory for a specific variant within a run.
-
-    Args:
-        run_id: Run ID string
-        variant: Variant name (e.g., "combined", "auth_only", "flow_only")
-
-    Returns:
-        Path to results/<run_id>/LANL-2015/<variant>
-    """
     return get_base_output_dir(run_id) / "LANL-2015" / variant
 
 
 def init_output_dirs(run_id: str) -> Path:
-    """Initialize base output directories for a run.
-
-    Creates the base results/<run_id> directory and returns the path.
-    Does NOT create variant subdirectories - those are created per-variant
-    when needed.
-
-    Args:
-        run_id: Run ID string
-
-    Returns:
-        Path to results/<run_id>
-    """
     base_dir = get_base_output_dir(run_id)
     base_dir.mkdir(parents=True, exist_ok=True)
-    logger.info(f"Run ID: {run_id}, base output dir: {base_dir}")
+    logger.info(f"Run ID: {run_id}, output dir: {base_dir}")
     return base_dir
 
 
@@ -76,15 +41,6 @@ def _terminate_processes(
     processes: list[multiprocessing.process.BaseProcess],
     timeout: float = 5.0,
 ) -> None:
-    """Terminate and join all processes in a list.
-
-    Sends terminate() to each process, waits for them to exit using join()
-    with timeout. Logs which processes did not exit cleanly.
-
-    Args:
-        processes: List of process objects to terminate
-        timeout: Timeout in seconds for join() calls
-    """
     for p in processes:
         if p.is_alive():
             logger.warning(f"Terminating live process: {p.name} (pid={p.pid})")
@@ -98,66 +54,6 @@ def _terminate_processes(
             p.join()
 
 
-def safe_cleanup_smoke_results(captured_run_dir: str | Path) -> None:
-    """Safely remove an explicitly captured smoke-test run directory.
-
-    This helper enforces strict safety rules to prevent accidental deletion
-    of user's pre-existing results. Only removes the exact path that was
-    explicitly captured during smoke testing.
-
-    Safety Rules:
-    - Path must be an absolute path
-    - Path must exist and be a directory
-    - Path must start with the current working directory
-    - Path must not be the project root or results/ parent
-    - No filesystem scanning or "newest" inference
-
-    Args:
-        captured_run_dir: Explicitly captured path from smoke test
-
-    Raises:
-        ValueError: If path fails any safety check
-        FileNotFoundError: If path does not exist
-    """
-    run_dir = Path(captured_run_dir)
-
-    # Safety check 1: Must be absolute path (check original input before resolve)
-    if not run_dir.is_absolute():
-        raise ValueError(f"Safe cleanup requires absolute path, got: {captured_run_dir}")
-
-    # Now resolve to get canonical form after confirming absolute
-    run_dir = run_dir.resolve()
-
-    # Safety check 2: Must exist and be a directory
-    if not run_dir.exists():
-        raise FileNotFoundError(f"Path does not exist: {run_dir}")
-    if not run_dir.is_dir():
-        raise ValueError(f"Path is not a directory: {run_dir}")
-
-    # Safety check 3: Must be under current working directory
-    cwd = Path.cwd().resolve()
-    try:
-        run_dir.relative_to(cwd)
-    except ValueError:
-        raise ValueError(f"Path is not under current working directory: {run_dir}")
-
-    # Safety check 4: Must not be root or results parent directory
-    if run_dir == cwd:
-        raise ValueError(f"Refusing to delete current working directory: {run_dir}")
-    if run_dir == (cwd / "results"):
-        raise ValueError(f"Refusing to delete results parent directory: {run_dir}")
-
-    # Safety check 5: Must be a run directory (results/<timestamp>)
-    if run_dir.parent.name != "results" or run_dir.name.count("_") != 1:
-        raise ValueError(
-            f"Path does not match expected run directory pattern results/<timestamp>: {run_dir}"
-        )
-
-    # All safety checks passed - safe to remove
-    logger.info(f"Safe cleanup: removing explicitly captured run directory: {run_dir}")
-    shutil.rmtree(run_dir)
-    logger.info(f"Safe cleanup: successfully removed: {run_dir}")
-
 
 def run_streaming_experiment(
     data_dir: str = "data/LANL-Dataset-2015",
@@ -167,7 +63,7 @@ def run_streaming_experiment(
     run_id: str | None = None,
     variant: str = "combined",
 ) -> tuple[list[dict], dict, str]:
-    """Run streaming experiment with explicit run ID and variant support.
+    """Run streaming experiment for a single variant.
 
     Args:
         data_dir: Path to LANL dataset directory
@@ -185,11 +81,9 @@ def run_streaming_experiment(
     else:
         cfg = PipelineConfig.from_dict(config) if config else PipelineConfig.default()
 
-    # Generate or use provided run_id
     if run_id is None:
         run_id = generate_run_id()
 
-    # Initialize base output directory (parent-owned)
     results_base = init_output_dirs(run_id)
 
     save_pipeline_config(str(results_base), cfg)
@@ -294,21 +188,7 @@ def _variant_worker(
     run_id: str,
     result_queue: multiprocessing.Queue,
 ) -> None:
-    """Module-level worker target for one variant (pickle-safe under spawn).
-
-    Runs the variant pipeline and puts (status, payload) into result_queue.
-    On success: ("ok", (all_results, experiment_result_dict)).
-    On error: ("error", str).
-
-    Args:
-        variant: Variant name from descriptor registry.
-        data_dir: Path to LANL dataset directory.
-        window_seconds: Time window for red team merging.
-        max_events: Max events per source (None = all).
-        config: PipelineConfig with inner_workers already set.
-        run_id: Shared run ID from parent.
-        result_queue: Queue to report result or error back to parent.
-    """
+    """Worker target for one variant (pickle-safe under spawn)."""
     try:
         logger.info(f"Child worker START: variant={variant}, run_id={run_id}")
         all_results, experiment_result_dict, _results_base = run_streaming_experiment(
@@ -340,11 +220,7 @@ def run_streaming_experiment_variants(
     max_events: int | None = None,
     config: PipelineConfig | None = None,
 ) -> tuple[list[dict], str, dict | None]:
-    """Run all three variants in parallel via multiprocessing spawn.
-
-    Spawns one child process per variant (combined, auth_only, flow_only).
-    Parent generates a shared run_id and inner worker budget, then waits
-    for all children. Raises if any child fails.
+    """Run all variants in parallel via multiprocessing spawn.
 
     Args:
         data_dir: Path to LANL dataset directory.
@@ -354,10 +230,6 @@ def run_streaming_experiment_variants(
 
     Returns:
         (all_method_result_rows, results_base_dir_path, combined_result_dict)
-
-        - all_method_result_rows: List of result dicts from all variants
-        - results_base_dir_path: Path to results/<run_id>
-        - combined_result_dict: ExperimentResult dict for combined variant (for combined-only visuals)
 
     Raises:
         RuntimeError: If any child process fails or exits nonzero.
@@ -370,7 +242,6 @@ def run_streaming_experiment_variants(
 
     run_id = generate_run_id()
 
-    # Compute inner worker budget for capped nested pools
     inner_workers = compute_inner_worker_budget(num_top_level_variants=3)
     capped_features = replace(config.features, inner_workers=inner_workers)
     config_capped = replace(config, features=capped_features)
@@ -403,10 +274,7 @@ def run_streaming_experiment_variants(
     for p in processes:
         p.start()
 
-    # Monitor children for early failure or KeyboardInterrupt.
-    # Normal exit relies on queue close/join_thread in workers.
-    # Timeout below is a last-resort safety net only.
-    _LAST_RESORT_TIMEOUT_S = 8 * 60 * 60  # 8h (observed max: ~3h for combined)
+    _LAST_RESORT_TIMEOUT_S = 8 * 60 * 60  # 8h (observed max: ~3h for combined)    _LAST_RESORT_TIMEOUT_S = 8 * 60 * 60  # 8h (observed max: ~3h for combined)
     try:
         deadline = time.monotonic() + _LAST_RESORT_TIMEOUT_S
         while any(p.is_alive() for p in processes):
@@ -433,7 +301,6 @@ def run_streaming_experiment_variants(
                     f"(queue cleanup may have failed)"
                 )
 
-        # All processes have exited - join them to ensure clean reaping
         for p in processes:
             p.join()
 
@@ -442,7 +309,6 @@ def run_streaming_experiment_variants(
         _terminate_processes(processes)
         raise
 
-    # Collect results and check for failures
     all_results: list[dict] = []
     failed_variants: list[str] = []
     experiment_results_by_variant: dict[str, dict] = {}

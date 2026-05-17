@@ -47,7 +47,6 @@ def _print_summary(df: pd.DataFrame) -> None:
         print("\nNo results to display.")
         return
 
-    # Only include columns that exist in the DataFrame
     base_cols = ["method", "dataset", "recall", "fpr", "f1", "auc", "latency", "throughput"]
     optional_cols = ["rt_pairs_in_graph", "anomalous_pairs", "threshold"]
     cols = [c for c in base_cols + optional_cols if c in df.columns]
@@ -95,12 +94,12 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     results_dir.mkdir(parents=True, exist_ok=True)
     csv_path = results_dir / "metrics.csv"
     results_df.to_csv(csv_path, index=False)
-    logger.info(f"Results ({len(all_results)} variants) saved to {csv_path}")
+    logger.info(f"Results saved to {csv_path}")
 
     json_path = results_dir / "experiment_results.json"
     with open(json_path, "w") as f:
         json.dump(all_results, f, indent=2, default=str)
-    logger.info(f"All variant results saved to {json_path}")
+    logger.info(f"Results saved to {json_path}")
 
     details = {}
     for r in all_results:
@@ -110,7 +109,7 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     details_path = results_dir / "per_method_details.json"
     with open(details_path, "w") as f:
         json.dump(details, f, indent=2, default=str)
-    logger.info(f"Per-variant details ({len(details)} variants) saved to {details_path}")
+    logger.info(f"Per-method details saved to {details_path}")
 
     generate_comparison(results_dir=str(results_dir))
 
@@ -119,12 +118,8 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
         plot_roc_curves,
     )
 
-    # Log plot source for evidence: graph-specific plots use combined variant only
-    logger.info("Plot source: Graph and score visualizations (if generated) use combined variant only")
     if combined_result is not None:
         logger.info(f"Combined variant graph loaded for visualization: {results_base}/LANL-2015/combined/")
-    else:
-        logger.warning("Combined variant result not available - graph-specific visualizations cannot be generated")
 
     figures_dir = results_dir / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
@@ -137,10 +132,10 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
                 "auc": r["auc"],
             })
     plot_roc_curves(roc_data, str(figures_dir / "roc_curves.png"), title="ROC Curves — Lateral Movement Detection Methods")
-    logger.info(f"Saved roc_curves.png ({len(roc_data)} methods with AUC > 0)")
+    logger.info("Saved roc_curves.png")
 
     plot_method_comparison(all_results, str(figures_dir / "method_comparison.png"), title="Method Performance Comparison")
-    logger.info(f"Saved method_comparison.png (comparing {len(all_results)} variants)")
+    logger.info("Saved method_comparison.png")
 
     _print_summary(results_df)
 

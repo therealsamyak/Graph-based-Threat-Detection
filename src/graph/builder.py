@@ -126,10 +126,7 @@ def stream_gz_to_graph(
     progress_every: int = 500000,
     max_events: int | None = None,
 ) -> int:
-    """Stream data file through windows, feed events to graph, return row count.
-
-    Supports both .txt.gz and .txt files (prefers .txt.gz when both exist).
-    """
+    """Stream data file through windows, feed events to graph, return row count."""
     if not windows:
         return 0
 
