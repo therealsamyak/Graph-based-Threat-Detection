@@ -1,0 +1,4 @@
+ablation_results,all_combined_delta,best_delta,cal_auc,delta_graph_to_tabular,delta_optimizer_vs_lr,delta_tabular_to_graph,eval_auc,eval_run_id,eval_type,lr_cal_auc,lr_eval_auc,n_calibration,n_eval,n_features,n_sweep_groups
+,,,0.9688653900468766,,-0.005187903341463795,,0.9680696491623881,20260516_222717,holdout,0.9737791686111926,0.9732575525038519,182400,182402,5,
+"[{""name"": ""pure_tabular_only"", ""n_features"": 9, ""cal_auc"": 0.9609118337014455, ""eval_auc"": 0.9562258193263351}, {""name"": ""graph_derived_only"", ""n_features"": 17, ""cal_auc"": 0.9893474392326015, ""eval_auc"": 0.9891325510738254}, {""name"": ""combined"", ""n_features"": 26, ""cal_auc"": 0.9981231113069755, ""eval_auc"": 0.9921715951569098}]",,,,0.03594577583057468,,0.003039044083084419,,20260516_222717,ablation,,,182400,182402,,
+,0.021527145024635375,0.022390002444762747,0.9737791686111926,,,,0.9732575525038519,20260516_222717,sweep,,,182400,182402,,6

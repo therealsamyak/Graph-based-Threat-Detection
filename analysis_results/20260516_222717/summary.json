@@ -1,0 +1,242 @@
+{
+  "eval_run_id": "20260516_222717",
+  "timestamp": "2026-05-16T22:28:19.764529+00:00",
+  "input_run_dir": "/Volumes/CrucialX9WG/UCLA_MS/ECE_239AS/Project/Graph-based-Threat-Detection/results/20260516_090835/LANL-2015/combined",
+  "holdout_frac": 0.5,
+  "seed": 42,
+  "evals": {
+    "holdout": {
+      "timestamp": "2026-05-16T22:27:29.659558+00:00",
+      "input_run_dir": "/Volumes/CrucialX9WG/UCLA_MS/ECE_239AS/Project/Graph-based-Threat-Detection/results/20260516_090835/LANL-2015/combined",
+      "features": [
+        "is_ntlm",
+        "source_fan_out",
+        "dst_in_degree",
+        "is_network_logon",
+        "dst_fan_out_ratio"
+      ],
+      "holdout_frac": 0.5,
+      "seed": 42,
+      "n_calibration": 182400,
+      "n_eval": 182402,
+      "redteam_calibration": 152,
+      "redteam_eval": 153,
+      "optimizer": {
+        "method": "nelder-mead",
+        "weights": {
+          "is_ntlm": 0.2948176389614416,
+          "source_fan_out": 0.21533760196596505,
+          "dst_in_degree": 3.6266250414617137e-06,
+          "is_network_logon": 0.25816411000075307,
+          "dst_fan_out_ratio": 0.2369964151005617
+        },
+        "auc_calibration": 0.9688653900468766,
+        "auc_eval": 0.9680696491623881,
+        "auc_full_for_reference": 0.9684628270794197,
+        "auc_full_equal_weights_baseline": 0.1978715379473991,
+        "overfit_gap_cal_minus_eval": 0.0007957408844884162,
+        "overfit_gap_relative": 0.0008213121168978034,
+        "iterations": 220,
+        "converged": true,
+        "seconds": 11.140902757644653
+      },
+      "logistic_regression": {
+        "auc_calibration": 0.9737791686111926,
+        "auc_eval": 0.9732575525038519,
+        "overfit_gap_cal_minus_eval": 0.0005216161073406944,
+        "intercept": -6.256586046243268,
+        "coefficients": {
+          "is_ntlm": 1.4463940526470926,
+          "source_fan_out": 3.902063725107457,
+          "dst_in_degree": -0.2584082958595069,
+          "is_network_logon": -0.3585455456375266,
+          "dst_fan_out_ratio": 0.2034150425191793
+        }
+      },
+      "delta_eval_auc_optimizer_minus_lr": -0.005187903341463795
+    },
+    "ablation": {
+      "timestamp": "2026-05-16T22:27:31.614410+00:00",
+      "input_run_dir": "/Volumes/CrucialX9WG/UCLA_MS/ECE_239AS/Project/Graph-based-Threat-Detection/results/20260516_090835/LANL-2015/combined",
+      "holdout_frac": 0.5,
+      "seed": 42,
+      "n_calibration": 182400,
+      "n_eval": 182402,
+      "results": [
+        {
+          "name": "pure_tabular_only",
+          "columns": [
+            "is_ntlm",
+            "is_network_logon",
+            "is_success_auth",
+            "edge_rarity",
+            "weight_norm",
+            "protocol_rarity",
+            "byte_per_packet",
+            "duration_zscore",
+            "is_unusual_dst_port"
+          ],
+          "n_features": 9,
+          "cal_auc": 0.9609118337014455,
+          "eval_auc": 0.9562258193263351
+        },
+        {
+          "name": "graph_derived_only",
+          "columns": [
+            "src_out_degree",
+            "src_in_degree",
+            "src_total_degree",
+            "dst_out_degree",
+            "dst_in_degree",
+            "dst_total_degree",
+            "source_fan_out",
+            "dst_fan_out_ratio",
+            "src_burst_score",
+            "dst_burst_score",
+            "src_inter_arrival_mean",
+            "src_inter_arrival_std",
+            "dst_inter_arrival_mean",
+            "dst_inter_arrival_std",
+            "src_active_duration",
+            "dst_active_duration",
+            "dst_betweenness_centrality"
+          ],
+          "n_features": 17,
+          "cal_auc": 0.9893474392326015,
+          "eval_auc": 0.9891325510738254
+        },
+        {
+          "name": "combined",
+          "columns": [
+            "is_ntlm",
+            "is_network_logon",
+            "is_success_auth",
+            "edge_rarity",
+            "weight_norm",
+            "protocol_rarity",
+            "byte_per_packet",
+            "duration_zscore",
+            "is_unusual_dst_port",
+            "src_out_degree",
+            "src_in_degree",
+            "src_total_degree",
+            "dst_out_degree",
+            "dst_in_degree",
+            "dst_total_degree",
+            "source_fan_out",
+            "dst_fan_out_ratio",
+            "src_burst_score",
+            "dst_burst_score",
+            "src_inter_arrival_mean",
+            "src_inter_arrival_std",
+            "dst_inter_arrival_mean",
+            "dst_inter_arrival_std",
+            "src_active_duration",
+            "dst_active_duration",
+            "dst_betweenness_centrality"
+          ],
+          "n_features": 26,
+          "cal_auc": 0.9981231113069755,
+          "eval_auc": 0.9921715951569098
+        }
+      ],
+      "delta_adding_graph_to_tabular": 0.03594577583057468,
+      "delta_adding_tabular_to_graph": 0.003039044083084419
+    },
+    "sweep": {
+      "timestamp": "2026-05-16T22:28:19.736899+00:00",
+      "input_run_dir": "/Volumes/CrucialX9WG/UCLA_MS/ECE_239AS/Project/Graph-based-Threat-Detection/results/20260516_090835/LANL-2015/combined",
+      "attacker_host": "C17693",
+      "holdout_frac": 0.5,
+      "seed": 42,
+      "n_calibration": 182400,
+      "n_eval": 182402,
+      "results": [
+        {
+          "name": "base_5_features",
+          "added_columns": [],
+          "n_features": 5,
+          "cal_auc": 0.9737791686111926,
+          "eval_auc": 0.9732575525038519,
+          "eval_auc_delta_vs_base": 0.0
+        },
+        {
+          "name": "base_plus_pagerank",
+          "added_columns": [
+            "src_pagerank",
+            "dst_pagerank"
+          ],
+          "n_features": 7,
+          "cal_auc": 0.9739032404369754,
+          "eval_auc": 0.9734356289178021,
+          "eval_auc_delta_vs_base": 0.00017807641395017892
+        },
+        {
+          "name": "base_plus_personalized_pagerank",
+          "added_columns": [
+            "src_ppr_attacker",
+            "dst_ppr_attacker"
+          ],
+          "n_features": 7,
+          "cal_auc": 0.9964330703795176,
+          "eval_auc": 0.9956475549486147,
+          "eval_auc_delta_vs_base": 0.022390002444762747
+        },
+        {
+          "name": "base_plus_kcore",
+          "added_columns": [
+            "src_kcore",
+            "dst_kcore"
+          ],
+          "n_features": 7,
+          "cal_auc": 0.9773430478769243,
+          "eval_auc": 0.9771099813632121,
+          "eval_auc_delta_vs_base": 0.003852428859360213
+        },
+        {
+          "name": "base_plus_community",
+          "added_columns": [
+            "cross_community",
+            "src_community_size",
+            "dst_community_size"
+          ],
+          "n_features": 8,
+          "cal_auc": 0.9795959604783765,
+          "eval_auc": 0.9780881554098739,
+          "eval_auc_delta_vs_base": 0.004830602906021997
+        },
+        {
+          "name": "base_plus_similarity",
+          "added_columns": [
+            "jaccard",
+            "adamic_adar"
+          ],
+          "n_features": 7,
+          "cal_auc": 0.9737216270079637,
+          "eval_auc": 0.9733459362159012,
+          "eval_auc_delta_vs_base": 8.838371204922257e-05
+        },
+        {
+          "name": "base_plus_all_quick_wins",
+          "added_columns": [
+            "pagerank.src_pagerank",
+            "pagerank.dst_pagerank",
+            "personalized_pagerank.src_ppr_attacker",
+            "personalized_pagerank.dst_ppr_attacker",
+            "kcore.src_kcore",
+            "kcore.dst_kcore",
+            "community.cross_community",
+            "community.src_community_size",
+            "community.dst_community_size",
+            "similarity.jaccard",
+            "similarity.adamic_adar"
+          ],
+          "n_features": 16,
+          "cal_auc": 0.9976390254228477,
+          "eval_auc": 0.9947846975284873,
+          "eval_auc_delta_vs_base": 0.021527145024635375
+        }
+      ]
+    }
+  }
+}

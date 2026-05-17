@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-05-16T22:27:29.659558+00:00",
+  "input_run_dir": "/Volumes/CrucialX9WG/UCLA_MS/ECE_239AS/Project/Graph-based-Threat-Detection/results/20260516_090835/LANL-2015/combined",
+  "features": [
+    "is_ntlm",
+    "source_fan_out",
+    "dst_in_degree",
+    "is_network_logon",
+    "dst_fan_out_ratio"
+  ],
+  "holdout_frac": 0.5,
+  "seed": 42,
+  "n_calibration": 182400,
+  "n_eval": 182402,
+  "redteam_calibration": 152,
+  "redteam_eval": 153,
+  "optimizer": {
+    "method": "nelder-mead",
+    "weights": {
+      "is_ntlm": 0.2948176389614416,
+      "source_fan_out": 0.21533760196596505,
+      "dst_in_degree": 3.6266250414617137e-06,
+      "is_network_logon": 0.25816411000075307,
+      "dst_fan_out_ratio": 0.2369964151005617
+    },
+    "auc_calibration": 0.9688653900468766,
+    "auc_eval": 0.9680696491623881,
+    "auc_full_for_reference": 0.9684628270794197,
+    "auc_full_equal_weights_baseline": 0.1978715379473991,
+    "overfit_gap_cal_minus_eval": 0.0007957408844884162,
+    "overfit_gap_relative": 0.0008213121168978034,
+    "iterations": 220,
+    "converged": true,
+    "seconds": 11.140902757644653
+  },
+  "logistic_regression": {
+    "auc_calibration": 0.9737791686111926,
+    "auc_eval": 0.9732575525038519,
+    "overfit_gap_cal_minus_eval": 0.0005216161073406944,
+    "intercept": -6.256586046243268,
+    "coefficients": {
+      "is_ntlm": 1.4463940526470926,
+      "source_fan_out": 3.902063725107457,
+      "dst_in_degree": -0.2584082958595069,
+      "is_network_logon": -0.3585455456375266,
+      "dst_fan_out_ratio": 0.2034150425191793
+    }
+  },
+  "delta_eval_auc_optimizer_minus_lr": -0.005187903341463795
+}
