@@ -1,8 +1,4 @@
-"""Streaming reader and window extraction for LANL-2015 data.
-
-Supports both .txt.gz (compressed) and .txt (uncompressed) files.
-Prioritizes .txt.gz when both exist.
-"""
+"""Streaming reader and window extraction for LANL-2015 data."""
 
 from __future__ import annotations
 
@@ -51,20 +47,7 @@ REDTEAM_NUMERIC = {"time"}
 
 
 def resolve_data_file(path: str) -> Path:
-    """Resolve a data file path, preferring .txt.gz over .txt.
-
-    If *path* ends with '.txt.gz', checks for the gz first, then .txt.
-    If *path* ends with '.txt', checks as-is.
-
-    Args:
-        path: File path (typically ending in .txt.gz or .txt).
-
-    Returns:
-        Resolved Path object.
-
-    Raises:
-        FileNotFoundError: If neither compressed nor uncompressed version exists.
-    """
+    """Resolve data file path, preferring .txt.gz over .txt."""
     p = Path(path)
     if p.suffix == ".gz" and p.exists():
         return p
@@ -78,21 +61,11 @@ def resolve_data_file(path: str) -> Path:
         return compressed
     if p.exists():
         return p
-    raise FileNotFoundError(
-        f"Data file not found (tried {p} and {compressed}): "
-        f"neither compressed nor uncompressed version exists"
-    )
+    raise FileNotFoundError(f"Data file not found: {p}")
 
 
 def open_data_file(path: Path):
-    """Open a data file for text reading, handling both .gz and plain text.
-
-    Args:
-        path: Resolved path from resolve_data_file().
-
-    Returns:
-        File-like object for text reading.
-    """
+    """Open .gz or plain text file for reading."""
     if str(path).endswith(".gz"):
         return gzip.open(path, "rt", encoding="utf-8")
     return open(path, "r", encoding="utf-8")
