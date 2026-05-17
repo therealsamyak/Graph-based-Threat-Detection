@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 .sisyphus/
 _backup/
+results/
+analysis_results/
+feature_results/
