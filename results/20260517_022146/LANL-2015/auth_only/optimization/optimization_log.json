@@ -1,0 +1,1162 @@
+{
+  "timestamp": "2026-05-17T03:17:23.159103+00:00",
+  "trace": [
+    {
+      "iteration": 1,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.239404+00:00",
+      "elapsed_seconds": 0.11289525032043457
+    },
+    {
+      "iteration": 2,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.276404+00:00",
+      "elapsed_seconds": 0.15005016326904297
+    },
+    {
+      "iteration": 3,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.331720+00:00",
+      "elapsed_seconds": 0.20530104637145996
+    },
+    {
+      "iteration": 4,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.442620+00:00",
+      "elapsed_seconds": 0.31618714332580566
+    },
+    {
+      "iteration": 5,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.553551+00:00",
+      "elapsed_seconds": 0.42708611488342285
+    },
+    {
+      "iteration": 6,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.663805+00:00",
+      "elapsed_seconds": 0.5373802185058594
+    },
+    {
+      "iteration": 7,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.776532+00:00",
+      "elapsed_seconds": 0.6481971740722656
+    },
+    {
+      "iteration": 8,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:13.894461+00:00",
+      "elapsed_seconds": 0.7671873569488525
+    },
+    {
+      "iteration": 9,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.011111+00:00",
+      "elapsed_seconds": 0.8838353157043457
+    },
+    {
+      "iteration": 10,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.127466+00:00",
+      "elapsed_seconds": 0.9999082088470459
+    },
+    {
+      "iteration": 11,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.243592+00:00",
+      "elapsed_seconds": 1.1165201663970947
+    },
+    {
+      "iteration": 12,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.360991+00:00",
+      "elapsed_seconds": 1.2327332496643066
+    },
+    {
+      "iteration": 13,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.484497+00:00",
+      "elapsed_seconds": 1.3560922145843506
+    },
+    {
+      "iteration": 14,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.606541+00:00",
+      "elapsed_seconds": 1.477715253829956
+    },
+    {
+      "iteration": 15,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.728095+00:00",
+      "elapsed_seconds": 1.6002442836761475
+    },
+    {
+      "iteration": 16,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.851786+00:00",
+      "elapsed_seconds": 1.723297119140625
+    },
+    {
+      "iteration": 17,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:14.975397+00:00",
+      "elapsed_seconds": 1.846651315689087
+    },
+    {
+      "iteration": 18,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.098184+00:00",
+      "elapsed_seconds": 1.969750165939331
+    },
+    {
+      "iteration": 19,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.221416+00:00",
+      "elapsed_seconds": 2.093003988265991
+    },
+    {
+      "iteration": 20,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.343118+00:00",
+      "elapsed_seconds": 2.2153451442718506
+    },
+    {
+      "iteration": 21,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.461657+00:00",
+      "elapsed_seconds": 2.333787202835083
+    },
+    {
+      "iteration": 22,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.580653+00:00",
+      "elapsed_seconds": 2.4530322551727295
+    },
+    {
+      "iteration": 23,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.697290+00:00",
+      "elapsed_seconds": 2.5700511932373047
+    },
+    {
+      "iteration": 24,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.813936+00:00",
+      "elapsed_seconds": 2.686281204223633
+    },
+    {
+      "iteration": 25,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:15.930847+00:00",
+      "elapsed_seconds": 2.8036301136016846
+    },
+    {
+      "iteration": 26,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.047613+00:00",
+      "elapsed_seconds": 2.920236110687256
+    },
+    {
+      "iteration": 27,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.165125+00:00",
+      "elapsed_seconds": 3.037424087524414
+    },
+    {
+      "iteration": 28,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.281909+00:00",
+      "elapsed_seconds": 3.1544430255889893
+    },
+    {
+      "iteration": 29,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.398404+00:00",
+      "elapsed_seconds": 3.2709450721740723
+    },
+    {
+      "iteration": 30,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.517032+00:00",
+      "elapsed_seconds": 3.38948917388916
+    },
+    {
+      "iteration": 31,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.634593+00:00",
+      "elapsed_seconds": 3.5069661140441895
+    },
+    {
+      "iteration": 32,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.752692+00:00",
+      "elapsed_seconds": 3.6252832412719727
+    },
+    {
+      "iteration": 33,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.869505+00:00",
+      "elapsed_seconds": 3.7419822216033936
+    },
+    {
+      "iteration": 34,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:16.986704+00:00",
+      "elapsed_seconds": 3.859231948852539
+    },
+    {
+      "iteration": 35,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.102628+00:00",
+      "elapsed_seconds": 3.9755592346191406
+    },
+    {
+      "iteration": 36,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.217453+00:00",
+      "elapsed_seconds": 4.09038519859314
+    },
+    {
+      "iteration": 37,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.332539+00:00",
+      "elapsed_seconds": 4.205471038818359
+    },
+    {
+      "iteration": 38,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.453557+00:00",
+      "elapsed_seconds": 4.325307130813599
+    },
+    {
+      "iteration": 39,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.576275+00:00",
+      "elapsed_seconds": 4.447955369949341
+    },
+    {
+      "iteration": 40,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.698014+00:00",
+      "elapsed_seconds": 4.5704121589660645
+    },
+    {
+      "iteration": 41,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.820922+00:00",
+      "elapsed_seconds": 4.6929380893707275
+    },
+    {
+      "iteration": 42,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:17.946846+00:00",
+      "elapsed_seconds": 4.817840099334717
+    },
+    {
+      "iteration": 43,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.070292+00:00",
+      "elapsed_seconds": 4.9413721561431885
+    },
+    {
+      "iteration": 44,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.193646+00:00",
+      "elapsed_seconds": 5.065654993057251
+    },
+    {
+      "iteration": 45,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.321490+00:00",
+      "elapsed_seconds": 5.192324161529541
+    },
+    {
+      "iteration": 46,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.435680+00:00",
+      "elapsed_seconds": 5.308945178985596
+    },
+    {
+      "iteration": 47,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.550381+00:00",
+      "elapsed_seconds": 5.423270225524902
+    },
+    {
+      "iteration": 48,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.668124+00:00",
+      "elapsed_seconds": 5.54010009765625
+    },
+    {
+      "iteration": 49,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.790472+00:00",
+      "elapsed_seconds": 5.6625142097473145
+    },
+    {
+      "iteration": 50,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:18.913714+00:00",
+      "elapsed_seconds": 5.7853102684021
+    },
+    {
+      "iteration": 51,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.033455+00:00",
+      "elapsed_seconds": 5.906191110610962
+    },
+    {
+      "iteration": 52,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.152304+00:00",
+      "elapsed_seconds": 6.024039268493652
+    },
+    {
+      "iteration": 53,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.273081+00:00",
+      "elapsed_seconds": 6.14486026763916
+    },
+    {
+      "iteration": 54,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.394191+00:00",
+      "elapsed_seconds": 6.265675067901611
+    },
+    {
+      "iteration": 55,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.512865+00:00",
+      "elapsed_seconds": 6.386078357696533
+    },
+    {
+      "iteration": 56,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.629364+00:00",
+      "elapsed_seconds": 6.501586198806763
+    },
+    {
+      "iteration": 57,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.747556+00:00",
+      "elapsed_seconds": 6.619749069213867
+    },
+    {
+      "iteration": 58,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.865478+00:00",
+      "elapsed_seconds": 6.738229036331177
+    },
+    {
+      "iteration": 59,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:19.980810+00:00",
+      "elapsed_seconds": 6.853567361831665
+    },
+    {
+      "iteration": 60,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.096435+00:00",
+      "elapsed_seconds": 6.968963146209717
+    },
+    {
+      "iteration": 61,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.213476+00:00",
+      "elapsed_seconds": 7.0863261222839355
+    },
+    {
+      "iteration": 62,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.331160+00:00",
+      "elapsed_seconds": 7.2034571170806885
+    },
+    {
+      "iteration": 63,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.448477+00:00",
+      "elapsed_seconds": 7.32115626335144
+    },
+    {
+      "iteration": 64,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.565364+00:00",
+      "elapsed_seconds": 7.438031196594238
+    },
+    {
+      "iteration": 65,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.682406+00:00",
+      "elapsed_seconds": 7.55439829826355
+    },
+    {
+      "iteration": 66,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.801862+00:00",
+      "elapsed_seconds": 7.673620223999023
+    },
+    {
+      "iteration": 67,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:20.924468+00:00",
+      "elapsed_seconds": 7.795392036437988
+    },
+    {
+      "iteration": 68,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.047865+00:00",
+      "elapsed_seconds": 7.919676303863525
+    },
+    {
+      "iteration": 69,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.170385+00:00",
+      "elapsed_seconds": 8.042526245117188
+    },
+    {
+      "iteration": 70,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.294761+00:00",
+      "elapsed_seconds": 8.165790319442749
+    },
+    {
+      "iteration": 71,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.417609+00:00",
+      "elapsed_seconds": 8.288980960845947
+    },
+    {
+      "iteration": 72,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.541522+00:00",
+      "elapsed_seconds": 8.412556171417236
+    },
+    {
+      "iteration": 73,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.666646+00:00",
+      "elapsed_seconds": 8.537711143493652
+    },
+    {
+      "iteration": 74,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.783211+00:00",
+      "elapsed_seconds": 8.656698226928711
+    },
+    {
+      "iteration": 75,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:21.895945+00:00",
+      "elapsed_seconds": 8.76938533782959
+    },
+    {
+      "iteration": 76,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.006570+00:00",
+      "elapsed_seconds": 8.880455255508423
+    },
+    {
+      "iteration": 77,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.115507+00:00",
+      "elapsed_seconds": 8.989451169967651
+    },
+    {
+      "iteration": 78,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.224186+00:00",
+      "elapsed_seconds": 9.098003149032593
+    },
+    {
+      "iteration": 79,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.332879+00:00",
+      "elapsed_seconds": 9.206727266311646
+    },
+    {
+      "iteration": 80,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.445892+00:00",
+      "elapsed_seconds": 9.319132328033447
+    },
+    {
+      "iteration": 81,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.561199+00:00",
+      "elapsed_seconds": 9.432981967926025
+    },
+    {
+      "iteration": 82,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.678795+00:00",
+      "elapsed_seconds": 9.550804376602173
+    },
+    {
+      "iteration": 83,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.718183+00:00",
+      "elapsed_seconds": 9.590358018875122
+    },
+    {
+      "iteration": 84,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.837112+00:00",
+      "elapsed_seconds": 9.709412097930908
+    },
+    {
+      "iteration": 85,
+      "weights": {
+        "is_ntlm": 0.35,
+        "is_network_logon": 0.3333333333333333,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.9224912961055151,
+      "neg_auc": -0.9224912961055151,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:22.957209+00:00",
+      "elapsed_seconds": 9.829020261764526
+    },
+    {
+      "iteration": 86,
+      "weights": {
+        "is_ntlm": 0.35000000000000014,
+        "is_network_logon": 0.33333333333333315,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.92249988908399,
+      "neg_auc": -0.92249988908399,
+      "improvement_delta": 8.592978474997182e-06,
+      "timestamp": "2026-05-17T03:17:23.017178+00:00",
+      "elapsed_seconds": 9.889753103256226
+    },
+    {
+      "iteration": 87,
+      "weights": {
+        "is_ntlm": 0.35000000000000014,
+        "is_network_logon": 0.33333333333333315,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.92249988908399,
+      "neg_auc": -0.92249988908399,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:23.058363+00:00",
+      "elapsed_seconds": 9.930127143859863
+    },
+    {
+      "iteration": 88,
+      "weights": {
+        "is_ntlm": 0.35000000000000014,
+        "is_network_logon": 0.33333333333333315,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.92249988908399,
+      "neg_auc": -0.92249988908399,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:23.098046+00:00",
+      "elapsed_seconds": 9.969941139221191
+    },
+    {
+      "iteration": 89,
+      "weights": {
+        "is_ntlm": 0.35000000000000014,
+        "is_network_logon": 0.33333333333333315,
+        "is_success_auth": 0.3333333333333333
+      },
+      "auc": 0.92249988908399,
+      "neg_auc": -0.92249988908399,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-17T03:17:23.158645+00:00",
+      "elapsed_seconds": 10.030482292175293
+    }
+  ]
+}

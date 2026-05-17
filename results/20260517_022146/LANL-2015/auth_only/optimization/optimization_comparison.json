@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-17T03:17:23.159103+00:00",
+  "equal_weight_auc": 0.9033931509484328,
+  "optimized_auc": 0.92249988908399,
+  "improvement_pct": 2.114997010492937,
+  "per_feature": {
+    "is_ntlm": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 0.35000000000000014,
+      "delta": 0.01666666666666683
+    },
+    "is_network_logon": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 0.33333333333333315,
+      "delta": -1.6653345369377348e-16
+    },
+    "is_success_auth": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 0.3333333333333333,
+      "delta": 0.0
+    }
+  }
+}
