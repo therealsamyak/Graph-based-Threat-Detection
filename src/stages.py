@@ -87,7 +87,6 @@ def _score_detect_graph(
     config: PipelineConfig,
     output_dir: str | None = None,
 ) -> MethodResult:
-    # Get variant descriptor for feature whitelist
     descriptor = get_variant(method_name)
     feature_whitelist = list(descriptor.feature_whitelist)
 
@@ -110,16 +109,15 @@ def _score_detect_graph(
     mask_valid = (ef["is_self_loop"].values == 0.0) & (ef["is_user_edge"].values == 0.0)
     labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
 
-    # Validate that all whitelist features exist in edge features
     available_features = set(ef.columns)
     missing_features = [feat for feat in feature_whitelist if feat not in available_features]
     if missing_features:
         raise ValueError(
-            f"Variant '{method_name}': Missing {len(missing_features)} feature(s) from whitelist: {missing_features}. "
-            f"Available features: {sorted(available_features)}"
+            f"Variant '{method_name}': Missing features: {missing_features}. "
+            f"Available: {sorted(available_features)}"
         )
 
-    logger.info(f"  Variant '{method_name}': Feature whitelist ({len(feature_whitelist)}): {feature_whitelist}")
+    logger.info(f"  Variant '{method_name}': {len(feature_whitelist)} features")
 
     logger.info("  Running weight optimization...")
     opt = WeightOptimizer(

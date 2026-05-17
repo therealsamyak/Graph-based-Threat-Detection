@@ -95,15 +95,11 @@ def extract_node_features(g: ig.Graph, config: dict | None = None, inner_workers
 
     n_workers = min(os.cpu_count() or 1, max_workers)
     
-    # Apply inner worker cap (default if not explicitly set)
     from src.utils import compute_inner_worker_budget
     effective_inner_workers = inner_workers or compute_inner_worker_budget()
     n_workers = min(n_workers, effective_inner_workers)
     
-    variant_str = f" (variant: {variant_name})" if variant_name else ""
-    logger.info(
-        f"Worker budget for node features: {n_workers} inner workers{variant_str}"
-    )
+    logger.info(f"Node features: {n_workers} workers{f' (variant: {variant_name})' if variant_name else ''}")
     items = list(node_times.items())
 
     if n_workers <= 1 or len(items) < n_workers * 10:
