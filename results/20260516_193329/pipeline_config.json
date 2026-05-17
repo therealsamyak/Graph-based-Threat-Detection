@@ -1,0 +1,39 @@
+{
+  "data": {
+    "lanl_dir": "data/LANL-Dataset-2015",
+    "window_size": 3600
+  },
+  "graph": {
+    "progress_every": 500000
+  },
+  "scoring": {
+    "weights": {
+      "is_ntlm": 0.4,
+      "is_network_logon": 0.3,
+      "edge_rarity": 0.3
+    },
+    "threshold_mode": "auto_optimize",
+    "threshold_percentile": 99,
+    "threshold_search_range": [
+      90,
+      95,
+      97,
+      99,
+      99.5,
+      99.9
+    ],
+    "path_boost_factor": 0.1,
+    "temporal_decay_rate": 0.0,
+    "max_hops": 4,
+    "top_k_paths": 50,
+    "top_outgoing_per_node": 10
+  },
+  "features": {
+    "betweenness_node_limit": 5000,
+    "approximate_betweenness": true,
+    "betweenness_cutoff": 3,
+    "temporal_burst_window_pct": 0.1,
+    "max_workers": 12,
+    "inner_workers": 4
+  }
+}
