@@ -1,9 +1,0 @@
-method,dataset,recall,fpr,f1,auc,latency,throughput,graph_nodes,graph_edges,rt_pairs_in_graph,anomalous_pairs,threshold,threshold_mode,threshold_percentile_used,max_path_score,mean_edge_score
-flow_only,LANL-2015,0.013,0.0297,0.0019,0.5785,563.9,56058.6,11586.0,131562.0,35.0,3907.0,0.691,auto_optimize,97.0,0.7848,0.3855
-auth_only,LANL-2015,0.7468,0.0296,0.0364,0.9508,6026.56,17269.2,90783.0,409100.0,302.0,12319.0,1.4009,auto_optimize,95.0,1.4772,0.3235
-combined,LANL-2015,0.6623,0.0196,0.0387,0.9544,8814.26,15393.8,91589.0,512529.0,305.0,10243.0,1.4065,auto_optimize,97.0,1.479,0.3559
-graph_combined,DAPT2020,0.2222,0.0194,0.1,0.6012,1.47,58901.4,765.0,1502.0,9.0,31.0,0.3485,auto_optimize,90.0,0.4998,0.3527
-oneclass_svm,DAPT2020,0.2232,0.1004,0.0955,0.6463,0.0,0.0,,,,,,,,,
-isolation_forest,DAPT2020,0.0069,0.05,0.0051,0.4487,0.0,0.0,,,,,,,,,
-oneclass_svm,LANL-2015,0.4918,0.0982,0.0083,0.7059,0.0,0.0,,,,,,,,,
-isolation_forest,LANL-2015,0.741,0.05,0.0241,0.9397,0.0,0.0,,,,,,,,,

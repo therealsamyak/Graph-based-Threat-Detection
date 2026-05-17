@@ -1,0 +1,11 @@
+/data/
+.venv/
+__pycache__/
+.ruff_cache/
+.DS_Store
+*.pyc
+.sisyphus/
+_backup/
+results/
+analysis_results/
+feature_results/
