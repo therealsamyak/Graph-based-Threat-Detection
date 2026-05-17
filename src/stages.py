@@ -61,11 +61,22 @@ OPTIMIZED_FEATURE_NAMES = [
 ]
 
 
+def _resolve_data_file(data_dir: str, base_name: str) -> str:
+    """Return the path to a data file, preferring .gz if it exists, falling back to .txt."""
+    gz_path = Path(data_dir) / f"{base_name}.gz"
+    if gz_path.exists():
+        return str(gz_path)
+    txt_path = Path(data_dir) / base_name
+    if txt_path.exists():
+        return str(txt_path)
+    return str(gz_path)  # default to .gz for error message
+
+
 def load_redteam_data(
     data_dir: str,
     window_seconds: int,
 ) -> tuple[pd.DataFrame, set, list]:
-    rt = load_redteam(str(Path(data_dir) / "redteam.txt.gz"))
+    rt = load_redteam(_resolve_data_file(data_dir, "redteam.txt"))
     red_pairs = set(zip(rt["src_comp"].astype(str), rt["dst_comp"].astype(str)))
     windows = build_window_intervals(rt, window_seconds)
     logger.info(f"Red team: {len(rt)} events, {len(windows)} merged windows")
@@ -210,7 +221,7 @@ def run_method_pipeline(
 
     graph = StreamingGraphBuilder()
     n_auth = stream_gz_to_graph(
-        str(data_path / "auth.txt.gz"),
+        _resolve_data_file(str(data_path), "auth.txt"),
         AUTH_COLUMNS,
         windows,
         AUTH_NUMERIC,
@@ -220,7 +231,7 @@ def run_method_pipeline(
         max_events=max_events,
     )
     n_flow = stream_gz_to_graph(
-        str(data_path / "flows.txt.gz"),
+        _resolve_data_file(str(data_path), "flows.txt"),
         FLOW_COLUMNS,
         windows,
         FLOW_NUMERIC,
