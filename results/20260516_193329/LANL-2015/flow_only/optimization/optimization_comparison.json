@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-16T19:40:20.237205+00:00",
+  "equal_weight_auc": 0.3838771832833889,
+  "optimized_auc": 0.9321447307396961,
+  "improvement_pct": 142.82368719256772,
+  "per_feature": {
+    "source_fan_out": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 0.6089100158822967,
+      "delta": 0.27557668254896334
+    },
+    "dst_in_degree": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": -0.0004237183392066287,
+      "delta": -0.33375705167253994
+    },
+    "dst_fan_out_ratio": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 0.6143669826359489,
+      "delta": 0.2810336493026156
+    }
+  }
+}
