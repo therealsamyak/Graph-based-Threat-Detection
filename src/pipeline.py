@@ -403,15 +403,14 @@ def run_streaming_experiment_variants(
     for p in processes:
         p.start()
 
-    # Monitor children for early failure or KeyboardInterrupt
-    # Safety timeout: 4 hours per variant (generous for large datasets)
-    _VARIANT_TIMEOUT_S = 4 * 60 * 60
+    # Monitor children for early failure or KeyboardInterrupt.
+    # Normal exit relies on queue close/join_thread in workers.
+    # Timeout below is a last-resort safety net only.
+    _LAST_RESORT_TIMEOUT_S = 8 * 60 * 60  # 8h (observed max: ~3h for combined)
     try:
-        # Poll processes while they run to detect early failures
-        deadline = time.monotonic() + _VARIANT_TIMEOUT_S
+        deadline = time.monotonic() + _LAST_RESORT_TIMEOUT_S
         while any(p.is_alive() for p in processes):
             time.sleep(0.1)
-            # Check if any process has exited with nonzero code while others are still alive
             for p in processes:
                 if not p.is_alive() and p.exitcode != 0:
                     logger.error(
@@ -425,11 +424,13 @@ def run_streaming_experiment_variants(
                     )
             if time.monotonic() > deadline:
                 logger.error(
-                    f"Variant workers did not complete within {_VARIANT_TIMEOUT_S}s - terminating"
+                    f"Last-resort timeout: workers still alive after {_LAST_RESORT_TIMEOUT_S}s, "
+                    f"force-terminating"
                 )
                 _terminate_processes(processes)
                 raise RuntimeError(
-                    f"Variant workers timed out after {_VARIANT_TIMEOUT_S}s"
+                    f"Variant workers did not exit after {_LAST_RESORT_TIMEOUT_S}s "
+                    f"(queue cleanup may have failed)"
                 )
 
         # All processes have exited - join them to ensure clean reaping
