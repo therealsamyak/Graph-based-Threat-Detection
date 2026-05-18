@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from scipy.stats import gaussian_kde
 
 plt.style.use("seaborn-v0_8-whitegrid")
 plt.rcParams.update({
@@ -70,7 +71,6 @@ ax.hist(baseline_scores, bins=bins, alpha=0.6, color="#2ecc71", label="Baseline 
 ax.hist(redteam_scores, bins=bins, alpha=0.6, color="#e74c3c", label="Red team events", log=True)
 
 # KDE overlay
-from scipy.stats import gaussian_kde
 if len(baseline_scores) > 1:
     kde_base = gaussian_kde(baseline_scores, bw_method=0.05)
     x_base = np.linspace(scores_valid.min(), scores_valid.max(), 200)

@@ -13,6 +13,7 @@ import pandas as pd
 from src.config import load_config
 from src.reporting import generate_comparison
 from src.types import PipelineConfig
+from src.utils import compute_edge_pair_names
 
 LOG_FMT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 
@@ -114,15 +115,42 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     generate_comparison(results_dir=str(results_dir))
 
     from src.visualization import (
-        plot_method_comparison,
+        plot_graph_snapshot,
+        plot_score_distribution,
         plot_roc_curves,
+        plot_detection_timeline,
+        plot_method_comparison,
     )
-
-    if combined_result is not None:
-        logger.info(f"Combined variant graph loaded for visualization: {results_base}/LANL-2015/combined/")
 
     figures_dir = results_dir / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
+
+    if combined_result is not None:
+        g = combined_result.get("combined_graph")
+        if g is not None:
+            plot_graph_snapshot(g, str(figures_dir / "graph_snapshot.png"), title=f"Combined Auth+Flow Graph ({g.vcount():,} nodes, {g.ecount():,} edges)")
+            logger.info("Saved graph_snapshot.png")
+
+        edge_scores = combined_result.get("combined_edge_scores")
+        if edge_scores is not None and not edge_scores.empty and g is not None:
+            red_pairs = combined_result.get("red_pairs", frozenset())
+            threshold = combined_result.get("combined_threshold", 0.0)
+
+            edge_pair_names = compute_edge_pair_names(g)
+            labels = pd.Series([
+                1.0 if pair in red_pairs else 0.0
+                for pair in edge_pair_names
+            ], index=edge_scores.index)
+            plot_score_distribution(edge_scores, labels, str(figures_dir / "score_distribution.png"), threshold=threshold, title="Edge Anomaly Score Distribution")
+            logger.info("Saved score_distribution.png")
+
+            times = pd.Series(
+                [g.es[i]["time"] if "time" in g.es[i].attributes() else 0 for i in range(g.ecount())],
+                index=edge_scores.index,
+            )
+            rt_edge_indices = {i for i, pair in enumerate(edge_pair_names) if pair in red_pairs}
+            plot_detection_timeline(times, edge_scores, threshold, str(figures_dir / "detection_timeline.png"), redteam_edge_indices=rt_edge_indices, title="Anomaly Score Timeline with Red Team Events")
+            logger.info("Saved detection_timeline.png")
 
     roc_data = []
     for r in all_results:

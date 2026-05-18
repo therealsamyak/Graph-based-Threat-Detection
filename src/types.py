@@ -93,7 +93,6 @@ class FeaturesConfig:
     betweenness_cutoff: int = 3
     temporal_burst_window_pct: float = 0.1
     max_workers: int = 12
-    inner_workers: int | None = None
 
     @classmethod
     def from_dict(cls, d: dict) -> FeaturesConfig:

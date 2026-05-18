@@ -100,7 +100,7 @@ def _score_detect_graph(
     logger.info(
         f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)..."
     )
-    all_feat = extract_all_features(g, config=config.to_dict(), inner_workers=config.features.inner_workers, variant_name=method_name)
+    all_feat = extract_all_features(g, config=config.to_dict(), variant_name=method_name)
     logger.info(
         f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges..."
     )
@@ -141,7 +141,6 @@ def _score_detect_graph(
         top_k=scoring.top_k_paths,
         top_outgoing=scoring.top_outgoing_per_node,
         max_workers=config.features.max_workers,
-        inner_workers=config.features.inner_workers,
         variant_name=method_name,
     )
     logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
