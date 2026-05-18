@@ -24,7 +24,7 @@ University of California, Los Angeles
 
 
 \subsection*{Abstract}
-Lateral movement in cloud VPCs is difficult to detect because internal traffic is trusted by default and individual log sources provide incomplete visibility. We present a graph-based detection method that combines network flow logs and authentication logs into a unified directed multigraph, extracting 26 structural, temporal, and statistical features to score edges for lateral movement likelihood. Using the LANL-2015 dataset with 308 labeled red-team pairs, our combined graph method achieves an AUC of 0.9685, recall of 84.42\%, and a false positive rate of 2.09\%. Weight optimization via the Nelder-Mead algorithm improved AUC from 0.198 (equal weights) to 0.968, a 389\% gain. Graph-derived features alone achieve 0.989 AUC compared to 0.956 for pure tabular features, with Personalized PageRank targeted at known attacker hosts providing the largest single improvement (+2.2\% AUC). The pipeline processes approximately 25,000 events per second, completing end-to-end in roughly 90 minutes. These results demonstrate that combining multiple log sources through graph analysis significantly outperforms single-source approaches for lateral movement detection.
+Lateral movement in cloud VPCs is difficult to detect because internal traffic is trusted by default and individual log sources provide incomplete visibility. We present a graph-based detection method that combines network flow logs and authentication logs into a unified directed multigraph, extracting 26 structural, temporal, and statistical features to score edges for lateral movement likelihood. Using the LANL-2015 dataset with 308 labeled red-team pairs, our combined graph method achieves an AUC of 0.9685, recall of 84.42\%, and a false positive rate of 2.09\%. Weight optimization via the Nelder-Mead algorithm improved AUC from 0.198 (equal weights) to 0.968, a 389\% gain. Graph-derived features alone achieve 0.989 AUC compared to 0.956 for pure tabular features, with Personalized PageRank targeted at known attacker hosts providing the largest single improvement (+2.2\% AUC). The pipeline processes approximately 25,000 events per second, completing end-to-end in roughly 90 minutes. Combining multiple log sources through graph analysis outperforms single-source approaches for lateral movement detection.
 
 \section{Introduction}
 
@@ -139,9 +139,9 @@ Several structural and temporal patterns in the dataset motivate our graph featu
 
 \subsection{Baseline Methods}
 
-We compare our graph-based scoring against two unsupervised anomaly detectors and single-source graph variants. \textbf{Isolation Forest}~\cite{isoforest} isolates anomalies by randomly partitioning the feature space. \textbf{One-Class SVM} learns a decision boundary around normal data in a kernel-transformed space. Both operate on the same edge feature vector used by our graph scoring method, using the scikit-learn implementation with features standardized via \texttt{StandardScaler}. Additionally, we compare against single-source graph variants (\emph{auth-only} and \emph{flow-only}) to isolate the contribution of combining log sources.
+We compare our graph-based scoring against two unsupervised anomaly detectors and single-source graph variants. \textbf{Isolation Forest}~\cite{isoforest} isolates anomalies by randomly partitioning the feature space. \textbf{One-Class SVM} learns a decision boundary around normal data in a kernel-transformed space. Both operate on the same edge feature vector used by our graph scoring method, using the scikit-learn implementation with features standardized via \texttt{StandardScaler}. We also compare against single-source graph variants (\emph{auth-only} and \emph{flow-only}) to isolate the contribution of combining log sources.
 
-\textbf{Logistic regression} (L2 penalty, balanced class weights, liblinear solver) serves as an evaluation benchmark rather than a detection baseline. It is used in the holdout evaluation protocol (Section~\ref{sec:holdout_weight}) to validate that the custom Nelder-Mead optimizer generalizes comparably to a standard supervised classifier on the same five-feature set: \texttt{is\_ntlm}, \texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, and \texttt{dst\_fan\_out\_ratio}. The logistic regression eval AUC also provides a unified comparison metric for the ablation study and graph feature sweep, where a held-out LR classifier measures feature set quality independently of the weighted-sum scoring function.
+\textbf{Logistic regression} (L2 penalty, balanced class weights, liblinear solver) is an evaluation benchmark rather than a detection baseline. It is used in the holdout evaluation protocol (Section~\ref{sec:holdout_weight}) to validate that the custom Nelder-Mead optimizer generalizes comparably to a standard supervised classifier on the same five-feature set: \texttt{is\_ntlm}, \texttt{source\_fan\_out}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, and \texttt{dst\_fan\_out\_ratio}. The logistic regression eval AUC also provides a unified comparison metric for the ablation study and graph feature sweep, where a held-out LR classifier measures feature set quality independently of the weighted-sum scoring function.
 
 \begin{itemize}
 \item \textit{Future work:}
@@ -180,7 +180,7 @@ The pipeline is implemented in Python using igraph for graph operations and scik
 \label{fig:roc}
 \end{figure}
 
-Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for the combined graph method evaluated on LANL-2015. The optimized method achieves an AUC of 0.9685, a substantial improvement over the equal-weight baseline (AUC 0.198). The Nelder-Mead weight optimization yields a 389\% gain in AUC, confirming that feature weights matter significantly more than the choice of features alone.
+Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for the combined graph method evaluated on LANL-2015. The optimized method achieves an AUC of 0.9685, compared to 0.198 with equal weights. The 389\% gain from Nelder-Mead optimization shows that feature weights matter more than feature selection.
 
 \begin{itemize}
 \item \textit{Future work:}
@@ -189,7 +189,7 @@ Figure~\ref{fig:roc} presents receiver operating characteristic (ROC) curves for
 \end{itemize}
 \end{itemize}
 
-Figure~\ref{fig:scores} shows the anomaly score distribution for all edges in the combined method on a log-scale y-axis. Red-team edges concentrate at higher scores than baseline edges, demonstrating that the scoring function effectively separates attack edges from normal traffic. The path boost mechanism creates a high-score cluster where most red-team edges appear. The optimized threshold at the 97th percentile (score = 0.8467) balances recall and false positive rate.
+Figure~\ref{fig:scores} shows the anomaly score distribution for all edges in the combined method on a log-scale y-axis. Red-team edges concentrate at higher scores than baseline edges, showing that the scoring function separates attack edges from normal traffic. The path boost mechanism creates a high-score cluster where most red-team edges appear. The optimized threshold at the 97th percentile (score = 0.8467) balances recall and false positive rate.
 
 \begin{figure}[htbp]
 \centering
@@ -262,7 +262,7 @@ Table~\ref{tab:methods_comparison} compares all five methods. The optimized comb
 \label{fig:weight_opt}
 \end{figure}
 
-Figure~\ref{fig:weight_opt} compares the custom Nelder-Mead weight optimizer against logistic regression on a held-out evaluation set. Both methods generalize well, with overfitting gaps under 0.1\% (Nelder-Mead: 0.08\%, LR: 0.05\%). Logistic regression slightly outperforms the custom optimizer (0.9733 vs.\ 0.9681 eval AUC), but the custom optimizer achieves comparable performance with a simpler weighted-sum scoring function that is more interpretable for security analysts.
+Figure~\ref{fig:weight_opt} compares the custom Nelder-Mead weight optimizer against logistic regression on a held-out evaluation set. Both methods generalize well, with overfitting gaps under 0.1\% (Nelder-Mead: 0.08\%, LR: 0.05\%). Logistic regression slightly outperforms the custom optimizer (0.9733 vs.\ 0.9681 eval AUC), but the custom optimizer achieves comparable performance with a simpler weighted-sum scoring function that security analysts can more easily interpret.
 
 \begin{figure}[htbp]
 \centering
@@ -271,7 +271,7 @@ Figure~\ref{fig:weight_opt} compares the custom Nelder-Mead weight optimizer aga
 \label{fig:feat_imp}
 \end{figure}
 
-Figure~\ref{fig:feat_imp} shows the top 10 edge features ranked by individual AUC. The optimized weights assign the highest importance to \texttt{is\_ntlm} (0.295) and \texttt{is\_network\_logon} (0.258), confirming that legacy authentication protocols and network-based logins are the strongest individual signals of lateral movement. The \texttt{dst\_in\_degree} feature receives near-zero weight ($\approx$0.000), indicating it contributes little beyond the other features.
+Figure~\ref{fig:feat_imp} shows the top 10 edge features ranked by individual AUC. The optimized weights assign the highest importance to \texttt{is\_ntlm} (0.295) and \texttt{is\_network\_logon} (0.258): legacy authentication protocols and network-based logins are the strongest individual signals of lateral movement. The \texttt{dst\_in\_degree} feature receives near-zero weight ($\approx$0.000), indicating it contributes little beyond the other features.
 
 \subsection{Tabular vs.\ Graph Feature Ablation}
 
@@ -282,7 +282,7 @@ Figure~\ref{fig:feat_imp} shows the top 10 edge features ranked by individual AU
 \label{fig:ablation}
 \end{figure}
 
-Figure~\ref{fig:ablation} presents the results of a tabular vs.\ graph feature ablation study. Graph-derived features alone achieve 0.989 AUC compared to 0.956 for pure tabular features, demonstrating that graph topology is the primary driver of detection performance. Adding graph features to tabular features yields a +3.6\% AUC gain, while adding tabular features to graph features provides an additional +0.3\% gain. The full 26-feature combined set achieves the best overall performance (0.992 AUC). The 26 features comprise 9 tabular (protocol, port, byte-level signals) and 17 graph-derived (degree, fan-out, temporal, betweenness).
+Figure~\ref{fig:ablation} presents the results of a tabular vs.\ graph feature ablation study. Graph-derived features alone achieve 0.989 AUC compared to 0.956 for pure tabular features: graph topology drives most of the detection performance. Adding graph features to tabular features yields a +3.6\% AUC gain, while adding tabular features to graph features provides an additional +0.3\% gain. The full 26-feature combined set achieves the best overall performance (0.992 AUC). The 26 features comprise 9 tabular (protocol, port, byte-level signals) and 17 graph-derived (degree, fan-out, temporal, betweenness).
 
 \subsection{Graph Feature Sweep}
 
@@ -297,7 +297,7 @@ Figure~\ref{fig:sweep} shows the results of a graph feature sweep, measuring inc
 
 \section{Discussion and Limitations}
 
-Our results confirm that combining network flow and authentication logs into a unified graph improves lateral movement detection over single-source approaches. The combined method achieves 84.4\% recall at 2.1\% FPR, with graph-derived features being the primary driver of performance (0.989 AUC vs.\ 0.956 for tabular-only). Weight optimization via Nelder-Mead proved critical, improving AUC from 0.198 to 0.968.
+Our results show that combining network flow and authentication logs into a unified graph improves lateral movement detection over single-source approaches. The combined method achieves 84.4\% recall at 2.1\% FPR, with graph-derived features driving most of the performance (0.989 AUC vs.\ 0.956 for tabular-only). Weight optimization via Nelder-Mead improved AUC from 0.198 to 0.968.
 
 Several limitations remain. The LANL dataset represents a single enterprise network over 58 days with red-team attacks that may not capture all real-world techniques; 93.6\% of attack events originate from a single compromised host (C17693). Red-team events focus on specific lateral movement techniques (SMB, SSH, credential reuse) and do not include living-off-the-land or fileless approaches. The F1 score (0.046) is low due to extreme class imbalance---at the high threshold optimized for precision, many false positives occur relative to true positives. Path enumeration is computationally expensive (~9 minutes for 122M paths), which may limit real-time deployment.
 
@@ -308,7 +308,7 @@ Several limitations remain. The LANL dataset represents a single enterprise netw
 \end{itemize}
 \end{itemize}
 
-Compared to related work, our approach achieves competitive detection rates while operating on network-level logs rather than host-level audit data. Unlike Hopper (auth-only) or Euler (single-source temporal), our method leverages both flow and authentication signals with optimized weights.
+Compared to related work, our approach achieves competitive detection rates while operating on network-level logs rather than host-level audit data. Unlike Hopper (auth-only) or Euler (single-source temporal), we use both flow and authentication signals with optimized weights.
 
 \begin{itemize}
 \item \textit{To address:}
