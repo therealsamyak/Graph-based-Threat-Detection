@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-05-16T10:22:02.386802+00:00",
+  "equal_weight_auc": 0.1978715379473991,
+  "optimized_auc": 0.9684602184991785,
+  "improvement_pct": 389.4388695541588,
+  "per_feature": {
+    "is_ntlm": {
+      "weight_before": 0.2,
+      "weight_after": 0.29466192291573867,
+      "delta": 0.09466192291573866
+    },
+    "source_fan_out": {
+      "weight_before": 0.2,
+      "weight_after": 0.21484690938196416,
+      "delta": 0.014846909381964146
+    },
+    "dst_in_degree": {
+      "weight_before": 0.2,
+      "weight_after": 3.7052296063149554e-06,
+      "delta": -0.19999629477039368
+    },
+    "is_network_logon": {
+      "weight_before": 0.2,
+      "weight_after": 0.258413416340763,
+      "delta": 0.05841341634076297
+    },
+    "dst_fan_out_ratio": {
+      "weight_before": 0.2,
+      "weight_after": 0.2366420897440889,
+      "delta": 0.03664208974408889
+    }
+  }
+}
