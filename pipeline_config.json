@@ -21,6 +21,6 @@
     "approximate_betweenness": true,
     "betweenness_cutoff": 3,
     "temporal_burst_window_pct": 0.1,
-    "max_workers": 12
+    "max_workers": 20
   }
 }

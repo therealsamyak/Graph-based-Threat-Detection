@@ -4,16 +4,14 @@ from __future__ import annotations
 
 import json
 import logging
-import multiprocessing
 import time
-from dataclasses import asdict, replace
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 from src.io import save_method_results, save_pipeline_config, save_redteam_data
 from src.stages import load_redteam_data, run_method_pipeline
 from src.types import ExperimentResult, PipelineConfig
-from src.utils import compute_inner_worker_budget
 
 logger = logging.getLogger(__name__)
 
@@ -35,24 +33,6 @@ def init_output_dirs(run_id: str) -> Path:
     base_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"Run ID: {run_id}, output dir: {base_dir}")
     return base_dir
-
-
-def _terminate_processes(
-    processes: list[multiprocessing.process.BaseProcess],
-    timeout: float = 5.0,
-) -> None:
-    for p in processes:
-        if p.is_alive():
-            logger.warning(f"Terminating live process: {p.name} (pid={p.pid})")
-            p.terminate()
-
-    for p in processes:
-        p.join(timeout=timeout)
-        if p.is_alive():
-            logger.error(f"Process {p.name} (pid={p.pid}) did not exit after terminate+timeout")
-            p.kill()
-            p.join()
-
 
 
 def run_streaming_experiment(
@@ -176,51 +156,16 @@ def run_streaming_experiment(
     return all_results, asdict(experiment_result), str(results_base)
 
 
-# ── Multiprocessing variant orchestration ──────────────────────────────────────
-
-
-def _variant_worker(
-    variant: str,
-    data_dir: str,
-    window_seconds: int,
-    max_events: int | None,
-    config: PipelineConfig,
-    run_id: str,
-    result_queue: multiprocessing.Queue,
-) -> None:
-    """Worker target for one variant (pickle-safe under spawn)."""
-    try:
-        logger.info(f"Child worker START: variant={variant}, run_id={run_id}")
-        all_results, experiment_result_dict, _results_base = run_streaming_experiment(
-            data_dir=data_dir,
-            window_seconds=window_seconds,
-            max_events=max_events,
-            config=config,
-            run_id=run_id,
-            variant=variant,
-        )
-        logger.info(f"Child worker DONE: variant={variant}")
-        result_queue.put(("ok", (all_results, experiment_result_dict)))
-        result_queue.close()
-        result_queue.join_thread()
-    except Exception as exc:
-        logger.error(f"Child worker FAILED: variant={variant}, error={exc}")
-        try:
-            result_queue.put(("error", str(exc)))
-            result_queue.close()
-            result_queue.join_thread()
-        except Exception:
-            pass
-        raise SystemExit(1)
-
-
 def run_streaming_experiment_variants(
     data_dir: str = "data/LANL-Dataset-2015",
     window_seconds: int = 3600,
     max_events: int | None = None,
     config: PipelineConfig | None = None,
 ) -> tuple[list[dict], str, dict | None]:
-    """Run all variants in parallel via multiprocessing spawn.
+    """Run all variants sequentially.
+
+    Each variant (auth_only, combined, flow_only) runs one after another.
+    Inner parallelism (node features, path scoring) is preserved within each variant.
 
     Args:
         data_dir: Path to LANL dataset directory.
@@ -230,115 +175,43 @@ def run_streaming_experiment_variants(
 
     Returns:
         (all_method_result_rows, results_base_dir_path, combined_result_dict)
-
-    Raises:
-        RuntimeError: If any child process fails or exits nonzero.
-        KeyboardInterrupt: Re-raised after cleaning up child processes.
     """
     from src.variants import get_all_descriptors
 
     if config is None:
         config = PipelineConfig.default()
 
-    run_id = generate_run_id()
-
-    inner_workers = compute_inner_worker_budget(num_top_level_variants=3)
-    capped_features = replace(config.features, inner_workers=inner_workers)
-    config_capped = replace(config, features=capped_features)
-
-    logger.info(
-        f"Parent spawning 3 variant workers: run_id={run_id}, "
-        f"inner_workers={inner_workers}"
-    )
-
     descriptors = get_all_descriptors()
+
+    run_id = generate_run_id()
+    results_base = str(get_base_output_dir(run_id))
+
     variant_names = [d.name for d in descriptors]
-
-    ctx = multiprocessing.get_context("spawn")
-
-    processes: list[multiprocessing.process.BaseProcess] = []
-    result_queues: list[multiprocessing.Queue] = []
-
-    for variant in variant_names:
-        q: multiprocessing.Queue = ctx.Queue()
-        result_queues.append(q)
-
-        p = ctx.Process(
-            target=_variant_worker,
-            args=(variant, data_dir, window_seconds, max_events, config_capped, run_id, q),
-            name=f"variant-{variant}",
-        )
-        processes.append(p)
-
-    # Start all children
-    for p in processes:
-        p.start()
-
-    _LAST_RESORT_TIMEOUT_S = 8 * 60 * 60  # 8h (observed max: ~3h for combined)    _LAST_RESORT_TIMEOUT_S = 8 * 60 * 60  # 8h (observed max: ~3h for combined)
-    try:
-        deadline = time.monotonic() + _LAST_RESORT_TIMEOUT_S
-        while any(p.is_alive() for p in processes):
-            time.sleep(0.1)
-            for p in processes:
-                if not p.is_alive() and p.exitcode != 0:
-                    logger.error(
-                        f"Early failure detected: {p.name} exited with code {p.exitcode} "
-                        f"while siblings are still alive"
-                    )
-                    _terminate_processes(processes)
-                    raise RuntimeError(
-                        f"Variant worker '{p.name}' failed early with exitcode={p.exitcode} "
-                        f"while sibling processes were still running"
-                    )
-            if time.monotonic() > deadline:
-                logger.error(
-                    f"Last-resort timeout: workers still alive after {_LAST_RESORT_TIMEOUT_S}s, "
-                    f"force-terminating"
-                )
-                _terminate_processes(processes)
-                raise RuntimeError(
-                    f"Variant workers did not exit after {_LAST_RESORT_TIMEOUT_S}s "
-                    f"(queue cleanup may have failed)"
-                )
-
-        for p in processes:
-            p.join()
-
-    except KeyboardInterrupt:
-        logger.info("KeyboardInterrupt received - terminating variant workers")
-        _terminate_processes(processes)
-        raise
+    logger.info(f"Running {len(variant_names)} variants sequentially: {', '.join(variant_names)}")
 
     all_results: list[dict] = []
-    failed_variants: list[str] = []
     experiment_results_by_variant: dict[str, dict] = {}
+    overall_start = time.perf_counter()
 
-    for variant, p, q in zip(variant_names, processes, result_queues):
-        if p.exitcode != 0:
-            failed_variants.append(f"{variant} (exitcode={p.exitcode})")
-            continue
+    for i, descriptor in enumerate(descriptors, 1):
+        logger.info(f"── Variant {i}/{len(descriptors)}: {descriptor.name} ──")
+        try:
+            variant_results, variant_experiment_result, _ = run_streaming_experiment(
+                data_dir=data_dir,
+                window_seconds=window_seconds,
+                max_events=max_events,
+                config=config,
+                run_id=run_id,
+                variant=descriptor.name,
+            )
+            all_results.extend(variant_results)
+            experiment_results_by_variant[descriptor.name] = variant_experiment_result
+        except Exception as exc:
+            logger.error(f"Variant '{descriptor.name}' failed: {exc}")
+            raise
 
-        if q.empty():
-            failed_variants.append(f"{variant} (no result returned)")
-            continue
+    total_duration = time.perf_counter() - overall_start
+    logger.info(f"All {len(variant_names)} variants completed in {total_duration:.2f}s")
 
-        status, payload = q.get()
-        if status == "error":
-            failed_variants.append(f"{variant} (error: {payload})")
-            continue
-
-        variant_results, variant_experiment_result = payload
-        all_results.extend(variant_results)
-        experiment_results_by_variant[variant] = variant_experiment_result
-
-    for q in result_queues:
-        q.close()
-
-    if failed_variants:
-        raise RuntimeError(
-            f"Variant worker(s) failed: {', '.join(failed_variants)}"
-        )
-
-    results_base = str(get_base_output_dir(run_id))
     combined_result = experiment_results_by_variant.get("combined")
     return all_results, results_base, combined_result

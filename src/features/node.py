@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from concurrent.futures import ProcessPoolExecutor
 
 import igraph as ig
@@ -58,7 +57,7 @@ def _extract_node_times(g: ig.Graph) -> dict[int, list[float]]:
     return node_times
 
 
-def extract_node_features(g: ig.Graph, config: dict | None = None, inner_workers: int | None = None, variant_name: str | None = None) -> pd.DataFrame:
+def extract_node_features(g: ig.Graph, config: dict | None = None, variant_name: str | None = None) -> pd.DataFrame:
     feat_cfg = (config or {}).get("features", {})
     betweenness_node_limit = feat_cfg.get("betweenness_node_limit", 5000)
     burst_window_pct = feat_cfg.get("temporal_burst_window_pct", 0.1)
@@ -93,11 +92,7 @@ def extract_node_features(g: ig.Graph, config: dict | None = None, inner_workers
         return _build_node_df(names, in_deg, out_deg, total_deg, fan_out, betweenness,
                               inter_arr_mean, inter_arr_std, burst_score, active_duration)
 
-    n_workers = min(os.cpu_count() or 1, max_workers)
-    
-    from src.utils import compute_inner_worker_budget
-    effective_inner_workers = inner_workers or compute_inner_worker_budget()
-    n_workers = min(n_workers, effective_inner_workers)
+    n_workers = max_workers
     
     logger.info(f"Node features: {n_workers} workers{f' (variant: {variant_name})' if variant_name else ''}")
     items = list(node_times.items())
