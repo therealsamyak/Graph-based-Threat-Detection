@@ -5,7 +5,6 @@ from __future__ import annotations
 import bisect
 import gzip
 from collections.abc import Iterator
-from pathlib import Path
 
 import pandas as pd
 
