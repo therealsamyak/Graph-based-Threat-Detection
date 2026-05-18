@@ -24,20 +24,13 @@ FLOW_NUMERIC = {"time", "duration", "src_port", "dst_port", "protocol", "pkt_cou
 REDTEAM_NUMERIC = {"time"}
 
 
-def _open_auto(filepath: str):
-    """Open a file as gzip if it ends with .gz, otherwise as plain text."""
-    if filepath.endswith(".gz"):
-        return gzip.open(filepath, "rt", encoding="utf-8")
-    return open(filepath, "r", encoding="utf-8")
-
-
 def stream_gz_lines(
     filepath: str,
     columns: list[str],
     max_lines: int | None = None,
 ) -> Iterator[dict]:
-    """Yield parsed lines from a gz or plain text file one at a time."""
-    with _open_auto(filepath) as f:
+    """Yield parsed lines from a gz file one at a time."""
+    with gzip.open(filepath, "rt", encoding="utf-8") as f:
         for i, line in enumerate(f):
             if max_lines is not None and i >= max_lines:
                 break
