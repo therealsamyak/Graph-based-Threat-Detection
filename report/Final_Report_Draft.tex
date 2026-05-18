@@ -71,13 +71,13 @@ After all events are streamed, the edge map is materialized into an igraph graph
 
 We extract features at three levels: edge, node, and graph. The full feature set comprises 16 edge-level features, 9 node-level features, and 5 graph-level statistics. For the ablation study, these group into 9 pure tabular features (protocol, port, and byte-level signals), 17 graph-derived features (degree, fan-out, temporal, and betweenness), and a combined set of 26.
 
-\textbf{Edge features (16).}
-Each edge receives: edge rarity ($1 / \text{weight}$, percentile-ranked), normalized weight, self-loop flag, user-edge flag, and temporal decay weight. For authentication edges: whether the auth type is NTLM (\texttt{is\_ntlm}), whether the logon type is Network (\texttt{is\_network\_logon}), and whether authentication succeeded (\texttt{is\_success\_auth}). For flow edges: whether the destination port is in the lateral movement set $\{$22, 23, 445, 3389, 5985, 5986$\}$ or above 49,152 (ephemeral); protocol rarity ($1 - \text{proportion of edges using that protocol}$); byte-per-packet ratio as a percentile rank; and duration z-score. Source and destination degree and fan-out features are also attached per edge.
+\textbf{Edge (16).}
+Each edge receives: edge rarity ($1 / \text{weight}$, percentile-ranked), normalized weight, self-loop flag, user-edge flag, and a temporal decay weight (exponential decay from most recent event). For authentication edges: whether the auth type is NTLM (\texttt{is\_ntlm}), whether the logon type is Network (remote access, \texttt{is\_network\_logon}), and whether authentication succeeded (\texttt{is\_success\_auth}). For flow edges: whether the destination port is in the lateral movement set $\{$22, 23, 445, 3389, 5985, 5986$\}$ or above 49,152 (ephemeral); protocol rarity ($1 - \text{proportion of edges using that protocol}$); byte-per-packet ratio as a percentile rank; and duration z-score. Source and destination degree and fan-out features are also attached per edge.
 
-\textbf{Node features (9).}
-For each node we compute in-degree, out-degree, and total degree. Fan-out ratio (out-degree / total degree) captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed with an igraph cutoff parameter for efficiency. We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration.
+\textbf{Node (9).}
+For each node we compute in-degree, out-degree, and total degree. Fan-out ratio (out-degree / total degree) captures a known lateral movement pattern: compromised hosts performing reconnaissance connect to many distinct destinations (high fan-out), while normal servers mostly receive connections (low fan-out). Betweenness centrality is computed exactly for small graphs; for larger graphs we use the igraph cutoff parameter, which approximates it in $O(|E|)$ instead of $O(|V||E|)$. We also compute four temporal features per node from the timestamps of its outgoing edges: mean and standard deviation of inter-arrival times, a burst score (maximum fraction of outgoing edges falling within any 10\% sub-window of the node's active span), and total active duration.
 
-\textbf{Graph features (5).}
+\textbf{Graph (5).}
 Density, average clustering coefficient (computed on the undirected version), weakly connected component count, node count, and edge count.
 
 \subsection{Feature Selection Metrics}
@@ -152,9 +152,9 @@ We compare our graph-based scoring against two unsupervised anomaly detectors an
 
 \subsection{Evaluation Metrics}
 
-All metrics are computed in pair-space: after thresholding, anomalous edges are collapsed into source-destination pairs, which are compared against the 308 ground-truth red-team pairs. AUC is computed via scikit-learn's \texttt{roc\_auc\_score} over all valid edges (not pairs), with binary labels from the red-team pair set. AUC is threshold-independent: it measures whether scoring ranks attack edges above normal ones regardless of the chosen cutoff.
+All metrics are computed in pair-space: after thresholding, anomalous edges are collapsed into source-destination pairs, which are compared against the 308 ground-truth red-team pairs.
 
-\emph{Recall}: fraction of red-team pairs detected. \emph{False positive rate (FPR)}: fraction of non-red-team pairs flagged. \emph{F1}: harmonic mean of precision and recall.
+\emph{Recall}: fraction of red-team pairs detected. \emph{False positive rate (FPR)}: fraction of non-red-team pairs flagged. \emph{F1}: harmonic mean of precision and recall. \emph{AUC}: area under the ROC curve computed via scikit-learn's \texttt{roc\_auc\_score} over all valid edges (not pairs), with binary labels from the red-team pair set. AUC is threshold-independent: it measures whether scoring ranks attack edges above normal ones regardless of the chosen cutoff.
 
 With 308 red-team pairs among hundreds of thousands of total edges, precision will always be low. The meaningful comparison is AUC (ranking quality) and FPR at matched recall (cost of achieving detection).
 
