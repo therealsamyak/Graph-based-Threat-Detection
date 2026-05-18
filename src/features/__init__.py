@@ -30,9 +30,9 @@ def extract_graph_features(g: ig.Graph) -> dict:
     }
 
 
-def extract_all_features(g: ig.Graph, config: dict | None = None, inner_workers: int | None = None, variant_name: str | None = None) -> dict:
-    return {
-        "node_features": extract_node_features(g, config=config, inner_workers=inner_workers, variant_name=variant_name),
+def extract_all_features(g: ig.Graph, config: dict | None = None, variant_name: str | None = None) -> dict:
+     return {
+        "node_features": extract_node_features(g, config=config, variant_name=variant_name),
         "edge_features": extract_edge_features(g, config=config),
         "graph_features": extract_graph_features(g),
     }
