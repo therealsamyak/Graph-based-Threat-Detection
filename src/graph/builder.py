@@ -96,13 +96,6 @@ class StreamingGraphBuilder:
         return self._g
 
 
-def _open_auto(path: str):
-    """Open a file as gzip if it ends with .gz, otherwise as plain text."""
-    if path.endswith(".gz"):
-        return gzip.open(path, "rt", encoding="utf-8")
-    return open(path, "r", encoding="utf-8")
-
-
 def stream_gz_to_graph(
     gz_path: str,
     columns: list[str],
@@ -113,7 +106,7 @@ def stream_gz_to_graph(
     progress_every: int = 500000,
     max_events: int | None = None,
 ) -> int:
-    """Stream gz or plain text file through windows, feed events to graph, return row count."""
+    """Stream gz file through windows, feed events to graph, return row count."""
     if not windows:
         return 0
 
@@ -124,7 +117,7 @@ def stream_gz_to_graph(
     past_start = False
     _starts = [w[0] for w in windows]
 
-    with _open_auto(gz_path) as f:
+    with gzip.open(gz_path, "rt", encoding="utf-8") as f:
         for raw_line in f:
             parts = raw_line.strip().split(",")
             if len(parts) != len(columns):
