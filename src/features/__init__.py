@@ -5,8 +5,8 @@ from __future__ import annotations
 import igraph as ig
 import numpy as np
 
-from src.features.node import extract_node_features as extract_node_features
-from src.features.edge import extract_edge_features as extract_edge_features
+from src.features.node import extract_node_features
+from src.features.edge import extract_edge_features
 
 
 def extract_graph_features(g: ig.Graph) -> dict:

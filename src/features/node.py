@@ -92,18 +92,16 @@ def extract_node_features(g: ig.Graph, config: dict | None = None, variant_name:
         return _build_node_df(names, in_deg, out_deg, total_deg, fan_out, betweenness,
                               inter_arr_mean, inter_arr_std, burst_score, active_duration)
 
-    n_workers = max_workers
-    
-    logger.info(f"Node features: {n_workers} workers{f' (variant: {variant_name})' if variant_name else ''}")
+    logger.info(f"Node features: {max_workers} workers{f' (variant: {variant_name})' if variant_name else ''}")
     items = list(node_times.items())
 
-    if n_workers <= 1 or len(items) < n_workers * 10:
+    if max_workers <= 1 or len(items) < max_workers * 10:
         for idx, times in items:
             _, inter_arr_mean[idx], inter_arr_std[idx], burst_score[idx], active_duration[idx] = _compute_node_temporal((idx, times), burst_window_pct=burst_window_pct)
     else:
         from functools import partial
         _compute_fn = partial(_compute_node_temporal, burst_window_pct=burst_window_pct)
-        with ProcessPoolExecutor(max_workers=n_workers) as pool:
+        with ProcessPoolExecutor(max_workers=max_workers) as pool:
             results = pool.map(_compute_fn, items)
             for idx, iam, ias, bs, ad in results:
                 inter_arr_mean[idx] = iam
