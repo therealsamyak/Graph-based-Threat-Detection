@@ -10,18 +10,47 @@ from pathlib import Path
 import pandas as pd
 
 AUTH_COLUMNS = [
-    "time", "src_user", "dst_user", "src_comp", "dst_comp",
-    "auth_type", "logon_type", "auth_orientation", "success",
+    "time",
+    "src_user",
+    "dst_user",
+    "src_comp",
+    "dst_comp",
+    "auth_type",
+    "logon_type",
+    "auth_orientation",
+    "success",
 ]
 FLOW_COLUMNS = [
-    "time", "duration", "src_comp", "src_port", "dst_comp",
-    "dst_port", "protocol", "pkt_count", "byte_count",
+    "time",
+    "duration",
+    "src_comp",
+    "src_port",
+    "dst_comp",
+    "dst_port",
+    "protocol",
+    "pkt_count",
+    "byte_count",
 ]
 REDTEAM_COLUMNS = ["time", "user", "src_comp", "dst_comp"]
 
 AUTH_NUMERIC = {"time"}
-FLOW_NUMERIC = {"time", "duration", "src_port", "dst_port", "protocol", "pkt_count", "byte_count"}
+FLOW_NUMERIC = {
+    "time",
+    "duration",
+    "src_port",
+    "dst_port",
+    "protocol",
+    "pkt_count",
+    "byte_count",
+}
 REDTEAM_NUMERIC = {"time"}
+
+
+def _open_auto(filepath: str):
+    """Open a file as gzip if it ends with .gz, otherwise as plain text."""
+    if filepath.endswith(".gz"):
+        return gzip.open(filepath, "rt", encoding="utf-8")
+    return open(filepath, "r", encoding="utf-8")
 
 
 def stream_gz_lines(
@@ -29,8 +58,8 @@ def stream_gz_lines(
     columns: list[str],
     max_lines: int | None = None,
 ) -> Iterator[dict]:
-    """Yield parsed lines from a gz file one at a time."""
-    with gzip.open(filepath, "rt", encoding="utf-8") as f:
+    """Yield parsed lines from a gz or plain text file one at a time."""
+    with _open_auto(filepath) as f:
         for i, line in enumerate(f):
             if max_lines is not None and i >= max_lines:
                 break
@@ -69,7 +98,9 @@ def build_window_intervals(
     return merged
 
 
-def time_in_any_window(time: int, windows: list[tuple[int, int]], _starts: list[int] | None = None) -> bool:
+def time_in_any_window(
+    time: int, windows: list[tuple[int, int]], _starts: list[int] | None = None
+) -> bool:
     starts = _starts if _starts is not None else [w[0] for w in windows]
     i = bisect.bisect_right(starts, time) - 1
     if i >= 0 and windows[i][0] <= time <= windows[i][1]:

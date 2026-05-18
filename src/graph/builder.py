@@ -27,21 +27,36 @@ class StreamingGraphBuilder:
 
     def _ensure_node(self, name: str, node_type: str) -> None:
         if name not in self._node_set:
-            is_machine = "$" in name.split("@")[0] if "@" in name else name.endswith("$")
+            is_machine = (
+                "$" in name.split("@")[0] if "@" in name else name.endswith("$")
+            )
             self._g.add_vertex(name, node_type=node_type, is_machine=is_machine)
             self._node_set.add(name)
 
-    def _add_edge(self, src: str, dst: str, attrs: dict, src_type: str = "computer", dst_type: str = "computer") -> None:
+    def _add_edge(
+        self,
+        src: str,
+        dst: str,
+        attrs: dict,
+        src_type: str = "computer",
+        dst_type: str = "computer",
+    ) -> None:
         self._ensure_node(src, src_type)
         self._ensure_node(dst, dst_type)
         key = (src, dst)
         if key in self._edge_map:
             self._edge_map[key]["weight"] += 1
-            existing_time = self._edge_map[key].get("first_time", self._edge_map[key].get("time", 0))
+            existing_time = self._edge_map[key].get(
+                "first_time", self._edge_map[key].get("time", 0)
+            )
             self._edge_map[key]["last_time"] = attrs.get("time", 0)
             self._edge_map[key]["first_time"] = existing_time
         else:
-            self._edge_map[key] = {**attrs, "weight": 1, "first_time": attrs.get("time", 0)}
+            self._edge_map[key] = {
+                **attrs,
+                "weight": 1,
+                "first_time": attrs.get("time", 0),
+            }
 
     def feed_auth_event(self, row: dict) -> None:
         src_c = row.get("src_comp")
@@ -70,7 +85,13 @@ class StreamingGraphBuilder:
                 "success": row.get("success", ""),
                 "time": float(row.get("time", 0)),
             }
-            self._add_edge(str(src_u), str(dst_u), user_edge_attrs, src_type="user", dst_type="user")
+            self._add_edge(
+                str(src_u),
+                str(dst_u),
+                user_edge_attrs,
+                src_type="user",
+                dst_type="user",
+            )
 
     def feed_flow_event(self, row: dict) -> None:
         src_c = row.get("src_comp")
@@ -96,6 +117,13 @@ class StreamingGraphBuilder:
         return self._g
 
 
+def _open_auto(path: str):
+    """Open a file as gzip if it ends with .gz, otherwise as plain text."""
+    if path.endswith(".gz"):
+        return gzip.open(path, "rt", encoding="utf-8")
+    return open(path, "r", encoding="utf-8")
+
+
 def stream_gz_to_graph(
     gz_path: str,
     columns: list[str],
@@ -106,7 +134,7 @@ def stream_gz_to_graph(
     progress_every: int = 500000,
     max_events: int | None = None,
 ) -> int:
-    """Stream gz file through windows, feed events to graph, return row count."""
+    """Stream gz or plain text file through windows, feed events to graph, return row count."""
     if not windows:
         return 0
 
@@ -117,7 +145,7 @@ def stream_gz_to_graph(
     past_start = False
     _starts = [w[0] for w in windows]
 
-    with gzip.open(gz_path, "rt", encoding="utf-8") as f:
+    with _open_auto(gz_path) as f:
         for raw_line in f:
             parts = raw_line.strip().split(",")
             if len(parts) != len(columns):
