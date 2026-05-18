@@ -1,0 +1,3395 @@
+{
+  "timestamp": "2026-05-16T10:22:02.386802+00:00",
+  "trace": [
+    {
+      "iteration": 1,
+      "weights": {
+        "is_ntlm": 0.20480000000000004,
+        "source_fan_out": 0.20480000000000004,
+        "dst_in_degree": 0.186,
+        "is_network_logon": 0.20480000000000004,
+        "dst_fan_out_ratio": 0.20480000000000004
+      },
+      "auc": 0.2006874193617011,
+      "neg_auc": -0.2006874193617011,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:40.699452+00:00",
+      "elapsed_seconds": 0.2656838893890381
+    },
+    {
+      "iteration": 2,
+      "weights": {
+        "is_ntlm": 0.20480000000000004,
+        "source_fan_out": 0.20480000000000004,
+        "dst_in_degree": 0.186,
+        "is_network_logon": 0.20480000000000004,
+        "dst_fan_out_ratio": 0.20480000000000004
+      },
+      "auc": 0.2006874193617011,
+      "neg_auc": -0.2006874193617011,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:40.757769+00:00",
+      "elapsed_seconds": 0.3242380619049072
+    },
+    {
+      "iteration": 3,
+      "weights": {
+        "is_ntlm": 0.20480000000000004,
+        "source_fan_out": 0.20480000000000004,
+        "dst_in_degree": 0.186,
+        "is_network_logon": 0.20480000000000004,
+        "dst_fan_out_ratio": 0.20480000000000004
+      },
+      "auc": 0.2006874193617011,
+      "neg_auc": -0.2006874193617011,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:40.815993+00:00",
+      "elapsed_seconds": 0.3824748992919922
+    },
+    {
+      "iteration": 4,
+      "weights": {
+        "is_ntlm": 0.21392383999999992,
+        "source_fan_out": 0.19512383999999994,
+        "dst_in_degree": 0.1868287999999999,
+        "is_network_logon": 0.21392383999999992,
+        "dst_fan_out_ratio": 0.20240383999999995
+      },
+      "auc": 0.20108602841274592,
+      "neg_auc": -0.20108602841274592,
+      "improvement_delta": 0.00039860905104482924,
+      "timestamp": "2026-05-16T10:21:40.903057+00:00",
+      "elapsed_seconds": 0.46965599060058594
+    },
+    {
+      "iteration": 5,
+      "weights": {
+        "is_ntlm": 0.22060728319999995,
+        "source_fan_out": 0.20678328319999983,
+        "dst_in_degree": 0.1805066239999999,
+        "is_network_logon": 0.2018072831999999,
+        "dst_fan_out_ratio": 0.20355768319999995
+      },
+      "auc": 0.2017706368043597,
+      "neg_auc": -0.2017706368043597,
+      "improvement_delta": 0.0006846083916137724,
+      "timestamp": "2026-05-16T10:21:40.990590+00:00",
+      "elapsed_seconds": 0.5570578575134277
+    },
+    {
+      "iteration": 6,
+      "weights": {
+        "is_ntlm": 0.21169877913599994,
+        "source_fan_out": 0.2100392591359999,
+        "dst_in_degree": 0.17114980351999987,
+        "is_network_logon": 0.21667477913599992,
+        "dst_fan_out_ratio": 0.2052653711359999
+      },
+      "auc": 0.20290741109789878,
+      "neg_auc": -0.20290741109789878,
+      "improvement_delta": 0.001136774293539089,
+      "timestamp": "2026-05-16T10:21:41.077928+00:00",
+      "elapsed_seconds": 0.644442081451416
+    },
+    {
+      "iteration": 7,
+      "weights": {
+        "is_ntlm": 0.21169877913599994,
+        "source_fan_out": 0.2100392591359999,
+        "dst_in_degree": 0.17114980351999987,
+        "is_network_logon": 0.21667477913599992,
+        "dst_fan_out_ratio": 0.2052653711359999
+      },
+      "auc": 0.20290741109789878,
+      "neg_auc": -0.20290741109789878,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:41.136370+00:00",
+      "elapsed_seconds": 0.7028310298919678
+    },
+    {
+      "iteration": 8,
+      "weights": {
+        "is_ntlm": 0.22143859036979208,
+        "source_fan_out": 0.1984000649297919,
+        "dst_in_degree": 0.16141279289343996,
+        "is_network_logon": 0.21214886236979202,
+        "dst_fan_out_ratio": 0.21482856899379205
+      },
+      "auc": 0.20348830593716907,
+      "neg_auc": -0.20348830593716907,
+      "improvement_delta": 0.0005808948392702906,
+      "timestamp": "2026-05-16T10:21:41.223418+00:00",
+      "elapsed_seconds": 0.7899508476257324
+    },
+    {
+      "iteration": 9,
+      "weights": {
+        "is_ntlm": 0.23430831374729194,
+        "source_fan_out": 0.20021129609609184,
+        "dst_in_degree": 0.15823493348229095,
+        "is_network_logon": 0.22055951630729193,
+        "dst_fan_out_ratio": 0.2049254821108119
+      },
+      "auc": 0.2047064229587084,
+      "neg_auc": -0.2047064229587084,
+      "improvement_delta": 0.0012181170215393167,
+      "timestamp": "2026-05-16T10:21:41.310616+00:00",
+      "elapsed_seconds": 0.8771939277648926
+    },
+    {
+      "iteration": 10,
+      "weights": {
+        "is_ntlm": 0.23131948514599238,
+        "source_fan_out": 0.2161998990222161,
+        "dst_in_degree": 0.1433495575537908,
+        "is_network_logon": 0.2109712649347923,
+        "dst_fan_out_ratio": 0.20949049432400185
+      },
+      "auc": 0.2076669996204516,
+      "neg_auc": -0.2076669996204516,
+      "improvement_delta": 0.0029605766617432083,
+      "timestamp": "2026-05-16T10:21:41.398471+00:00",
+      "elapsed_seconds": 0.9646420478820801
+    },
+    {
+      "iteration": 11,
+      "weights": {
+        "is_ntlm": 0.22710452160006867,
+        "source_fan_out": 0.20439665413688007,
+        "dst_in_degree": 0.13436521205961044,
+        "is_network_logon": 0.23233315568749263,
+        "dst_fan_out_ratio": 0.2107228631835228
+      },
+      "auc": 0.20944576350152783,
+      "neg_auc": -0.20944576350152783,
+      "improvement_delta": 0.0017787638810762285,
+      "timestamp": "2026-05-16T10:21:41.486575+00:00",
+      "elapsed_seconds": 1.0529940128326416
+    },
+    {
+      "iteration": 12,
+      "weights": {
+        "is_ntlm": 0.22710452160006867,
+        "source_fan_out": 0.20439665413688007,
+        "dst_in_degree": 0.13436521205961044,
+        "is_network_logon": 0.23233315568749263,
+        "dst_fan_out_ratio": 0.2107228631835228
+      },
+      "auc": 0.20944576350152783,
+      "neg_auc": -0.20944576350152783,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:41.545081+00:00",
+      "elapsed_seconds": 1.1114270687103271
+    },
+    {
+      "iteration": 13,
+      "weights": {
+        "is_ntlm": 0.2540432896552336,
+        "source_fan_out": 0.19881529188750674,
+        "dst_in_degree": 0.11199475096869707,
+        "is_network_logon": 0.225044238684376,
+        "dst_fan_out_ratio": 0.22135867054255065
+      },
+      "auc": 0.2169962180533812,
+      "neg_auc": -0.2169962180533812,
+      "improvement_delta": 0.0075504545518533805,
+      "timestamp": "2026-05-16T10:21:41.632484+00:00",
+      "elapsed_seconds": 1.1989328861236572
+    },
+    {
+      "iteration": 14,
+      "weights": {
+        "is_ntlm": 0.25605780958493646,
+        "source_fan_out": 0.215309472715901,
+        "dst_in_degree": 0.10190590572200445,
+        "is_network_logon": 0.23757030278806734,
+        "dst_fan_out_ratio": 0.21110464228504572
+      },
+      "auc": 0.22211454932481173,
+      "neg_auc": -0.22211454932481173,
+      "improvement_delta": 0.005118331271430521,
+      "timestamp": "2026-05-16T10:21:41.719806+00:00",
+      "elapsed_seconds": 1.2863218784332275
+    },
+    {
+      "iteration": 15,
+      "weights": {
+        "is_ntlm": 0.24847995485850605,
+        "source_fan_out": 0.22002087386058944,
+        "dst_in_degree": 0.07931697557267542,
+        "is_network_logon": 0.2339605647863397,
+        "dst_fan_out_ratio": 0.22793496080485026
+      },
+      "auc": 0.23483336591809856,
+      "neg_auc": -0.23483336591809856,
+      "improvement_delta": 0.01271881659328683,
+      "timestamp": "2026-05-16T10:21:41.807399+00:00",
+      "elapsed_seconds": 1.3739168643951416
+    },
+    {
+      "iteration": 16,
+      "weights": {
+        "is_ntlm": 0.24847995485850605,
+        "source_fan_out": 0.22002087386058944,
+        "dst_in_degree": 0.07931697557267542,
+        "is_network_logon": 0.2339605647863397,
+        "dst_fan_out_ratio": 0.22793496080485026
+      },
+      "auc": 0.23483336591809856,
+      "neg_auc": -0.23483336591809856,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:41.865783+00:00",
+      "elapsed_seconds": 1.4321959018707275
+    },
+    {
+      "iteration": 17,
+      "weights": {
+        "is_ntlm": 0.2704381702006484,
+        "source_fan_out": 0.20893748849318328,
+        "dst_in_degree": 0.05527051457407911,
+        "is_network_logon": 0.25140480056798176,
+        "dst_fan_out_ratio": 0.21921428443366991
+      },
+      "auc": 0.2672482676216229,
+      "neg_auc": -0.2672482676216229,
+      "improvement_delta": 0.032414901703524346,
+      "timestamp": "2026-05-16T10:21:41.953173+00:00",
+      "elapsed_seconds": 1.5196421146392822
+    },
+    {
+      "iteration": 18,
+      "weights": {
+        "is_ntlm": 0.2988489923801918,
+        "source_fan_out": 0.21560893614416582,
+        "dst_in_degree": 0.01839932321148366,
+        "is_network_logon": 0.2500092307637737,
+        "dst_fan_out_ratio": 0.23612017400760077
+      },
+      "auc": 0.31616495797914546,
+      "neg_auc": -0.31616495797914546,
+      "improvement_delta": 0.04891669035752255,
+      "timestamp": "2026-05-16T10:21:42.041082+00:00",
+      "elapsed_seconds": 1.6074700355529785
+    },
+    {
+      "iteration": 19,
+      "weights": {
+        "is_ntlm": 0.2988489923801918,
+        "source_fan_out": 0.21560893614416582,
+        "dst_in_degree": 0.01839932321148366,
+        "is_network_logon": 0.2500092307637737,
+        "dst_fan_out_ratio": 0.23612017400760077
+      },
+      "auc": 0.31616495797914546,
+      "neg_auc": -0.31616495797914546,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.099771+00:00",
+      "elapsed_seconds": 1.6661937236785889
+    },
+    {
+      "iteration": 20,
+      "weights": {
+        "is_ntlm": 0.29029342284538256,
+        "source_fan_out": 0.2135421328386946,
+        "dst_in_degree": -0.019121842542276765,
+        "is_network_logon": 0.26750897908405674,
+        "dst_fan_out_ratio": 0.25037589642254915
+      },
+      "auc": 0.8964386043430072,
+      "neg_auc": -0.8964386043430072,
+      "improvement_delta": 0.5802736463638617,
+      "timestamp": "2026-05-16T10:21:42.187518+00:00",
+      "elapsed_seconds": 1.7538480758666992
+    },
+    {
+      "iteration": 21,
+      "weights": {
+        "is_ntlm": 0.29840322240161193,
+        "source_fan_out": 0.23140032493025037,
+        "dst_in_degree": -0.01913261883093434,
+        "is_network_logon": 0.25637765489561787,
+        "dst_fan_out_ratio": 0.23740773735804016
+      },
+      "auc": 0.8968046061410387,
+      "neg_auc": -0.8968046061410387,
+      "improvement_delta": 0.00036600179803158994,
+      "timestamp": "2026-05-16T10:21:42.275609+00:00",
+      "elapsed_seconds": 1.8417809009552002
+    },
+    {
+      "iteration": 22,
+      "weights": {
+        "is_ntlm": 0.29840322240161193,
+        "source_fan_out": 0.23140032493025037,
+        "dst_in_degree": -0.01913261883093434,
+        "is_network_logon": 0.25637765489561787,
+        "dst_fan_out_ratio": 0.23740773735804016
+      },
+      "auc": 0.8968046061410387,
+      "neg_auc": -0.8968046061410387,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.334071+00:00",
+      "elapsed_seconds": 1.9004569053649902
+    },
+    {
+      "iteration": 23,
+      "weights": {
+        "is_ntlm": 0.29840322240161193,
+        "source_fan_out": 0.23140032493025037,
+        "dst_in_degree": -0.01913261883093434,
+        "is_network_logon": 0.25637765489561787,
+        "dst_fan_out_ratio": 0.23740773735804016
+      },
+      "auc": 0.8968046061410387,
+      "neg_auc": -0.8968046061410387,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.392377+00:00",
+      "elapsed_seconds": 1.9587628841400146
+    },
+    {
+      "iteration": 24,
+      "weights": {
+        "is_ntlm": 0.29840322240161193,
+        "source_fan_out": 0.23140032493025037,
+        "dst_in_degree": -0.01913261883093434,
+        "is_network_logon": 0.25637765489561787,
+        "dst_fan_out_ratio": 0.23740773735804016
+      },
+      "auc": 0.8968046061410387,
+      "neg_auc": -0.8968046061410387,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.450636+00:00",
+      "elapsed_seconds": 2.016990900039673
+    },
+    {
+      "iteration": 25,
+      "weights": {
+        "is_ntlm": 0.29840322240161193,
+        "source_fan_out": 0.23140032493025037,
+        "dst_in_degree": -0.01913261883093434,
+        "is_network_logon": 0.25637765489561787,
+        "dst_fan_out_ratio": 0.23740773735804016
+      },
+      "auc": 0.8968046061410387,
+      "neg_auc": -0.8968046061410387,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.538309+00:00",
+      "elapsed_seconds": 2.1047747135162354
+    },
+    {
+      "iteration": 26,
+      "weights": {
+        "is_ntlm": 0.3047506702046314,
+        "source_fan_out": 0.21817866645062156,
+        "dst_in_degree": -0.005862086099361397,
+        "is_network_logon": 0.2570805692743625,
+        "dst_fan_out_ratio": 0.24074186623332444
+      },
+      "auc": 0.9146944653168343,
+      "neg_auc": -0.9146944653168343,
+      "improvement_delta": 0.017889859175795553,
+      "timestamp": "2026-05-16T10:21:42.625927+00:00",
+      "elapsed_seconds": 2.1923277378082275
+    },
+    {
+      "iteration": 27,
+      "weights": {
+        "is_ntlm": 0.3047506702046314,
+        "source_fan_out": 0.21817866645062156,
+        "dst_in_degree": -0.005862086099361397,
+        "is_network_logon": 0.2570805692743625,
+        "dst_fan_out_ratio": 0.24074186623332444
+      },
+      "auc": 0.9146944653168343,
+      "neg_auc": -0.9146944653168343,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.713672+00:00",
+      "elapsed_seconds": 2.280040979385376
+    },
+    {
+      "iteration": 28,
+      "weights": {
+        "is_ntlm": 0.3047506702046314,
+        "source_fan_out": 0.21817866645062156,
+        "dst_in_degree": -0.005862086099361397,
+        "is_network_logon": 0.2570805692743625,
+        "dst_fan_out_ratio": 0.24074186623332444
+      },
+      "auc": 0.9146944653168343,
+      "neg_auc": -0.9146944653168343,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.801193+00:00",
+      "elapsed_seconds": 2.3675990104675293
+    },
+    {
+      "iteration": 29,
+      "weights": {
+        "is_ntlm": 0.3047506702046314,
+        "source_fan_out": 0.21817866645062156,
+        "dst_in_degree": -0.005862086099361397,
+        "is_network_logon": 0.2570805692743625,
+        "dst_fan_out_ratio": 0.24074186623332444
+      },
+      "auc": 0.9146944653168343,
+      "neg_auc": -0.9146944653168343,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:42.888673+00:00",
+      "elapsed_seconds": 2.455112934112549
+    },
+    {
+      "iteration": 30,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.02299816990105874,
+      "timestamp": "2026-05-16T10:21:42.976261+00:00",
+      "elapsed_seconds": 2.5426158905029297
+    },
+    {
+      "iteration": 31,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.064138+00:00",
+      "elapsed_seconds": 2.6305830478668213
+    },
+    {
+      "iteration": 32,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.152179+00:00",
+      "elapsed_seconds": 2.718477964401245
+    },
+    {
+      "iteration": 33,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.239860+00:00",
+      "elapsed_seconds": 2.806238889694214
+    },
+    {
+      "iteration": 34,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.327519+00:00",
+      "elapsed_seconds": 2.893829107284546
+    },
+    {
+      "iteration": 35,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.415045+00:00",
+      "elapsed_seconds": 2.9813618659973145
+    },
+    {
+      "iteration": 36,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.502653+00:00",
+      "elapsed_seconds": 3.0689918994903564
+    },
+    {
+      "iteration": 37,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.561251+00:00",
+      "elapsed_seconds": 3.1274988651275635
+    },
+    {
+      "iteration": 38,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.648623+00:00",
+      "elapsed_seconds": 3.2150158882141113
+    },
+    {
+      "iteration": 39,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.736578+00:00",
+      "elapsed_seconds": 3.3028199672698975
+    },
+    {
+      "iteration": 40,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.824276+00:00",
+      "elapsed_seconds": 3.3905978202819824
+    },
+    {
+      "iteration": 41,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.911769+00:00",
+      "elapsed_seconds": 3.478132963180542
+    },
+    {
+      "iteration": 42,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:43.999708+00:00",
+      "elapsed_seconds": 3.5660080909729004
+    },
+    {
+      "iteration": 43,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.087512+00:00",
+      "elapsed_seconds": 3.6538238525390625
+    },
+    {
+      "iteration": 44,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.175300+00:00",
+      "elapsed_seconds": 3.741605043411255
+    },
+    {
+      "iteration": 45,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.263368+00:00",
+      "elapsed_seconds": 3.8295738697052
+    },
+    {
+      "iteration": 46,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.351139+00:00",
+      "elapsed_seconds": 3.917517900466919
+    },
+    {
+      "iteration": 47,
+      "weights": {
+        "is_ntlm": 0.29581776880506006,
+        "source_fan_out": 0.21229779431407936,
+        "dst_in_degree": -0.0004990464641951436,
+        "is_network_logon": 0.25932057766629146,
+        "dst_fan_out_ratio": 0.23523215920211782
+      },
+      "auc": 0.937692635217893,
+      "neg_auc": -0.937692635217893,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.438936+00:00",
+      "elapsed_seconds": 4.0052409172058105
+    },
+    {
+      "iteration": 48,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.009132378565979815,
+      "timestamp": "2026-05-16T10:21:44.526894+00:00",
+      "elapsed_seconds": 4.093199014663696
+    },
+    {
+      "iteration": 49,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.614978+00:00",
+      "elapsed_seconds": 4.18110990524292
+    },
+    {
+      "iteration": 50,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.702726+00:00",
+      "elapsed_seconds": 4.2688679695129395
+    },
+    {
+      "iteration": 51,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.790447+00:00",
+      "elapsed_seconds": 4.356680870056152
+    },
+    {
+      "iteration": 52,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.878287+00:00",
+      "elapsed_seconds": 4.444614887237549
+    },
+    {
+      "iteration": 53,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:44.966231+00:00",
+      "elapsed_seconds": 4.5324318408966064
+    },
+    {
+      "iteration": 54,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.054105+00:00",
+      "elapsed_seconds": 4.620340824127197
+    },
+    {
+      "iteration": 55,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.141869+00:00",
+      "elapsed_seconds": 4.70819091796875
+    },
+    {
+      "iteration": 56,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.230092+00:00",
+      "elapsed_seconds": 4.796172857284546
+    },
+    {
+      "iteration": 57,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.317851+00:00",
+      "elapsed_seconds": 4.884091854095459
+    },
+    {
+      "iteration": 58,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.405703+00:00",
+      "elapsed_seconds": 4.9719789028167725
+    },
+    {
+      "iteration": 59,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.493618+00:00",
+      "elapsed_seconds": 5.059954881668091
+    },
+    {
+      "iteration": 60,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.581465+00:00",
+      "elapsed_seconds": 5.147687911987305
+    },
+    {
+      "iteration": 61,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.669466+00:00",
+      "elapsed_seconds": 5.235546827316284
+    },
+    {
+      "iteration": 62,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.757447+00:00",
+      "elapsed_seconds": 5.323700904846191
+    },
+    {
+      "iteration": 63,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.845406+00:00",
+      "elapsed_seconds": 5.411527872085571
+    },
+    {
+      "iteration": 64,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.933242+00:00",
+      "elapsed_seconds": 5.499453783035278
+    },
+    {
+      "iteration": 65,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:45.992183+00:00",
+      "elapsed_seconds": 5.558320760726929
+    },
+    {
+      "iteration": 66,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.080231+00:00",
+      "elapsed_seconds": 5.646376848220825
+    },
+    {
+      "iteration": 67,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.168327+00:00",
+      "elapsed_seconds": 5.734359979629517
+    },
+    {
+      "iteration": 68,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.256348+00:00",
+      "elapsed_seconds": 5.822490692138672
+    },
+    {
+      "iteration": 69,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.315055+00:00",
+      "elapsed_seconds": 5.8812878131866455
+    },
+    {
+      "iteration": 70,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.403641+00:00",
+      "elapsed_seconds": 5.969367027282715
+    },
+    {
+      "iteration": 71,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.492116+00:00",
+      "elapsed_seconds": 6.058203935623169
+    },
+    {
+      "iteration": 72,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.580140+00:00",
+      "elapsed_seconds": 6.146435022354126
+    },
+    {
+      "iteration": 73,
+      "weights": {
+        "is_ntlm": 0.295882278310682,
+        "source_fan_out": 0.21648166748927383,
+        "dst_in_degree": -0.00011113541934765735,
+        "is_network_logon": 0.2572614746807489,
+        "dst_fan_out_ratio": 0.23792079182518627
+      },
+      "auc": 0.9468250137838728,
+      "neg_auc": -0.9468250137838728,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.668372+00:00",
+      "elapsed_seconds": 6.2345898151397705
+    },
+    {
+      "iteration": 74,
+      "weights": {
+        "is_ntlm": 0.2938946293429362,
+        "source_fan_out": 0.21545518891589688,
+        "dst_in_degree": -4.494491464873728e-05,
+        "is_network_logon": 0.25845708271206047,
+        "dst_fan_out_ratio": 0.23684165429549184
+      },
+      "auc": 0.9573204474866487,
+      "neg_auc": -0.9573204474866487,
+      "improvement_delta": 0.010495433702775836,
+      "timestamp": "2026-05-16T10:21:46.756918+00:00",
+      "elapsed_seconds": 6.322998046875
+    },
+    {
+      "iteration": 75,
+      "weights": {
+        "is_ntlm": 0.2938946293429362,
+        "source_fan_out": 0.21545518891589688,
+        "dst_in_degree": -4.494491464873728e-05,
+        "is_network_logon": 0.25845708271206047,
+        "dst_fan_out_ratio": 0.23684165429549184
+      },
+      "auc": 0.9573204474866487,
+      "neg_auc": -0.9573204474866487,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.845342+00:00",
+      "elapsed_seconds": 6.41146993637085
+    },
+    {
+      "iteration": 76,
+      "weights": {
+        "is_ntlm": 0.2938946293429362,
+        "source_fan_out": 0.21545518891589688,
+        "dst_in_degree": -4.494491464873728e-05,
+        "is_network_logon": 0.25845708271206047,
+        "dst_fan_out_ratio": 0.23684165429549184
+      },
+      "auc": 0.9573204474866487,
+      "neg_auc": -0.9573204474866487,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:46.933734+00:00",
+      "elapsed_seconds": 6.4998557567596436
+    },
+    {
+      "iteration": 77,
+      "weights": {
+        "is_ntlm": 0.2938946293429362,
+        "source_fan_out": 0.21545518891589688,
+        "dst_in_degree": -4.494491464873728e-05,
+        "is_network_logon": 0.25845708271206047,
+        "dst_fan_out_ratio": 0.23684165429549184
+      },
+      "auc": 0.9573204474866487,
+      "neg_auc": -0.9573204474866487,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.021896+00:00",
+      "elapsed_seconds": 6.588124752044678
+    },
+    {
+      "iteration": 78,
+      "weights": {
+        "is_ntlm": 0.2938946293429362,
+        "source_fan_out": 0.21545518891589688,
+        "dst_in_degree": -4.494491464873728e-05,
+        "is_network_logon": 0.25845708271206047,
+        "dst_fan_out_ratio": 0.23684165429549184
+      },
+      "auc": 0.9573204474866487,
+      "neg_auc": -0.9573204474866487,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.109917+00:00",
+      "elapsed_seconds": 6.676194906234741
+    },
+    {
+      "iteration": 79,
+      "weights": {
+        "is_ntlm": 0.2938946293429362,
+        "source_fan_out": 0.21545518891589688,
+        "dst_in_degree": -4.494491464873728e-05,
+        "is_network_logon": 0.25845708271206047,
+        "dst_fan_out_ratio": 0.23684165429549184
+      },
+      "auc": 0.9573204474866487,
+      "neg_auc": -0.9573204474866487,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.198067+00:00",
+      "elapsed_seconds": 6.76415491104126
+    },
+    {
+      "iteration": 80,
+      "weights": {
+        "is_ntlm": 0.2938946293429362,
+        "source_fan_out": 0.21545518891589688,
+        "dst_in_degree": -4.494491464873728e-05,
+        "is_network_logon": 0.25845708271206047,
+        "dst_fan_out_ratio": 0.23684165429549184
+      },
+      "auc": 0.9573204474866487,
+      "neg_auc": -0.9573204474866487,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.286230+00:00",
+      "elapsed_seconds": 6.852418899536133
+    },
+    {
+      "iteration": 81,
+      "weights": {
+        "is_ntlm": 0.29490008838489684,
+        "source_fan_out": 0.21476969415581393,
+        "dst_in_degree": -3.732973056973319e-06,
+        "is_network_logon": 0.2583523699358542,
+        "dst_fan_out_ratio": 0.2366270942056221
+      },
+      "auc": 0.9661016391913455,
+      "neg_auc": -0.9661016391913455,
+      "improvement_delta": 0.008781191704696822,
+      "timestamp": "2026-05-16T10:21:47.374661+00:00",
+      "elapsed_seconds": 6.940670967102051
+    },
+    {
+      "iteration": 82,
+      "weights": {
+        "is_ntlm": 0.29490008838489684,
+        "source_fan_out": 0.21476969415581393,
+        "dst_in_degree": -3.732973056973319e-06,
+        "is_network_logon": 0.2583523699358542,
+        "dst_fan_out_ratio": 0.2366270942056221
+      },
+      "auc": 0.9661016391913455,
+      "neg_auc": -0.9661016391913455,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.462771+00:00",
+      "elapsed_seconds": 7.0289390087127686
+    },
+    {
+      "iteration": 83,
+      "weights": {
+        "is_ntlm": 0.29490008838489684,
+        "source_fan_out": 0.21476969415581393,
+        "dst_in_degree": -3.732973056973319e-06,
+        "is_network_logon": 0.2583523699358542,
+        "dst_fan_out_ratio": 0.2366270942056221
+      },
+      "auc": 0.9661016391913455,
+      "neg_auc": -0.9661016391913455,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.551070+00:00",
+      "elapsed_seconds": 7.117265939712524
+    },
+    {
+      "iteration": 84,
+      "weights": {
+        "is_ntlm": 0.29490008838489684,
+        "source_fan_out": 0.21476969415581393,
+        "dst_in_degree": -3.732973056973319e-06,
+        "is_network_logon": 0.2583523699358542,
+        "dst_fan_out_ratio": 0.2366270942056221
+      },
+      "auc": 0.9661016391913455,
+      "neg_auc": -0.9661016391913455,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.639303+00:00",
+      "elapsed_seconds": 7.205432891845703
+    },
+    {
+      "iteration": 85,
+      "weights": {
+        "is_ntlm": 0.29490008838489684,
+        "source_fan_out": 0.21476969415581393,
+        "dst_in_degree": -3.732973056973319e-06,
+        "is_network_logon": 0.2583523699358542,
+        "dst_fan_out_ratio": 0.2366270942056221
+      },
+      "auc": 0.9661016391913455,
+      "neg_auc": -0.9661016391913455,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.727659+00:00",
+      "elapsed_seconds": 7.293676853179932
+    },
+    {
+      "iteration": 86,
+      "weights": {
+        "is_ntlm": 0.29490008838489684,
+        "source_fan_out": 0.21476969415581393,
+        "dst_in_degree": -3.732973056973319e-06,
+        "is_network_logon": 0.2583523699358542,
+        "dst_fan_out_ratio": 0.2366270942056221
+      },
+      "auc": 0.9661016391913455,
+      "neg_auc": -0.9661016391913455,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.816037+00:00",
+      "elapsed_seconds": 7.38213586807251
+    },
+    {
+      "iteration": 87,
+      "weights": {
+        "is_ntlm": 0.29490008838489684,
+        "source_fan_out": 0.21476969415581393,
+        "dst_in_degree": -3.732973056973319e-06,
+        "is_network_logon": 0.2583523699358542,
+        "dst_fan_out_ratio": 0.2366270942056221
+      },
+      "auc": 0.9661016391913455,
+      "neg_auc": -0.9661016391913455,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:47.904421+00:00",
+      "elapsed_seconds": 7.470545768737793
+    },
+    {
+      "iteration": 88,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.00018269956302230383,
+      "timestamp": "2026-05-16T10:21:47.993251+00:00",
+      "elapsed_seconds": 7.559154748916626
+    },
+    {
+      "iteration": 89,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.081989+00:00",
+      "elapsed_seconds": 7.647951126098633
+    },
+    {
+      "iteration": 90,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.170452+00:00",
+      "elapsed_seconds": 7.736400842666626
+    },
+    {
+      "iteration": 91,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.259175+00:00",
+      "elapsed_seconds": 7.8250627517700195
+    },
+    {
+      "iteration": 92,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.347615+00:00",
+      "elapsed_seconds": 7.913686990737915
+    },
+    {
+      "iteration": 93,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.436212+00:00",
+      "elapsed_seconds": 8.00216007232666
+    },
+    {
+      "iteration": 94,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.526753+00:00",
+      "elapsed_seconds": 8.090709924697876
+    },
+    {
+      "iteration": 95,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.586325+00:00",
+      "elapsed_seconds": 8.152135848999023
+    },
+    {
+      "iteration": 96,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.675055+00:00",
+      "elapsed_seconds": 8.241195917129517
+    },
+    {
+      "iteration": 97,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.763745+00:00",
+      "elapsed_seconds": 8.329628944396973
+    },
+    {
+      "iteration": 98,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.852322+00:00",
+      "elapsed_seconds": 8.418210983276367
+    },
+    {
+      "iteration": 99,
+      "weights": {
+        "is_ntlm": 0.2949498345822488,
+        "source_fan_out": 0.2153612683832569,
+        "dst_in_degree": 7.188428554346239e-06,
+        "is_network_logon": 0.2580679834360227,
+        "dst_fan_out_ratio": 0.237033547887034
+      },
+      "auc": 0.9662843387543678,
+      "neg_auc": -0.9662843387543678,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:48.940962+00:00",
+      "elapsed_seconds": 8.507009983062744
+    },
+    {
+      "iteration": 100,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.00037595937846890415,
+      "timestamp": "2026-05-16T10:21:49.029591+00:00",
+      "elapsed_seconds": 8.59554386138916
+    },
+    {
+      "iteration": 101,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.118181+00:00",
+      "elapsed_seconds": 8.684292078018188
+    },
+    {
+      "iteration": 102,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.206599+00:00",
+      "elapsed_seconds": 8.772798776626587
+    },
+    {
+      "iteration": 103,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.294960+00:00",
+      "elapsed_seconds": 8.861138820648193
+    },
+    {
+      "iteration": 104,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.383569+00:00",
+      "elapsed_seconds": 8.94970178604126
+    },
+    {
+      "iteration": 105,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.472058+00:00",
+      "elapsed_seconds": 9.038434028625488
+    },
+    {
+      "iteration": 106,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.531265+00:00",
+      "elapsed_seconds": 9.097280979156494
+    },
+    {
+      "iteration": 107,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.619916+00:00",
+      "elapsed_seconds": 9.186049938201904
+    },
+    {
+      "iteration": 108,
+      "weights": {
+        "is_ntlm": 0.2938602580583458,
+        "source_fan_out": 0.21443967819588228,
+        "dst_in_degree": -2.5144269806474348e-06,
+        "is_network_logon": 0.258912121044933,
+        "dst_fan_out_ratio": 0.23620886890511947
+      },
+      "auc": 0.9666602981328367,
+      "neg_auc": -0.9666602981328367,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.708559+00:00",
+      "elapsed_seconds": 9.274748802185059
+    },
+    {
+      "iteration": 109,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0017334375506115052,
+      "timestamp": "2026-05-16T10:21:49.797311+00:00",
+      "elapsed_seconds": 9.363187789916992
+    },
+    {
+      "iteration": 110,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.886391+00:00",
+      "elapsed_seconds": 9.452411890029907
+    },
+    {
+      "iteration": 111,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:49.975023+00:00",
+      "elapsed_seconds": 9.541096925735474
+    },
+    {
+      "iteration": 112,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.063450+00:00",
+      "elapsed_seconds": 9.62978196144104
+    },
+    {
+      "iteration": 113,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.152110+00:00",
+      "elapsed_seconds": 9.718255043029785
+    },
+    {
+      "iteration": 114,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.240707+00:00",
+      "elapsed_seconds": 9.8067147731781
+    },
+    {
+      "iteration": 115,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.329391+00:00",
+      "elapsed_seconds": 9.895505905151367
+    },
+    {
+      "iteration": 116,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.388488+00:00",
+      "elapsed_seconds": 9.954426050186157
+    },
+    {
+      "iteration": 117,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.477253+00:00",
+      "elapsed_seconds": 10.043348789215088
+    },
+    {
+      "iteration": 118,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.565660+00:00",
+      "elapsed_seconds": 10.131691932678223
+    },
+    {
+      "iteration": 119,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.653994+00:00",
+      "elapsed_seconds": 10.2201988697052
+    },
+    {
+      "iteration": 120,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.742519+00:00",
+      "elapsed_seconds": 10.308519840240479
+    },
+    {
+      "iteration": 121,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.831113+00:00",
+      "elapsed_seconds": 10.397068977355957
+    },
+    {
+      "iteration": 122,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.919610+00:00",
+      "elapsed_seconds": 10.485591888427734
+    },
+    {
+      "iteration": 123,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:50.978750+00:00",
+      "elapsed_seconds": 10.544683933258057
+    },
+    {
+      "iteration": 124,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.067453+00:00",
+      "elapsed_seconds": 10.633454084396362
+    },
+    {
+      "iteration": 125,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.156095+00:00",
+      "elapsed_seconds": 10.722115993499756
+    },
+    {
+      "iteration": 126,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.244919+00:00",
+      "elapsed_seconds": 10.81078290939331
+    },
+    {
+      "iteration": 127,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.333421+00:00",
+      "elapsed_seconds": 10.899610757827759
+    },
+    {
+      "iteration": 128,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.422560+00:00",
+      "elapsed_seconds": 10.988298892974854
+    },
+    {
+      "iteration": 129,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.511328+00:00",
+      "elapsed_seconds": 11.077407836914062
+    },
+    {
+      "iteration": 130,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.599827+00:00",
+      "elapsed_seconds": 11.16599702835083
+    },
+    {
+      "iteration": 131,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.688126+00:00",
+      "elapsed_seconds": 11.254248857498169
+    },
+    {
+      "iteration": 132,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.776632+00:00",
+      "elapsed_seconds": 11.34279489517212
+    },
+    {
+      "iteration": 133,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.865272+00:00",
+      "elapsed_seconds": 11.431412935256958
+    },
+    {
+      "iteration": 134,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:51.953638+00:00",
+      "elapsed_seconds": 11.519798994064331
+    },
+    {
+      "iteration": 135,
+      "weights": {
+        "is_ntlm": 0.29482085279262854,
+        "source_fan_out": 0.21470604931824455,
+        "dst_in_degree": 3.076579347038495e-06,
+        "is_network_logon": 0.258415739060164,
+        "dst_fan_out_ratio": 0.2365868822883473
+      },
+      "auc": 0.9683937356834482,
+      "neg_auc": -0.9683937356834482,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:52.042464+00:00",
+      "elapsed_seconds": 11.608546018600464
+    },
+    {
+      "iteration": 136,
+      "weights": {
+        "is_ntlm": 0.2947126204821591,
+        "source_fan_out": 0.2149366675908598,
+        "dst_in_degree": 4.12584317604199e-06,
+        "is_network_logon": 0.2583528971266918,
+        "dst_fan_out_ratio": 0.2367101155807242
+      },
+      "auc": 0.9683985660544464,
+      "neg_auc": -0.9683985660544464,
+      "improvement_delta": 4.8303709981878384e-06,
+      "timestamp": "2026-05-16T10:21:52.131158+00:00",
+      "elapsed_seconds": 11.69717288017273
+    },
+    {
+      "iteration": 137,
+      "weights": {
+        "is_ntlm": 0.2946070362253888,
+        "source_fan_out": 0.214824289760205,
+        "dst_in_degree": 4.039658261247051e-06,
+        "is_network_logon": 0.25844549266884476,
+        "dst_fan_out_ratio": 0.23661744846316946
+      },
+      "auc": 0.9684147302568368,
+      "neg_auc": -0.9684147302568368,
+      "improvement_delta": 1.616420239036742e-05,
+      "timestamp": "2026-05-16T10:21:52.220035+00:00",
+      "elapsed_seconds": 11.786043882369995
+    },
+    {
+      "iteration": 138,
+      "weights": {
+        "is_ntlm": 0.29464807546613814,
+        "source_fan_out": 0.21482498874104927,
+        "dst_in_degree": 3.1683354356501182e-06,
+        "is_network_logon": 0.25842884786453124,
+        "dst_fan_out_ratio": 0.23662474962387192
+      },
+      "auc": 0.9684150810659037,
+      "neg_auc": -0.9684150810659037,
+      "improvement_delta": 3.508090669068764e-07,
+      "timestamp": "2026-05-16T10:21:52.309001+00:00",
+      "elapsed_seconds": 11.875094890594482
+    },
+    {
+      "iteration": 139,
+      "weights": {
+        "is_ntlm": 0.2946599501375541,
+        "source_fan_out": 0.21481044352744083,
+        "dst_in_degree": 3.9984288359104785e-06,
+        "is_network_logon": 0.2584298867205601,
+        "dst_fan_out_ratio": 0.236617187782512
+      },
+      "auc": 0.9684200643536746,
+      "neg_auc": -0.9684200643536746,
+      "improvement_delta": 4.983287770876643e-06,
+      "timestamp": "2026-05-16T10:21:52.397642+00:00",
+      "elapsed_seconds": 11.963876008987427
+    },
+    {
+      "iteration": 140,
+      "weights": {
+        "is_ntlm": 0.29462368606253875,
+        "source_fan_out": 0.21480843766937552,
+        "dst_in_degree": 3.248769665271544e-06,
+        "is_network_logon": 0.2584458444883257,
+        "dst_fan_out_ratio": 0.23660917289818062
+      },
+      "auc": 0.9684312182829813,
+      "neg_auc": -0.9684312182829813,
+      "improvement_delta": 1.115392930672865e-05,
+      "timestamp": "2026-05-16T10:21:52.486388+00:00",
+      "elapsed_seconds": 12.052489995956421
+    },
+    {
+      "iteration": 141,
+      "weights": {
+        "is_ntlm": 0.29476115010137305,
+        "source_fan_out": 0.21475326996708408,
+        "dst_in_degree": 3.3004490517635044e-06,
+        "is_network_logon": 0.25841743820993335,
+        "dst_fan_out_ratio": 0.23660398069181782
+      },
+      "auc": 0.9684332151961312,
+      "neg_auc": -0.9684332151961312,
+      "improvement_delta": 1.9969131499486537e-06,
+      "timestamp": "2026-05-16T10:21:52.574990+00:00",
+      "elapsed_seconds": 12.141124963760376
+    },
+    {
+      "iteration": 142,
+      "weights": {
+        "is_ntlm": 0.29476115010137305,
+        "source_fan_out": 0.21475326996708408,
+        "dst_in_degree": 3.3004490517635044e-06,
+        "is_network_logon": 0.25841743820993335,
+        "dst_fan_out_ratio": 0.23660398069181782
+      },
+      "auc": 0.9684332151961312,
+      "neg_auc": -0.9684332151961312,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:52.663871+00:00",
+      "elapsed_seconds": 12.22990894317627
+    },
+    {
+      "iteration": 143,
+      "weights": {
+        "is_ntlm": 0.29463166760233894,
+        "source_fan_out": 0.2148219115182231,
+        "dst_in_degree": 3.860625185646418e-06,
+        "is_network_logon": 0.25843678906261386,
+        "dst_fan_out_ratio": 0.23662056357308164
+      },
+      "auc": 0.9684398625781938,
+      "neg_auc": -0.9684398625781938,
+      "improvement_delta": 6.647382062574536e-06,
+      "timestamp": "2026-05-16T10:21:52.752655+00:00",
+      "elapsed_seconds": 12.318660974502563
+    },
+    {
+      "iteration": 144,
+      "weights": {
+        "is_ntlm": 0.29465719455836004,
+        "source_fan_out": 0.21482215045017405,
+        "dst_in_degree": 3.3427256315081525e-06,
+        "is_network_logon": 0.25842652582367587,
+        "dst_fan_out_ratio": 0.23662501630398294
+      },
+      "auc": 0.9684417785354055,
+      "neg_auc": -0.9684417785354055,
+      "improvement_delta": 1.915957211662267e-06,
+      "timestamp": "2026-05-16T10:21:52.841189+00:00",
+      "elapsed_seconds": 12.407410860061646
+    },
+    {
+      "iteration": 145,
+      "weights": {
+        "is_ntlm": 0.29466472020423684,
+        "source_fan_out": 0.21481351554591988,
+        "dst_in_degree": 3.836387117369224e-06,
+        "is_network_logon": 0.2584269658173127,
+        "dst_fan_out_ratio": 0.23662064910360198
+      },
+      "auc": 0.9684438743947026,
+      "neg_auc": -0.9684438743947026,
+      "improvement_delta": 2.0958592971132006e-06,
+      "timestamp": "2026-05-16T10:21:52.930247+00:00",
+      "elapsed_seconds": 12.496213912963867
+    },
+    {
+      "iteration": 146,
+      "weights": {
+        "is_ntlm": 0.29466472020423684,
+        "source_fan_out": 0.21481351554591988,
+        "dst_in_degree": 3.836387117369224e-06,
+        "is_network_logon": 0.2584269658173127,
+        "dst_fan_out_ratio": 0.23662064910360198
+      },
+      "auc": 0.9684438743947026,
+      "neg_auc": -0.9684438743947026,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.019312+00:00",
+      "elapsed_seconds": 12.585415840148926
+    },
+    {
+      "iteration": 147,
+      "weights": {
+        "is_ntlm": 0.2946863402512127,
+        "source_fan_out": 0.2148603561338684,
+        "dst_in_degree": 3.7921804392527476e-06,
+        "is_network_logon": 0.25839778224295695,
+        "dst_fan_out_ratio": 0.2366558760487611
+      },
+      "auc": 0.9684513403312546,
+      "neg_auc": -0.9684513403312546,
+      "improvement_delta": 7.465936551986907e-06,
+      "timestamp": "2026-05-16T10:21:53.107669+00:00",
+      "elapsed_seconds": 12.673726797103882
+    },
+    {
+      "iteration": 148,
+      "weights": {
+        "is_ntlm": 0.2946863402512127,
+        "source_fan_out": 0.2148603561338684,
+        "dst_in_degree": 3.7921804392527476e-06,
+        "is_network_logon": 0.25839778224295695,
+        "dst_fan_out_ratio": 0.2366558760487611
+      },
+      "auc": 0.9684513403312546,
+      "neg_auc": -0.9684513403312546,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.196233+00:00",
+      "elapsed_seconds": 12.76247501373291
+    },
+    {
+      "iteration": 149,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 3.400149417798204e-06,
+      "timestamp": "2026-05-16T10:21:53.284777+00:00",
+      "elapsed_seconds": 12.850764036178589
+    },
+    {
+      "iteration": 150,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.373839+00:00",
+      "elapsed_seconds": 12.93979787826538
+    },
+    {
+      "iteration": 151,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.462365+00:00",
+      "elapsed_seconds": 13.028446912765503
+    },
+    {
+      "iteration": 152,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.551049+00:00",
+      "elapsed_seconds": 13.117137908935547
+    },
+    {
+      "iteration": 153,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.639971+00:00",
+      "elapsed_seconds": 13.20595407485962
+    },
+    {
+      "iteration": 154,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.728773+00:00",
+      "elapsed_seconds": 13.294872045516968
+    },
+    {
+      "iteration": 155,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.817417+00:00",
+      "elapsed_seconds": 13.383471012115479
+    },
+    {
+      "iteration": 156,
+      "weights": {
+        "is_ntlm": 0.29464696691172876,
+        "source_fan_out": 0.21482035697681706,
+        "dst_in_degree": 3.754172842395772e-06,
+        "is_network_logon": 0.2584314246723336,
+        "dst_fan_out_ratio": 0.23662247024353034
+      },
+      "auc": 0.9684547404806724,
+      "neg_auc": -0.9684547404806724,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:53.906848+00:00",
+      "elapsed_seconds": 13.472624778747559
+    },
+    {
+      "iteration": 157,
+      "weights": {
+        "is_ntlm": 0.29467935239354237,
+        "source_fan_out": 0.21484494046415747,
+        "dst_in_degree": 3.7344200361974337e-06,
+        "is_network_logon": 0.25840749313333083,
+        "dst_fan_out_ratio": 0.2366445507801149
+      },
+      "auc": 0.9684569083008037,
+      "neg_auc": -0.9684569083008037,
+      "improvement_delta": 2.167820131293574e-06,
+      "timestamp": "2026-05-16T10:21:53.995589+00:00",
+      "elapsed_seconds": 13.561766862869263
+    },
+    {
+      "iteration": 158,
+      "weights": {
+        "is_ntlm": 0.29467935239354237,
+        "source_fan_out": 0.21484494046415747,
+        "dst_in_degree": 3.7344200361974337e-06,
+        "is_network_logon": 0.25840749313333083,
+        "dst_fan_out_ratio": 0.2366445507801149
+      },
+      "auc": 0.9684569083008037,
+      "neg_auc": -0.9684569083008037,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:54.055176+00:00",
+      "elapsed_seconds": 13.621013879776001
+    },
+    {
+      "iteration": 159,
+      "weights": {
+        "is_ntlm": 0.29467935239354237,
+        "source_fan_out": 0.21484494046415747,
+        "dst_in_degree": 3.7344200361974337e-06,
+        "is_network_logon": 0.25840749313333083,
+        "dst_fan_out_ratio": 0.2366445507801149
+      },
+      "auc": 0.9684569083008037,
+      "neg_auc": -0.9684569083008037,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:54.292203+00:00",
+      "elapsed_seconds": 13.85823678970337
+    },
+    {
+      "iteration": 160,
+      "weights": {
+        "is_ntlm": 0.29466477621147397,
+        "source_fan_out": 0.21482616000021368,
+        "dst_in_degree": 3.6275917740320024e-06,
+        "is_network_logon": 0.2584216926355716,
+        "dst_fan_out_ratio": 0.23662942571589923
+      },
+      "auc": 0.9684572051392448,
+      "neg_auc": -0.9684572051392448,
+      "improvement_delta": 2.96838441160574e-07,
+      "timestamp": "2026-05-16T10:21:54.381333+00:00",
+      "elapsed_seconds": 13.947337865829468
+    },
+    {
+      "iteration": 161,
+      "weights": {
+        "is_ntlm": 0.29466657605733615,
+        "source_fan_out": 0.21482789977735178,
+        "dst_in_degree": 3.618934397882662e-06,
+        "is_network_logon": 0.25842020019415074,
+        "dst_fan_out_ratio": 0.23663089233403675
+      },
+      "auc": 0.9684572681049748,
+      "neg_auc": -0.9684572681049748,
+      "improvement_delta": 6.296572996333794e-08,
+      "timestamp": "2026-05-16T10:21:54.470612+00:00",
+      "elapsed_seconds": 14.0364248752594
+    },
+    {
+      "iteration": 162,
+      "weights": {
+        "is_ntlm": 0.29466657605733615,
+        "source_fan_out": 0.21482789977735178,
+        "dst_in_degree": 3.618934397882662e-06,
+        "is_network_logon": 0.25842020019415074,
+        "dst_fan_out_ratio": 0.23663089233403675
+      },
+      "auc": 0.9684572681049748,
+      "neg_auc": -0.9684572681049748,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:54.530151+00:00",
+      "elapsed_seconds": 14.096107006072998
+    },
+    {
+      "iteration": 163,
+      "weights": {
+        "is_ntlm": 0.29466657605733615,
+        "source_fan_out": 0.21482789977735178,
+        "dst_in_degree": 3.618934397882662e-06,
+        "is_network_logon": 0.25842020019415074,
+        "dst_fan_out_ratio": 0.23663089233403675
+      },
+      "auc": 0.9684572681049748,
+      "neg_auc": -0.9684572681049748,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:54.619251+00:00",
+      "elapsed_seconds": 14.18526577949524
+    },
+    {
+      "iteration": 164,
+      "weights": {
+        "is_ntlm": 0.29466657605733615,
+        "source_fan_out": 0.21482789977735178,
+        "dst_in_degree": 3.618934397882662e-06,
+        "is_network_logon": 0.25842020019415074,
+        "dst_fan_out_ratio": 0.23663089233403675
+      },
+      "auc": 0.9684572681049748,
+      "neg_auc": -0.9684572681049748,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:54.708116+00:00",
+      "elapsed_seconds": 14.274099826812744
+    },
+    {
+      "iteration": 165,
+      "weights": {
+        "is_ntlm": 0.29466657605733615,
+        "source_fan_out": 0.21482789977735178,
+        "dst_in_degree": 3.618934397882662e-06,
+        "is_network_logon": 0.25842020019415074,
+        "dst_fan_out_ratio": 0.23663089233403675
+      },
+      "auc": 0.9684572681049748,
+      "neg_auc": -0.9684572681049748,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:54.767121+00:00",
+      "elapsed_seconds": 14.333117961883545
+    },
+    {
+      "iteration": 166,
+      "weights": {
+        "is_ntlm": 0.29466657605733615,
+        "source_fan_out": 0.21482789977735178,
+        "dst_in_degree": 3.618934397882662e-06,
+        "is_network_logon": 0.25842020019415074,
+        "dst_fan_out_ratio": 0.23663089233403675
+      },
+      "auc": 0.9684572681049748,
+      "neg_auc": -0.9684572681049748,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:54.855656+00:00",
+      "elapsed_seconds": 14.42183804512024
+    },
+    {
+      "iteration": 167,
+      "weights": {
+        "is_ntlm": 0.2946582057382808,
+        "source_fan_out": 0.21483864395636035,
+        "dst_in_degree": 3.698344610405651e-06,
+        "is_network_logon": 0.25841858982790705,
+        "dst_fan_out_ratio": 0.23663600949826535
+      },
+      "auc": 0.968457304085392,
+      "neg_auc": -0.968457304085392,
+      "improvement_delta": 3.5980417201209036e-08,
+      "timestamp": "2026-05-16T10:21:54.944261+00:00",
+      "elapsed_seconds": 14.510364770889282
+    },
+    {
+      "iteration": 168,
+      "weights": {
+        "is_ntlm": 0.2946582057382808,
+        "source_fan_out": 0.21483864395636035,
+        "dst_in_degree": 3.698344610405651e-06,
+        "is_network_logon": 0.25841858982790705,
+        "dst_fan_out_ratio": 0.23663600949826535
+      },
+      "auc": 0.968457304085392,
+      "neg_auc": -0.968457304085392,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:55.181095+00:00",
+      "elapsed_seconds": 14.747196912765503
+    },
+    {
+      "iteration": 169,
+      "weights": {
+        "is_ntlm": 0.2946673598703018,
+        "source_fan_out": 0.21485403010148296,
+        "dst_in_degree": 3.7115440329913585e-06,
+        "is_network_logon": 0.25840810603809794,
+        "dst_fan_out_ratio": 0.2366478427681119
+      },
+      "auc": 0.9684583745028013,
+      "neg_auc": -0.9684583745028013,
+      "improvement_delta": 1.0704174092657226e-06,
+      "timestamp": "2026-05-16T10:21:55.269744+00:00",
+      "elapsed_seconds": 14.835823059082031
+    },
+    {
+      "iteration": 170,
+      "weights": {
+        "is_ntlm": 0.2946673598703018,
+        "source_fan_out": 0.21485403010148296,
+        "dst_in_degree": 3.7115440329913585e-06,
+        "is_network_logon": 0.25840810603809794,
+        "dst_fan_out_ratio": 0.2366478427681119
+      },
+      "auc": 0.9684583745028013,
+      "neg_auc": -0.9684583745028013,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:55.329081+00:00",
+      "elapsed_seconds": 14.89498496055603
+    },
+    {
+      "iteration": 171,
+      "weights": {
+        "is_ntlm": 0.2946673598703018,
+        "source_fan_out": 0.21485403010148296,
+        "dst_in_degree": 3.7115440329913585e-06,
+        "is_network_logon": 0.25840810603809794,
+        "dst_fan_out_ratio": 0.2366478427681119
+      },
+      "auc": 0.9684583745028013,
+      "neg_auc": -0.9684583745028013,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:55.566629+00:00",
+      "elapsed_seconds": 15.132454872131348
+    },
+    {
+      "iteration": 172,
+      "weights": {
+        "is_ntlm": 0.2946673598703018,
+        "source_fan_out": 0.21485403010148296,
+        "dst_in_degree": 3.7115440329913585e-06,
+        "is_network_logon": 0.25840810603809794,
+        "dst_fan_out_ratio": 0.2366478427681119
+      },
+      "auc": 0.9684583745028013,
+      "neg_auc": -0.9684583745028013,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:55.626114+00:00",
+      "elapsed_seconds": 15.192224979400635
+    },
+    {
+      "iteration": 173,
+      "weights": {
+        "is_ntlm": 0.2946673598703018,
+        "source_fan_out": 0.21485403010148296,
+        "dst_in_degree": 3.7115440329913585e-06,
+        "is_network_logon": 0.25840810603809794,
+        "dst_fan_out_ratio": 0.2366478427681119
+      },
+      "auc": 0.9684583745028013,
+      "neg_auc": -0.9684583745028013,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:55.714831+00:00",
+      "elapsed_seconds": 15.280889987945557
+    },
+    {
+      "iteration": 174,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 6.116670909772637e-07,
+      "timestamp": "2026-05-16T10:21:55.951872+00:00",
+      "elapsed_seconds": 15.518035888671875
+    },
+    {
+      "iteration": 175,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:56.189054+00:00",
+      "elapsed_seconds": 15.754905939102173
+    },
+    {
+      "iteration": 176,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:56.425641+00:00",
+      "elapsed_seconds": 15.99151086807251
+    },
+    {
+      "iteration": 177,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:56.662669+00:00",
+      "elapsed_seconds": 16.228689908981323
+    },
+    {
+      "iteration": 178,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:56.751300+00:00",
+      "elapsed_seconds": 16.317360877990723
+    },
+    {
+      "iteration": 179,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:56.987955+00:00",
+      "elapsed_seconds": 16.554056882858276
+    },
+    {
+      "iteration": 180,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:57.076572+00:00",
+      "elapsed_seconds": 16.64239192008972
+    },
+    {
+      "iteration": 181,
+      "weights": {
+        "is_ntlm": 0.29466150122580836,
+        "source_fan_out": 0.21484418296860447,
+        "dst_in_degree": 3.7030964025365056e-06,
+        "is_network_logon": 0.25841481566357577,
+        "dst_fan_out_ratio": 0.23664026947541011
+      },
+      "auc": 0.9684589861698922,
+      "neg_auc": -0.9684589861698922,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:57.165161+00:00",
+      "elapsed_seconds": 16.731224060058594
+    },
+    {
+      "iteration": 182,
+      "weights": {
+        "is_ntlm": 0.29466342098643594,
+        "source_fan_out": 0.21484740967710608,
+        "dst_in_degree": 3.7058645220839518e-06,
+        "is_network_logon": 0.2584126170534992,
+        "dst_fan_out_ratio": 0.23664275109196264
+      },
+      "auc": 0.968459588841879,
+      "neg_auc": -0.968459588841879,
+      "improvement_delta": 6.026719867602282e-07,
+      "timestamp": "2026-05-16T10:21:57.402376+00:00",
+      "elapsed_seconds": 16.968296766281128
+    },
+    {
+      "iteration": 183,
+      "weights": {
+        "is_ntlm": 0.29466342098643594,
+        "source_fan_out": 0.21484740967710608,
+        "dst_in_degree": 3.7058645220839518e-06,
+        "is_network_logon": 0.2584126170534992,
+        "dst_fan_out_ratio": 0.23664275109196264
+      },
+      "auc": 0.968459588841879,
+      "neg_auc": -0.968459588841879,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:57.491280+00:00",
+      "elapsed_seconds": 17.05730676651001
+    },
+    {
+      "iteration": 184,
+      "weights": {
+        "is_ntlm": 0.29466185442737297,
+        "source_fan_out": 0.21484773053635742,
+        "dst_in_degree": 3.7056410930093525e-06,
+        "is_network_logon": 0.25841307227333155,
+        "dst_fan_out_ratio": 0.2366425985113665
+      },
+      "auc": 0.9684597237684431,
+      "neg_auc": -0.9684597237684431,
+      "improvement_delta": 1.349265641437114e-07,
+      "timestamp": "2026-05-16T10:21:57.580061+00:00",
+      "elapsed_seconds": 17.14608883857727
+    },
+    {
+      "iteration": 185,
+      "weights": {
+        "is_ntlm": 0.29466185442737297,
+        "source_fan_out": 0.21484773053635742,
+        "dst_in_degree": 3.7056410930093525e-06,
+        "is_network_logon": 0.25841307227333155,
+        "dst_fan_out_ratio": 0.2366425985113665
+      },
+      "auc": 0.9684597237684431,
+      "neg_auc": -0.9684597237684431,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:57.668936+00:00",
+      "elapsed_seconds": 17.234853744506836
+    },
+    {
+      "iteration": 186,
+      "weights": {
+        "is_ntlm": 0.29466185442737297,
+        "source_fan_out": 0.21484773053635742,
+        "dst_in_degree": 3.7056410930093525e-06,
+        "is_network_logon": 0.25841307227333155,
+        "dst_fan_out_ratio": 0.2366425985113665
+      },
+      "auc": 0.9684597237684431,
+      "neg_auc": -0.9684597237684431,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:57.905502+00:00",
+      "elapsed_seconds": 17.471537828445435
+    },
+    {
+      "iteration": 187,
+      "weights": {
+        "is_ntlm": 0.29466185442737297,
+        "source_fan_out": 0.21484773053635742,
+        "dst_in_degree": 3.7056410930093525e-06,
+        "is_network_logon": 0.25841307227333155,
+        "dst_fan_out_ratio": 0.2366425985113665
+      },
+      "auc": 0.9684597237684431,
+      "neg_auc": -0.9684597237684431,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:57.964743+00:00",
+      "elapsed_seconds": 17.53066897392273
+    },
+    {
+      "iteration": 188,
+      "weights": {
+        "is_ntlm": 0.29466185442737297,
+        "source_fan_out": 0.21484773053635742,
+        "dst_in_degree": 3.7056410930093525e-06,
+        "is_network_logon": 0.25841307227333155,
+        "dst_fan_out_ratio": 0.2366425985113665
+      },
+      "auc": 0.9684597237684431,
+      "neg_auc": -0.9684597237684431,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:58.201352+00:00",
+      "elapsed_seconds": 17.76730990409851
+    },
+    {
+      "iteration": 189,
+      "weights": {
+        "is_ntlm": 0.29466185442737297,
+        "source_fan_out": 0.21484773053635742,
+        "dst_in_degree": 3.7056410930093525e-06,
+        "is_network_logon": 0.25841307227333155,
+        "dst_fan_out_ratio": 0.2366425985113665
+      },
+      "auc": 0.9684597237684431,
+      "neg_auc": -0.9684597237684431,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:58.438210+00:00",
+      "elapsed_seconds": 18.00408697128296
+    },
+    {
+      "iteration": 190,
+      "weights": {
+        "is_ntlm": 0.29466170975601214,
+        "source_fan_out": 0.21484627745260582,
+        "dst_in_degree": 3.7045987877916743e-06,
+        "is_network_logon": 0.25841378636597556,
+        "dst_fan_out_ratio": 0.23664164453823874
+      },
+      "auc": 0.9684599396509459,
+      "neg_auc": -0.9684599396509459,
+      "improvement_delta": 2.15882502763165e-07,
+      "timestamp": "2026-05-16T10:21:58.680608+00:00",
+      "elapsed_seconds": 18.246421813964844
+    },
+    {
+      "iteration": 191,
+      "weights": {
+        "is_ntlm": 0.29466170975601214,
+        "source_fan_out": 0.21484627745260582,
+        "dst_in_degree": 3.7045987877916743e-06,
+        "is_network_logon": 0.25841378636597556,
+        "dst_fan_out_ratio": 0.23664164453823874
+      },
+      "auc": 0.9684599396509459,
+      "neg_auc": -0.9684599396509459,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:58.769528+00:00",
+      "elapsed_seconds": 18.335598945617676
+    },
+    {
+      "iteration": 192,
+      "weights": {
+        "is_ntlm": 0.29466170975601214,
+        "source_fan_out": 0.21484627745260582,
+        "dst_in_degree": 3.7045987877916743e-06,
+        "is_network_logon": 0.25841378636597556,
+        "dst_fan_out_ratio": 0.23664164453823874
+      },
+      "auc": 0.9684599396509459,
+      "neg_auc": -0.9684599396509459,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:58.858579+00:00",
+      "elapsed_seconds": 18.424560070037842
+    },
+    {
+      "iteration": 193,
+      "weights": {
+        "is_ntlm": 0.29466170975601214,
+        "source_fan_out": 0.21484627745260582,
+        "dst_in_degree": 3.7045987877916743e-06,
+        "is_network_logon": 0.25841378636597556,
+        "dst_fan_out_ratio": 0.23664164453823874
+      },
+      "auc": 0.9684599396509459,
+      "neg_auc": -0.9684599396509459,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:58.918034+00:00",
+      "elapsed_seconds": 18.483994722366333
+    },
+    {
+      "iteration": 194,
+      "weights": {
+        "is_ntlm": 0.29466170975601214,
+        "source_fan_out": 0.21484627745260582,
+        "dst_in_degree": 3.7045987877916743e-06,
+        "is_network_logon": 0.25841378636597556,
+        "dst_fan_out_ratio": 0.23664164453823874
+      },
+      "auc": 0.9684599396509459,
+      "neg_auc": -0.9684599396509459,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:59.007203+00:00",
+      "elapsed_seconds": 18.573002815246582
+    },
+    {
+      "iteration": 195,
+      "weights": {
+        "is_ntlm": 0.29466170975601214,
+        "source_fan_out": 0.21484627745260582,
+        "dst_in_degree": 3.7045987877916743e-06,
+        "is_network_logon": 0.25841378636597556,
+        "dst_fan_out_ratio": 0.23664164453823874
+      },
+      "auc": 0.9684599396509459,
+      "neg_auc": -0.9684599396509459,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:59.066648+00:00",
+      "elapsed_seconds": 18.632569074630737
+    },
+    {
+      "iteration": 196,
+      "weights": {
+        "is_ntlm": 0.29466241023276135,
+        "source_fan_out": 0.21484714520783732,
+        "dst_in_degree": 3.704888516288394e-06,
+        "is_network_logon": 0.2584131210312387,
+        "dst_fan_out_ratio": 0.236642345709899
+      },
+      "auc": 0.9684601105579271,
+      "neg_auc": -0.9684601105579271,
+      "improvement_delta": 1.7090698123389814e-07,
+      "timestamp": "2026-05-16T10:21:59.155266+00:00",
+      "elapsed_seconds": 18.72146201133728
+    },
+    {
+      "iteration": 197,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 8.09559386194536e-08,
+      "timestamp": "2026-05-16T10:21:59.244411+00:00",
+      "elapsed_seconds": 18.81038784980774
+    },
+    {
+      "iteration": 198,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:59.303721+00:00",
+      "elapsed_seconds": 18.86981177330017
+    },
+    {
+      "iteration": 199,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:59.541365+00:00",
+      "elapsed_seconds": 19.107056140899658
+    },
+    {
+      "iteration": 200,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:59.629982+00:00",
+      "elapsed_seconds": 19.19602608680725
+    },
+    {
+      "iteration": 201,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:59.689310+00:00",
+      "elapsed_seconds": 19.255331993103027
+    },
+    {
+      "iteration": 202,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:21:59.925951+00:00",
+      "elapsed_seconds": 19.49187183380127
+    },
+    {
+      "iteration": 203,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.014741+00:00",
+      "elapsed_seconds": 19.580687761306763
+    },
+    {
+      "iteration": 204,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.104270+00:00",
+      "elapsed_seconds": 19.670145988464355
+    },
+    {
+      "iteration": 205,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.163781+00:00",
+      "elapsed_seconds": 19.72975206375122
+    },
+    {
+      "iteration": 206,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.253456+00:00",
+      "elapsed_seconds": 19.819150924682617
+    },
+    {
+      "iteration": 207,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.342856+00:00",
+      "elapsed_seconds": 19.908628940582275
+    },
+    {
+      "iteration": 208,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.432233+00:00",
+      "elapsed_seconds": 19.998040914535522
+    },
+    {
+      "iteration": 209,
+      "weights": {
+        "is_ntlm": 0.2946617754857023,
+        "source_fan_out": 0.21484673663875936,
+        "dst_in_degree": 3.70515876907531e-06,
+        "is_network_logon": 0.2584135493935529,
+        "dst_fan_out_ratio": 0.23664194303929564
+      },
+      "auc": 0.9684601915138658,
+      "neg_auc": -0.9684601915138658,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.521501+00:00",
+      "elapsed_seconds": 20.087379932403564
+    },
+    {
+      "iteration": 210,
+      "weights": {
+        "is_ntlm": 0.2946618488862253,
+        "source_fan_out": 0.2148470341495497,
+        "dst_in_degree": 3.7051949893486037e-06,
+        "is_network_logon": 0.2584133882381814,
+        "dst_fan_out_ratio": 0.236642152004408
+      },
+      "auc": 0.9684602095040743,
+      "neg_auc": -0.9684602095040743,
+      "improvement_delta": 1.7990208545093367e-08,
+      "timestamp": "2026-05-16T10:22:00.610713+00:00",
+      "elapsed_seconds": 20.17648983001709
+    },
+    {
+      "iteration": 211,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 8.995104217035532e-09,
+      "timestamp": "2026-05-16T10:22:00.700043+00:00",
+      "elapsed_seconds": 20.265792846679688
+    },
+    {
+      "iteration": 212,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:00.789667+00:00",
+      "elapsed_seconds": 20.355432987213135
+    },
+    {
+      "iteration": 213,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.027571+00:00",
+      "elapsed_seconds": 20.593201875686646
+    },
+    {
+      "iteration": 214,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.116968+00:00",
+      "elapsed_seconds": 20.682809114456177
+    },
+    {
+      "iteration": 215,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.206281+00:00",
+      "elapsed_seconds": 20.772046089172363
+    },
+    {
+      "iteration": 216,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.265616+00:00",
+      "elapsed_seconds": 20.831530809402466
+    },
+    {
+      "iteration": 217,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.355196+00:00",
+      "elapsed_seconds": 20.920898914337158
+    },
+    {
+      "iteration": 218,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.445147+00:00",
+      "elapsed_seconds": 21.010277032852173
+    },
+    {
+      "iteration": 219,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.683065+00:00",
+      "elapsed_seconds": 21.249027013778687
+    },
+    {
+      "iteration": 220,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.772198+00:00",
+      "elapsed_seconds": 21.338146924972534
+    },
+    {
+      "iteration": 221,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:01.861777+00:00",
+      "elapsed_seconds": 21.427571773529053
+    },
+    {
+      "iteration": 222,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:02.098843+00:00",
+      "elapsed_seconds": 21.664703845977783
+    },
+    {
+      "iteration": 223,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:02.157973+00:00",
+      "elapsed_seconds": 21.7241268157959
+    },
+    {
+      "iteration": 224,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:02.246675+00:00",
+      "elapsed_seconds": 21.812709093093872
+    },
+    {
+      "iteration": 225,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:02.335429+00:00",
+      "elapsed_seconds": 21.90135908126831
+    },
+    {
+      "iteration": 226,
+      "weights": {
+        "is_ntlm": 0.29466192291573867,
+        "source_fan_out": 0.21484690938196416,
+        "dst_in_degree": 3.7052296063149554e-06,
+        "is_network_logon": 0.258413416340763,
+        "dst_fan_out_ratio": 0.2366420897440889
+      },
+      "auc": 0.9684602184991785,
+      "neg_auc": -0.9684602184991785,
+      "improvement_delta": 0.0,
+      "timestamp": "2026-05-16T10:22:02.365001+00:00",
+      "elapsed_seconds": 21.931041955947876
+    }
+  ]
+}
