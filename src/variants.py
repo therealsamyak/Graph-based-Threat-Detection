@@ -20,10 +20,10 @@ COMBINED: Final[VariantDescriptor] = VariantDescriptor(
     event_filter="both",
     feature_whitelist=(
         "is_ntlm",
-        "source_fan_out",
         "dst_in_degree",
         "is_network_logon",
-        "dst_fan_out_ratio",
+        "edge_rarity",
+        "src_out_degree",
     ),
     output_artifact_label="combined",
 )
@@ -33,8 +33,8 @@ AUTH_ONLY: Final[VariantDescriptor] = VariantDescriptor(
     event_filter="auth",
     feature_whitelist=(
         "is_ntlm",
-        "is_network_logon",
-        "is_success_auth",
+        "src_out_degree",
+        "edge_rarity",
     ),
     output_artifact_label="auth_only",
 )
@@ -43,9 +43,9 @@ FLOW_ONLY: Final[VariantDescriptor] = VariantDescriptor(
     name="flow_only",
     event_filter="flow",
     feature_whitelist=(
-        "source_fan_out",
+        "edge_rarity",
+        "is_unusual_dst_port",
         "dst_in_degree",
-        "dst_fan_out_ratio",
     ),
     output_artifact_label="flow_only",
 )

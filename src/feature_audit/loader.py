@@ -13,6 +13,16 @@ from src.feature_audit.joiner import dedup_against_edge_features, join_node_feat
 
 METADATA_COLUMNS = {"is_self_loop", "is_user_edge", "edge_index", "Unnamed: 0"}
 
+DERIVED_FEATURES = {
+    "source_fan_out",
+    "dst_fan_out_ratio",
+    "weight_norm",
+    "protocol_rarity",
+    "byte_per_packet",
+    "duration_zscore",
+    "temporal_decay_weight",
+}
+
 
 def _require(path: Path) -> None:
     if not path.exists():
@@ -80,7 +90,7 @@ def load_feature_frame(run_dir: Path) -> tuple[pd.DataFrame, np.ndarray, list[st
     columns = [
         c
         for c in joined.select_dtypes(include=[np.number]).columns
-        if c not in METADATA_COLUMNS
+        if c not in METADATA_COLUMNS and c not in DERIVED_FEATURES
     ]
     if not columns:
         raise ValueError("No numeric feature columns found in cached features")
