@@ -61,11 +61,22 @@ OPTIMIZED_FEATURE_NAMES = [
 ]
 
 
+def _resolve_data_file(data_dir: str, base_name: str) -> str:
+    """Return the path to a data file, preferring .gz if it exists, falling back to .txt."""
+    gz_path = Path(data_dir) / f"{base_name}.gz"
+    if gz_path.exists():
+        return str(gz_path)
+    txt_path = Path(data_dir) / base_name
+    if txt_path.exists():
+        return str(txt_path)
+    return str(gz_path)  # default to .gz for error message
+
+
 def load_redteam_data(
     data_dir: str,
     window_seconds: int,
 ) -> tuple[pd.DataFrame, set, list]:
-    rt = load_redteam(str(Path(data_dir) / "redteam.txt.gz"))
+    rt = load_redteam(_resolve_data_file(data_dir, "redteam.txt"))
     red_pairs = set(zip(rt["src_comp"].astype(str), rt["dst_comp"].astype(str)))
     windows = build_window_intervals(rt, window_seconds)
     logger.info(f"Red team: {len(rt)} events, {len(windows)} merged windows")
@@ -90,15 +101,16 @@ def _score_detect_graph(
     logger.info(f"  Red team pairs in graph: {len(rt_in_graph)}/{len(red_pairs)}")
 
     t1 = time.perf_counter()
-    logger.info(f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)...")
+    logger.info(
+        f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)..."
+    )
     all_feat = extract_all_features(g, config=config.to_dict())
-    logger.info(f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges...")
+    logger.info(
+        f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges..."
+    )
 
     ef = all_feat["edge_features"]
-    mask_valid = (
-        (ef["is_self_loop"].values == 0.0)
-        & (ef["is_user_edge"].values == 0.0)
-    )
+    mask_valid = (ef["is_self_loop"].values == 0.0) & (ef["is_user_edge"].values == 0.0)
     labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
 
     logger.info("  Running weight optimization...")
@@ -126,7 +138,9 @@ def _score_detect_graph(
     )
     logger.info(f"  Scored {len(paths):,} paths, computing graph-level scores...")
 
-    edge_scores = boost_edges_from_paths(edge_scores, paths, boost_factor=scoring.path_boost_factor)
+    edge_scores = boost_edges_from_paths(
+        edge_scores, paths, boost_factor=scoring.path_boost_factor
+    )
     logger.info(f"  Applied path boost (factor={scoring.path_boost_factor})")
 
     graph_result = score_graph(g, all_feat, edge_scores, paths=paths)
@@ -166,7 +180,9 @@ def _score_detect_graph(
         "anomalous_pairs": len(metrics["anomalous_pairs"]),
         "threshold": round(threshold, 4),
         "threshold_mode": scoring.threshold_mode,
-        "threshold_percentile_used": best_pct if scoring.threshold_mode == "auto_optimize" else scoring.threshold_percentile,
+        "threshold_percentile_used": best_pct
+        if scoring.threshold_mode == "auto_optimize"
+        else scoring.threshold_percentile,
         "max_path_score": round(graph_result["max_path_score"], 4),
         "mean_edge_score": round(graph_result["mean_edge_score"], 4),
     }
@@ -210,7 +226,7 @@ def run_method_pipeline(
 
     graph = StreamingGraphBuilder()
     n_auth = stream_gz_to_graph(
-        str(data_path / "auth.txt.gz"),
+        _resolve_data_file(str(data_path), "auth.txt"),
         AUTH_COLUMNS,
         windows,
         AUTH_NUMERIC,
@@ -220,7 +236,7 @@ def run_method_pipeline(
         max_events=max_events,
     )
     n_flow = stream_gz_to_graph(
-        str(data_path / "flows.txt.gz"),
+        _resolve_data_file(str(data_path), "flows.txt"),
         FLOW_COLUMNS,
         windows,
         FLOW_NUMERIC,

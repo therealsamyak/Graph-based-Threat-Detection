@@ -17,6 +17,9 @@ dependencies = [
 python-igraph = "igraph"
 scikit-learn = "sklearn"
 
+[tool.ruff]
+exclude = ["results/", "analysis_results/", "feature_results/"]
+
 [tool.vulture]
 exclude = [".venv/", "data/"]
 ignore_names = [

@@ -19,10 +19,24 @@ def _require(path: Path) -> None:
         raise FileNotFoundError(f"Missing required input: {path}")
 
 
+def _find_redteam_pairs(run_dir: Path) -> Path:
+    """Find redteam_pairs.json, searching parent dirs if needed."""
+    # Try run_dir.parent/redteam/redteam_pairs.json (same level as combined)
+    candidate = run_dir.parent / "redteam" / "redteam_pairs.json"
+    if candidate.exists():
+        return candidate
+    # Try run_dir.parent.parent/redteam/redteam_pairs.json (one level up)
+    candidate = run_dir.parent.parent / "redteam" / "redteam_pairs.json"
+    if candidate.exists():
+        return candidate
+    # Return the original path so the error message is still useful
+    return run_dir.parent / "redteam" / "redteam_pairs.json"
+
+
 def load_feature_frame(run_dir: Path) -> tuple[pd.DataFrame, np.ndarray, list[str]]:
     edge_features_path = run_dir / "edge_features.csv"
     graph_edges_path = run_dir / "graph_edges.csv"
-    redteam_pairs_path = run_dir.parent / "redteam" / "redteam_pairs.json"
+    redteam_pairs_path = _find_redteam_pairs(run_dir)
 
     for path in (edge_features_path, graph_edges_path, redteam_pairs_path):
         _require(path)
@@ -37,21 +51,37 @@ def load_feature_frame(run_dir: Path) -> tuple[pd.DataFrame, np.ndarray, list[st
     with open(redteam_pairs_path) as f:
         redteam_pairs = {(str(p["src"]), str(p["dst"])) for p in json.load(f)}
 
-    is_self_loop = edge_df["is_self_loop"].values if "is_self_loop" in edge_df else np.zeros(len(edge_df))
-    is_user_edge = edge_df["is_user_edge"].values if "is_user_edge" in edge_df else np.zeros(len(edge_df))
+    is_self_loop = (
+        edge_df["is_self_loop"].values
+        if "is_self_loop" in edge_df
+        else np.zeros(len(edge_df))
+    )
+    is_user_edge = (
+        edge_df["is_user_edge"].values
+        if "is_user_edge" in edge_df
+        else np.zeros(len(edge_df))
+    )
     mask = (is_self_loop == 0.0) & (is_user_edge == 0.0)
 
     labels = np.fromiter(
         (
             (src, dst) in redteam_pairs
-            for src, dst in zip(edges["src"].astype(str).values, edges["dst"].astype(str).values)
+            for src, dst in zip(
+                edges["src"].astype(str).values, edges["dst"].astype(str).values
+            )
         ),
         dtype=np.float64,
         count=len(edges),
     )
-    joined = join_node_features(edge_df, graph_edges_path, run_dir / "node_features.csv")
+    joined = join_node_features(
+        edge_df, graph_edges_path, run_dir / "node_features.csv"
+    )
     joined = dedup_against_edge_features(joined, list(edge_df.columns))
-    columns = [c for c in joined.select_dtypes(include=[np.number]).columns if c not in METADATA_COLUMNS]
+    columns = [
+        c
+        for c in joined.select_dtypes(include=[np.number]).columns
+        if c not in METADATA_COLUMNS
+    ]
     if not columns:
         raise ValueError("No numeric feature columns found in cached features")
 
@@ -98,4 +128,3 @@ def detect_duplicates(
             if abs(corr) > threshold:
                 pairs.append((columns[i], columns[j]))
     return pairs
-
