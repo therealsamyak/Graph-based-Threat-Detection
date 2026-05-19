@@ -191,7 +191,7 @@ def _write_summary(
             row["delta_tabular_to_graph"] = payload.get("delta_adding_tabular_to_graph")
         elif eval_type == "sweep":
             results = payload.get("results", [])
-            base = next((r for r in results if r["name"] == "base_5_features"), {})
+            base = next((r for r in results if r["name"].startswith("base_")), {})
             all_combined = next(
                 (r for r in results if r["name"] == "base_plus_all_quick_wins"), {}
             )

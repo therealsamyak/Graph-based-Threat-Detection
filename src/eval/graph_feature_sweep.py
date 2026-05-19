@@ -21,13 +21,9 @@ from src.optimization.optimizer import RANK_TRANSFORM_FEATURES
 
 logger = logging.getLogger("test_graph_features")
 
-BASE_FEATURES = [
-    "is_ntlm",
-    "source_fan_out",
-    "dst_in_degree",
-    "is_network_logon",
-    "dst_fan_out_ratio",
-]
+# Base features are read from the variant's optimized_weights.json at runtime.
+# Fallback used when no optimized_weights.json is found.
+_FALLBACK_BASE_FEATURES = ["is_ntlm", "edge_rarity", "dst_in_degree", "is_network_logon", "src_out_degree"]
 
 EDGE_ATTRS = [
     "auth_type", "logon_type", "auth_orientation", "success",
@@ -177,8 +173,19 @@ def run_graph_feature_sweep(
     output_dir: Path | None = None,
 ) -> dict:
     logger.info(f"Loading features from {run_dir}")
+
+    weights_json = run_dir / "optimization" / "optimized_weights.json"
+    if weights_json.exists():
+        with open(weights_json) as f:
+            weights_data = json.load(f)
+        base_features = list(weights_data["feature_names"])
+        logger.info(f"Loaded {len(base_features)} base features from {weights_json}: {base_features}")
+    else:
+        base_features = list(_FALLBACK_BASE_FEATURES)
+        logger.warning(f"No optimized_weights.json found, using fallback features: {base_features}")
+
     features_df, labels, available_cols = load_feature_frame(run_dir)
-    missing = [f for f in BASE_FEATURES if f not in features_df.columns]
+    missing = [f for f in base_features if f not in features_df.columns]
     if missing:
         logger.error(f"Base features missing: {missing}")
         raise ValueError(f"Base features missing: {missing}")
@@ -221,7 +228,7 @@ def run_graph_feature_sweep(
                 raise ValueError(f"Length mismatch: {gname}/{col_name} {len(arr)} vs features_df {n_after_mask}")
 
     # Base evaluation
-    X_base = _transform_features(features_df, BASE_FEATURES)
+    X_base = _transform_features(features_df, base_features)
     cal_idx, eval_idx = stratified_split(X_base, labels, holdout_frac, seed)
     logger.info(
         f"Stratified split: cal {len(cal_idx):,} ({int(labels[cal_idx].sum())} red-team), "
@@ -229,12 +236,12 @@ def run_graph_feature_sweep(
     )
 
     base_cal_auc, base_eval_auc = _evaluate(X_base, labels, cal_idx, eval_idx, seed)
-    logger.info(f"BASE (5 features): cal AUC {base_cal_auc:.6f}, eval AUC {base_eval_auc:.6f}")
+    logger.info(f"BASE ({len(base_features)} features): cal AUC {base_cal_auc:.6f}, eval AUC {base_eval_auc:.6f}")
 
     results: list[dict] = [{
-        "name": "base_5_features",
+        "name": f"base_{len(base_features)}_features",
         "added_columns": [],
-        "n_features": 5,
+        "n_features": len(base_features),
         "cal_auc": base_cal_auc,
         "eval_auc": base_eval_auc,
         "eval_auc_delta_vs_base": 0.0,
@@ -254,7 +261,7 @@ def run_graph_feature_sweep(
         results.append({
             "name": f"base_plus_{gname}",
             "added_columns": added_cols,
-            "n_features": 5 + len(added_cols),
+            "n_features": len(base_features) + len(added_cols),
             "cal_auc": cal_auc,
             "eval_auc": eval_auc,
             "eval_auc_delta_vs_base": delta,
@@ -279,7 +286,7 @@ def run_graph_feature_sweep(
         results.append({
             "name": "base_plus_all_quick_wins",
             "added_columns": all_added_cols,
-            "n_features": 5 + len(all_added_cols),
+            "n_features": len(base_features) + len(all_added_cols),
             "cal_auc": cal_auc,
             "eval_auc": eval_auc,
             "eval_auc_delta_vs_base": delta,
