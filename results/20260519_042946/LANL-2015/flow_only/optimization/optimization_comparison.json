@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-19T07:25:41.331404+00:00",
+  "equal_weight_auc": 0.3791635394796723,
+  "optimized_auc": 0.9209861310388199,
+  "improvement_pct": 142.89944447261277,
+  "per_feature": {
+    "edge_rarity": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": -1.9054629584156189,
+      "delta": -2.2387962917489523
+    },
+    "is_unusual_dst_port": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 1.938666773402042,
+      "delta": 1.6053334400687087
+    },
+    "dst_in_degree": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": -0.007736300400414349,
+      "delta": -0.34106963373374766
+    }
+  }
+}
