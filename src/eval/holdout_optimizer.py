@@ -22,10 +22,10 @@ logger = logging.getLogger("optimize_weights_holdout")
 
 DEFAULT_FEATURES = [
     "is_ntlm",
-    "source_fan_out",
+    "edge_rarity",
     "dst_in_degree",
     "is_network_logon",
-    "dst_fan_out_ratio",
+    "is_success_auth",
 ]
 
 
