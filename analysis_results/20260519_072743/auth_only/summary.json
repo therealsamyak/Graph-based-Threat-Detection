@@ -1,0 +1,231 @@
+{
+  "eval_run_id": "20260519_072743",
+  "variant": "auth_only",
+  "timestamp": "2026-05-19T07:31:43.932206+00:00",
+  "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260519_042946/LANL-2015/auth_only",
+  "holdout_frac": 0.5,
+  "seed": 42,
+  "evals": {
+    "holdout": {
+      "timestamp": "2026-05-19T07:30:19.687590+00:00",
+      "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260519_042946/LANL-2015/auth_only",
+      "features": [
+        "is_ntlm",
+        "edge_rarity",
+        "dst_in_degree",
+        "is_network_logon",
+        "is_success_auth"
+      ],
+      "holdout_frac": 0.5,
+      "seed": 42,
+      "n_calibration": 130686,
+      "n_eval": 130687,
+      "redteam_calibration": 151,
+      "redteam_eval": 151,
+      "optimizer": {
+        "method": "nelder-mead",
+        "weights": {
+          "is_ntlm": 0.2988252330359923,
+          "edge_rarity": 0.20645281248192426,
+          "dst_in_degree": -1.1508074559160607e-05,
+          "is_network_logon": 0.2583698763107156,
+          "is_success_auth": 0.215029311632538
+        },
+        "auc_calibration": 0.9561660786214249,
+        "auc_eval": 0.9791490875927962,
+        "auc_full_for_reference": 0.9676274724282079,
+        "auc_full_equal_weights_baseline": 0.1548556695431942,
+        "overfit_gap_cal_minus_eval": -0.022983008971371288,
+        "overfit_gap_relative": -0.024036628662363328,
+        "iterations": 207,
+        "converged": true,
+        "seconds": 17.988314151763916
+      },
+      "logistic_regression": {
+        "auc_calibration": 0.95392481831647,
+        "auc_eval": 0.9797198367444346,
+        "overfit_gap_cal_minus_eval": -0.02579501842796461,
+        "intercept": -2.834935752088703,
+        "coefficients": {
+          "is_ntlm": 1.3635328991904532,
+          "edge_rarity": 0.8091463783165653,
+          "dst_in_degree": -0.3990195339513726,
+          "is_network_logon": 0.18258912496724675,
+          "is_success_auth": 0.1912779059533731
+        }
+      },
+      "delta_eval_auc_optimizer_minus_lr": -0.0005707491516384611
+    },
+    "ablation": {
+      "timestamp": "2026-05-19T07:30:21.547448+00:00",
+      "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260519_042946/LANL-2015/auth_only",
+      "holdout_frac": 0.5,
+      "seed": 42,
+      "n_calibration": 130686,
+      "n_eval": 130687,
+      "results": [
+        {
+          "name": "pure_tabular_only",
+          "columns": [
+            "is_ntlm",
+            "is_network_logon",
+            "is_success_auth",
+            "edge_rarity",
+            "is_unusual_dst_port"
+          ],
+          "n_features": 5,
+          "cal_auc": 0.9428563093758062,
+          "eval_auc": 0.9634689595664051
+        },
+        {
+          "name": "graph_derived_only",
+          "columns": [
+            "src_out_degree",
+            "src_in_degree",
+            "src_total_degree",
+            "dst_out_degree",
+            "dst_in_degree",
+            "dst_total_degree",
+            "src_burst_score",
+            "dst_burst_score",
+            "src_inter_arrival_mean",
+            "src_inter_arrival_std",
+            "dst_inter_arrival_mean",
+            "dst_inter_arrival_std",
+            "src_active_duration",
+            "dst_active_duration",
+            "dst_betweenness_centrality"
+          ],
+          "n_features": 15,
+          "cal_auc": 0.995752579108341,
+          "eval_auc": 0.9910058558355626
+        },
+        {
+          "name": "combined",
+          "columns": [
+            "is_ntlm",
+            "is_network_logon",
+            "is_success_auth",
+            "edge_rarity",
+            "is_unusual_dst_port",
+            "src_out_degree",
+            "src_in_degree",
+            "src_total_degree",
+            "dst_out_degree",
+            "dst_in_degree",
+            "dst_total_degree",
+            "src_burst_score",
+            "dst_burst_score",
+            "src_inter_arrival_mean",
+            "src_inter_arrival_std",
+            "dst_inter_arrival_mean",
+            "dst_inter_arrival_std",
+            "src_active_duration",
+            "dst_active_duration",
+            "dst_betweenness_centrality"
+          ],
+          "n_features": 20,
+          "cal_auc": 0.9969014425351401,
+          "eval_auc": 0.9924288729870565
+        }
+      ],
+      "delta_adding_graph_to_tabular": 0.028959913420651406,
+      "delta_adding_tabular_to_graph": 0.001423017151493955
+    },
+    "sweep": {
+      "timestamp": "2026-05-19T07:31:43.909515+00:00",
+      "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260519_042946/LANL-2015/auth_only",
+      "attacker_host": "C17693",
+      "holdout_frac": 0.5,
+      "seed": 42,
+      "n_calibration": 130686,
+      "n_eval": 130687,
+      "results": [
+        {
+          "name": "base_3_features",
+          "added_columns": [],
+          "n_features": 3,
+          "cal_auc": 0.9499440534712342,
+          "eval_auc": 0.9694696639469581,
+          "eval_auc_delta_vs_base": 0.0
+        },
+        {
+          "name": "base_plus_pagerank",
+          "added_columns": [
+            "src_pagerank",
+            "dst_pagerank"
+          ],
+          "n_features": 5,
+          "cal_auc": 0.9607486713492132,
+          "eval_auc": 0.9827202777179126,
+          "eval_auc_delta_vs_base": 0.013250613770954489
+        },
+        {
+          "name": "base_plus_personalized_pagerank",
+          "added_columns": [
+            "src_ppr_attacker",
+            "dst_ppr_attacker"
+          ],
+          "n_features": 5,
+          "cal_auc": 0.9843428610276049,
+          "eval_auc": 0.9896158914016058,
+          "eval_auc_delta_vs_base": 0.02014622745464767
+        },
+        {
+          "name": "base_plus_kcore",
+          "added_columns": [
+            "src_kcore",
+            "dst_kcore"
+          ],
+          "n_features": 5,
+          "cal_auc": 0.977901083087254,
+          "eval_auc": 0.9936068992360384,
+          "eval_auc_delta_vs_base": 0.024137235289080294
+        },
+        {
+          "name": "base_plus_community",
+          "added_columns": [
+            "cross_community",
+            "src_community_size",
+            "dst_community_size"
+          ],
+          "n_features": 6,
+          "cal_auc": 0.9640683260458679,
+          "eval_auc": 0.9867953759273531,
+          "eval_auc_delta_vs_base": 0.01732571198039501
+        },
+        {
+          "name": "base_plus_similarity",
+          "added_columns": [
+            "jaccard",
+            "adamic_adar"
+          ],
+          "n_features": 5,
+          "cal_auc": 0.952219964856803,
+          "eval_auc": 0.9698685288207521,
+          "eval_auc_delta_vs_base": 0.0003988648737940359
+        },
+        {
+          "name": "base_plus_all_quick_wins",
+          "added_columns": [
+            "pagerank.src_pagerank",
+            "pagerank.dst_pagerank",
+            "personalized_pagerank.src_ppr_attacker",
+            "personalized_pagerank.dst_ppr_attacker",
+            "kcore.src_kcore",
+            "kcore.dst_kcore",
+            "community.cross_community",
+            "community.src_community_size",
+            "community.dst_community_size",
+            "similarity.jaccard",
+            "similarity.adamic_adar"
+          ],
+          "n_features": 14,
+          "cal_auc": 0.991459396467467,
+          "eval_auc": 0.985419642172244,
+          "eval_auc_delta_vs_base": 0.015949978225285877
+        }
+      ]
+    }
+  }
+}

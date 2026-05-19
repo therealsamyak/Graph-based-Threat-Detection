@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-05-19T07:28:34.207825+00:00",
+  "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260519_042946/LANL-2015/combined",
+  "holdout_frac": 0.5,
+  "seed": 42,
+  "n_calibration": 182400,
+  "n_eval": 182402,
+  "results": [
+    {
+      "name": "pure_tabular_only",
+      "columns": [
+        "is_ntlm",
+        "is_network_logon",
+        "is_success_auth",
+        "edge_rarity",
+        "is_unusual_dst_port"
+      ],
+      "n_features": 5,
+      "cal_auc": 0.9579574658533542,
+      "eval_auc": 0.9528543097522577
+    },
+    {
+      "name": "graph_derived_only",
+      "columns": [
+        "src_out_degree",
+        "src_in_degree",
+        "src_total_degree",
+        "dst_out_degree",
+        "dst_in_degree",
+        "dst_total_degree",
+        "src_burst_score",
+        "dst_burst_score",
+        "src_inter_arrival_mean",
+        "src_inter_arrival_std",
+        "dst_inter_arrival_mean",
+        "dst_inter_arrival_std",
+        "src_active_duration",
+        "dst_active_duration",
+        "dst_betweenness_centrality"
+      ],
+      "n_features": 15,
+      "cal_auc": 0.9840741158952867,
+      "eval_auc": 0.9867013444975465
+    },
+    {
+      "name": "combined",
+      "columns": [
+        "is_ntlm",
+        "is_network_logon",
+        "is_success_auth",
+        "edge_rarity",
+        "is_unusual_dst_port",
+        "src_out_degree",
+        "src_in_degree",
+        "src_total_degree",
+        "dst_out_degree",
+        "dst_in_degree",
+        "dst_total_degree",
+        "src_burst_score",
+        "dst_burst_score",
+        "src_inter_arrival_mean",
+        "src_inter_arrival_std",
+        "dst_inter_arrival_mean",
+        "dst_inter_arrival_std",
+        "src_active_duration",
+        "dst_active_duration",
+        "dst_betweenness_centrality"
+      ],
+      "n_features": 20,
+      "cal_auc": 0.9965386595824313,
+      "eval_auc": 0.9903968200942638
+    }
+  ],
+  "delta_adding_graph_to_tabular": 0.037542510342006064,
+  "delta_adding_tabular_to_graph": 0.003695475596717235
+}
