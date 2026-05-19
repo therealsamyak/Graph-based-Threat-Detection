@@ -19,30 +19,63 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _latest_combined_run(results_dir: Path) -> Path:
-    # Search two levels deep: results/<run_id>/combined/ or results/<run_id>/<dataset>/combined/
-    candidates = []
+def _find_variants(results_dir: Path, variant: str | None = None) -> list[tuple[str, Path]]:
+    valid_variants = {"combined", "auth_only", "flow_only"}
+    run_dirs = []
     for run_dir in results_dir.iterdir():
-        if not run_dir.is_dir():
+        if not run_dir.is_dir() or run_dir.name == "pending":
             continue
-        # Direct: results/<run_id>/combined/
-        combined = run_dir / "combined"
-        if combined.is_dir():
-            candidates.append(combined)
-        # Nested: results/<run_id>/<dataset>/combined/
-        for sub in run_dir.iterdir():
-            if sub.is_dir():
-                combined = sub / "combined"
-                if combined.is_dir():
-                    candidates.append(combined)
-
-    candidates.sort(key=lambda p: p.parent.name, reverse=True)
-    for candidate in candidates:
-        if (candidate / "edge_features.csv").exists() and (
-            candidate / "graph_edges.csv"
+        run_dirs.append(run_dir)
+    run_dirs.sort(key=lambda d: d.name, reverse=True)
+    if not run_dirs:
+        raise FileNotFoundError(f"No run directories found under {results_dir}")
+    latest_run = run_dirs[0]
+    run_id = latest_run.name
+    variants = []
+    for variant_name in valid_variants:
+        variant_path = latest_run / variant_name
+        if variant_path.is_dir():
+            variants.append((variant_name, variant_path))
+        for dataset_dir in latest_run.iterdir():
+            if dataset_dir.is_dir():
+                variant_path = dataset_dir / variant_name
+                if variant_path.is_dir():
+                    variants.append((variant_name, variant_path))
+    valid = []
+    for variant_name, variant_path in variants:
+        if (variant_path / "edge_features.csv").exists() and (
+            variant_path / "graph_edges.csv"
         ).exists():
-            return candidate
-    raise FileNotFoundError(f"No cached combined run found under {results_dir}")
+            valid.append((variant_name, variant_path))
+    if variant is not None:
+        found = {v for v, _ in valid}
+        if variant not in found:
+            raise FileNotFoundError(
+                f"Variant '{variant}' not found in run {run_id}. Available: {found}"
+            )
+        valid = [(v, p) for v, p in valid if v == variant]
+    return valid
+
+
+def _warn_zero_variance(run_dir: Path, variant: str) -> None:
+    """Warn about zero-variance features in edge_features.csv."""
+    csv_path = run_dir / "edge_features.csv"
+    if not csv_path.exists():
+        return
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    if not rows:
+        return
+    for col in reader.fieldnames or []:
+        if col in ("src", "dst"):
+            continue
+        values = {row[col] for row in rows}
+        if len(values) <= 1:
+            logger.warning(
+                f"Feature '{col}' has zero variance in {variant} variant. "
+                "Eval results may be unreliable."
+            )
 
 
 def _parse_args(argv=None):
@@ -53,7 +86,7 @@ def _parse_args(argv=None):
         "--run-dir",
         type=Path,
         default=None,
-        help="Cached run dir. Defaults to latest results/*/combined.",
+        help="Cached run dir (or run_id root to evaluate all variants). Defaults to latest results/*/combined.",
     )
     parser.add_argument(
         "--results-dir",
@@ -81,6 +114,13 @@ def _parse_args(argv=None):
         default=None,
         help="Comma-separated features for holdout. Defaults to DEFAULT_FEATURES.",
     )
+    parser.add_argument(
+        "--variant",
+        type=str,
+        default=None,
+        choices=["combined", "auth_only", "flow_only"],
+        help="Evaluate specific variant. Default: evaluate all found variants.",
+    )
 
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("holdout", help="Held-out weight optimization evaluation")
@@ -97,10 +137,12 @@ def _write_summary(
     run_dir: Path,
     holdout_frac: float,
     seed: int,
+    variant: str,
 ) -> None:
     """Write summary.json and eval_summary.csv to output_dir."""
     summary = {
         "eval_run_id": run_id,
+        "variant": variant,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "input_run_dir": str(run_dir.resolve()),
         "holdout_frac": holdout_frac,
@@ -115,6 +157,7 @@ def _write_summary(
         row = {
             "eval_type": eval_type,
             "eval_run_id": run_id,
+            "variant": variant,
             "n_calibration": payload.get("n_calibration"),
             "n_eval": payload.get("n_eval"),
         }
@@ -178,57 +221,124 @@ def _write_summary(
 
 def main() -> None:
     args = _parse_args()
-    run_dir = args.run_dir or _latest_combined_run(args.results_dir)
+
+    valid_variants = {"combined", "auth_only", "flow_only"}
+    variants_to_eval: list[tuple[str, Path]] = []
+
+    if args.run_dir:
+        run_dir_path = args.run_dir.resolve()
+        run_dir_name = run_dir_path.name
+
+        if run_dir_name in valid_variants:
+            variants_to_eval = [(run_dir_name, run_dir_path)]
+            logger.info(
+                f"Detected variant dir via --run-dir: {run_dir_name} at {run_dir_path}"
+            )
+        else:
+            if not run_dir_path.is_dir():
+                raise FileNotFoundError(f"Run directory not found: {run_dir_path}")
+            for vname in valid_variants:
+                vpath = run_dir_path / vname
+                if vpath.is_dir() and (vpath / "edge_features.csv").exists() and (vpath / "graph_edges.csv").exists():
+                    variants_to_eval.append((vname, vpath))
+                    continue
+                for dataset_dir in run_dir_path.iterdir():
+                    if dataset_dir.is_dir():
+                        vpath = dataset_dir / vname
+                        if vpath.is_dir() and (vpath / "edge_features.csv").exists() and (vpath / "graph_edges.csv").exists():
+                            variants_to_eval.append((vname, vpath))
+            if args.variant:
+                variants_to_eval = [(v, p) for v, p in variants_to_eval if v == args.variant]
+            if not variants_to_eval:
+                raise FileNotFoundError(
+                    f"No valid variants found in {run_dir_path}. "
+                    f"Ensure the directory contains variant subdirectories "
+                    f"(combined/, auth_only/, flow_only/) with edge_features.csv and graph_edges.csv."
+                )
+            logger.info(
+                f"Discovered {len(variants_to_eval)} variant(s) from run_id root: {run_dir_path}"
+            )
+    else:
+        try:
+            variants_to_eval = _find_variants(args.results_dir, args.variant)
+            logger.info(
+                f"Auto-discovered {len(variants_to_eval)} variant(s) from latest run in {args.results_dir}"
+            )
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"No valid runs found in {args.results_dir}. "
+                f"Ensure results contain run directories with variant subdirectories "
+                f"(combined/, auth_only/, flow_only/) with edge_features.csv and graph_edges.csv."
+            ) from e
+
+    if not variants_to_eval:
+        raise FileNotFoundError("No variants to evaluate.")
+
     run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    output_dir = args.output_root / run_id
-    output_dir.mkdir(parents=True, exist_ok=True)
-    logger.info(f"Eval input: {run_dir}")
-    logger.info(f"Eval output: {output_dir}")
+    logger.info(f"Eval run ID: {run_id}")
 
     command = args.command  # None = run all
-    eval_results: dict = {}
+    variant_outputs: dict[str, Path] = {}
 
-    if command in (None, "holdout"):
-        feature_list = (
-            [f.strip() for f in args.features.split(",") if f.strip()]
-            if args.features
-            else None
+    for variant_name, variant_path in variants_to_eval:
+        logger.info("=" * 60)
+        logger.info(f"Evaluating variant: {variant_name}")
+        logger.info(f"Eval input: {variant_path}")
+
+        output_dir = args.output_root / run_id / variant_name
+        output_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Eval output: {output_dir}")
+
+        _warn_zero_variance(variant_path, variant_name)
+
+        eval_results: dict = {}
+
+        if command in (None, "holdout"):
+            feature_list = (
+                [f.strip() for f in args.features.split(",") if f.strip()]
+                if args.features
+                else None
+            )
+            logger.info("Running holdout optimization...")
+            eval_results["holdout"] = run_holdout_optimization(
+                variant_path,
+                feature_list=feature_list,
+                holdout_frac=args.holdout_frac,
+                seed=args.seed,
+                output_dir=output_dir,
+            )
+
+        if command in (None, "ablation"):
+            logger.info("Running tabular vs graph ablation...")
+            eval_results["ablation"] = run_tabular_graph_ablation(
+                variant_path,
+                holdout_frac=args.holdout_frac,
+                seed=args.seed,
+                output_dir=output_dir,
+            )
+
+        if command in (None, "sweep"):
+            logger.info("Running graph feature sweep...")
+            eval_results["sweep"] = run_graph_feature_sweep(
+                variant_path,
+                attacker_host=args.attacker_host,
+                holdout_frac=args.holdout_frac,
+                seed=args.seed,
+                output_dir=output_dir,
+            )
+
+        _write_summary(
+            output_dir, eval_results, run_id, variant_path, args.holdout_frac, args.seed, variant_name
         )
-        logger.info("Running holdout optimization...")
-        eval_results["holdout"] = run_holdout_optimization(
-            run_dir,
-            feature_list=feature_list,
-            holdout_frac=args.holdout_frac,
-            seed=args.seed,
-            output_dir=output_dir,
-        )
 
-    if command in (None, "ablation"):
-        logger.info("Running tabular vs graph ablation...")
-        eval_results["ablation"] = run_tabular_graph_ablation(
-            run_dir,
-            holdout_frac=args.holdout_frac,
-            seed=args.seed,
-            output_dir=output_dir,
-        )
+        variant_outputs[variant_name] = output_dir
 
-    if command in (None, "sweep"):
-        logger.info("Running graph feature sweep...")
-        eval_results["sweep"] = run_graph_feature_sweep(
-            run_dir,
-            attacker_host=args.attacker_host,
-            holdout_frac=args.holdout_frac,
-            seed=args.seed,
-            output_dir=output_dir,
-        )
-
-    _write_summary(
-        output_dir, eval_results, run_id, run_dir, args.holdout_frac, args.seed
-    )
-
-    print(f"\nEval run complete: {output_dir}")
-    print(f"  summary.json: {output_dir / 'summary.json'}")
-    print(f"  eval_summary.csv: {output_dir / 'eval_summary.csv'}")
+    print(f"\nEval run complete: {args.output_root / run_id}")
+    print(f"  Run ID: {run_id}")
+    for variant_name, output_dir in variant_outputs.items():
+        print(f"  Variant '{variant_name}':")
+        print(f"    summary.json: {output_dir / 'summary.json'}")
+        print(f"    eval_summary.csv: {output_dir / 'eval_summary.csv'}")
 
 
 if __name__ == "__main__":
