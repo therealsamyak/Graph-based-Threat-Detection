@@ -76,7 +76,7 @@ def score_paths(
     max_hops: int = 4,
     top_k: int = 50,
     top_outgoing: int = 10,
-    max_workers: int = 12,
+    max_workers: int = 20,
     variant_name: str | None = None,
 ) -> pd.DataFrame:
     """BFS path enumeration with anomaly scoring.

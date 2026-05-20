@@ -188,7 +188,7 @@ All pipeline parameters live in `pipeline_config.json`. Every path is relative t
 | `approximate_betweenness`   | `true`  | Use igraph cutoff parameter for approximate betweenness                             |
 | `betweenness_cutoff`        | `3`     | Cutoff parameter for approximate betweenness                                        |
 | `temporal_burst_window_pct` | `0.1`   | Fraction of node active span for burst score computation                            |
-| `max_workers`               | `12`    | Parallel workers for path scoring                                                   |
+| `max_workers`               | `20`    | Parallel workers for feature extraction and path scoring                            |
 
 ## Output
 

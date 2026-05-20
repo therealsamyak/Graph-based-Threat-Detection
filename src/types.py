@@ -92,7 +92,7 @@ class FeaturesConfig:
     approximate_betweenness: bool = True
     betweenness_cutoff: int = 3
     temporal_burst_window_pct: float = 0.1
-    max_workers: int = 12
+    max_workers: int = 20
 
     @classmethod
     def from_dict(cls, d: dict) -> FeaturesConfig:
