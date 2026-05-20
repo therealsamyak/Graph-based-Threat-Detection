@@ -1,0 +1,7 @@
+%% DRAFT — Latency and Throughput Metrics
+%% Insert into the evaluation/results section.
+
+\subsection{Computational Performance Metrics}
+\label{sec:latency_throughput}
+
+We report two complementary performance metrics per pipeline variant. \emph{Latency} is the total wall-clock time in seconds from the start of event streaming through graph construction, feature extraction, weight optimization, edge and path scoring, and threshold detection. Formally, $L = t_{\text{build}} + t_{\text{score}}$, where $t_{\text{build}}$ is the time to stream raw authentication and flow events into the graph and $t_{\text{score}}$ is the time for the full scoring pipeline (features, optimization, edges, paths, detection). \emph{Throughput} is the average number of events processed per second, computed as $T = N / L$, where $N$ is the total number of raw events (authentication plus flow records) streamed during graph construction. These metrics capture end-to-end pipeline cost rather than any single stage in isolation.
