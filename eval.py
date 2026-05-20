@@ -202,7 +202,7 @@ def _write_summary(
             )
             row["all_combined_delta"] = all_combined.get("eval_auc_delta_vs_base")
             row["n_sweep_groups"] = len(
-                [r for r in results if r["name"] != "base_5_features"]
+                [r for r in results if r["name"] != base.get("name")]
             )
         rows.append(row)
 
