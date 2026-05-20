@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import igraph as ig
@@ -293,7 +293,7 @@ def run_graph_feature_sweep(
         })
 
     payload = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "input_run_dir": str(run_dir.resolve()),
         "attacker_host": attacker_host,
         "holdout_frac": holdout_frac,
@@ -304,7 +304,7 @@ def run_graph_feature_sweep(
     }
 
     if output_dir is None:
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path("analysis_results") / ts
         out_dir.mkdir(parents=True, exist_ok=True)
     else:

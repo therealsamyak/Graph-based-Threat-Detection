@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 from src.feature_audit import run_audit
@@ -82,7 +82,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def run(argv: list[str] | None = None):
     args = _parse_args(argv)
     run_dir = args.run_dir or _latest_combined_run(args.results_dir)
-    audit_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    audit_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = args.output_root / audit_id
     output_dir.mkdir(parents=True, exist_ok=True)
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -64,7 +64,7 @@ class WeightOptimizer:
             "auc": float(auc),
             "neg_auc": float(neg_auc),
             "improvement_delta": float(delta),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "elapsed_seconds": float(elapsed),
         }
         self._log.append(entry)
@@ -169,7 +169,7 @@ class WeightOptimizer:
     ) -> None:
         out = Path(output_dir)
         out.mkdir(parents=True, exist_ok=True)
-        ts = datetime.now(timezone.utc).isoformat()
+        ts = datetime.now().isoformat()
 
         log_path = out / "optimization_log.json"
         with open(log_path, "w") as f:

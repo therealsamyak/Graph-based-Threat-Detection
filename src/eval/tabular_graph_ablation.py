@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -82,7 +82,7 @@ def run_tabular_graph_ablation(
          "cal_auc": cal_c, "eval_auc": eval_c},
     ]
     payload = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "input_run_dir": str(run_dir.resolve()),
         "holdout_frac": holdout_frac,
         "seed": seed,
@@ -102,7 +102,7 @@ def run_tabular_graph_ablation(
     print(f"Δ eval AUC from adding tabular to graph: {payload['delta_adding_tabular_to_graph']:+.6f}")
 
     if output_dir is None:
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path("analysis_results") / ts
         out_dir.mkdir(parents=True, exist_ok=True)
     else:

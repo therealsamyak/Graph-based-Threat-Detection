@@ -6,7 +6,7 @@ import argparse
 import csv
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 from src.eval.holdout_optimizer import run_holdout_optimization
@@ -143,7 +143,7 @@ def _write_summary(
     summary = {
         "eval_run_id": run_id,
         "variant": variant,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "input_run_dir": str(run_dir.resolve()),
         "holdout_frac": holdout_frac,
         "seed": seed,
@@ -274,7 +274,7 @@ def main() -> None:
     if not variants_to_eval:
         raise FileNotFoundError("No variants to evaluate.")
 
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     logger.info(f"Eval run ID: {run_id}")
 
     command = args.command  # None = run all

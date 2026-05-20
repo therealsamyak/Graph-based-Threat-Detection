@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -157,7 +157,7 @@ def run_holdout_optimization(
     delta_vs_lr = eval_auc_optimized - lr_result["auc_eval"]
 
     payload = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "input_run_dir": str(run_dir.resolve()),
         "features": feature_list,
         "holdout_frac": holdout_frac,
@@ -192,7 +192,7 @@ def run_holdout_optimization(
     logger.info("=" * 70)
 
     if output_dir is None:
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path("analysis_results") / ts
         out_dir.mkdir(parents=True, exist_ok=True)
     else:
