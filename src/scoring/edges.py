@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import igraph as ig
 
+from src.types import BINARY_FEATURES
+
 logger = logging.getLogger(__name__)
 
 
@@ -73,7 +75,7 @@ def score_edges(
 
         feat_values = edge_features[feat_name].values
 
-        if feat_name in ("edge_rarity", "protocol_rarity"):
+        if feat_name not in BINARY_FEATURES:
             feat_values = pd.Series(feat_values).rank(pct=True).values
             logger.info(f"Applied rank transform to '{feat_name}'")
 
