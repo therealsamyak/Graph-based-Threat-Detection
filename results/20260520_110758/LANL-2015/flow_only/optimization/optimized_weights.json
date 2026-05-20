@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-05-20T13:55:58.093471",
+  "weights": {
+    "edge_rarity": 0.2574892496112483,
+    "is_unusual_dst_port": 0.5090252903521486,
+    "dst_in_degree": 0.23134339621087596
+  },
+  "auc": 0.5153557824629164,
+  "method": "nelder-mead",
+  "iterations": 62,
+  "converged": true,
+  "initial_weights": {
+    "edge_rarity": 0.3333333333333333,
+    "is_unusual_dst_port": 0.3333333333333333,
+    "dst_in_degree": 0.3333333333333333
+  },
+  "convergence_reason": "converged",
+  "total_time_seconds": 6.740365028381348,
+  "feature_names": [
+    "edge_rarity",
+    "is_unusual_dst_port",
+    "dst_in_degree"
+  ]
+}
