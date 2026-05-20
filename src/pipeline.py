@@ -6,7 +6,7 @@ import json
 import logging
 import time
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 from src.io import save_method_results, save_pipeline_config, save_redteam_data
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_run_id() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 def get_base_output_dir(run_id: str) -> Path:
@@ -114,7 +114,7 @@ def run_streaming_experiment(
 
     pipeline_run = {
         "run_id": run_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "config": cfg.to_dict() if hasattr(cfg, "to_dict") else cfg.__dict__,
         "data_stats": {
             "data_dir": data_dir,
