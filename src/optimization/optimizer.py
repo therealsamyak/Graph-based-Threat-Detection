@@ -11,9 +11,9 @@ import pandas as pd
 from scipy.optimize import minimize
 from sklearn.metrics import roc_auc_score
 
-logger = logging.getLogger(__name__)
+from src.types import BINARY_FEATURES
 
-RANK_TRANSFORM_FEATURES = frozenset({"edge_rarity", "protocol_rarity"})
+logger = logging.getLogger(__name__)
 
 
 class WeightOptimizer:
@@ -31,7 +31,7 @@ class WeightOptimizer:
         score = np.zeros(len(self.features_df))
         for i, feat_name in enumerate(self.feature_names):
             feat_values = self.features_df[feat_name].values.copy()
-            if feat_name in RANK_TRANSFORM_FEATURES:
+            if feat_name not in BINARY_FEATURES:
                 feat_values = pd.Series(feat_values).rank(pct=True).values
             score += w_array[i] * feat_values
         return score
@@ -197,7 +197,7 @@ class WeightOptimizer:
         contrib_df = self.features_df[self.feature_names].copy()
         for i, name in enumerate(self.feature_names):
             feat_vals = self.features_df[name].values.copy()
-            if name in RANK_TRANSFORM_FEATURES:
+            if name not in BINARY_FEATURES:
                 feat_vals = pd.Series(feat_vals).rank(pct=True).values
             contrib_df[f"{name}_weighted"] = optimal_w[i] * feat_vals
         contrib_df["total_score"] = scores

@@ -7,6 +7,18 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+# ── Feature classification ──────────────────────────────────────────
+
+BINARY_FEATURES: frozenset[str] = frozenset({
+    "is_ntlm",
+    "is_network_logon",
+    "is_success_auth",
+    "is_self_loop",
+    "is_user_edge",
+    "is_unusual_dst_port",
+})
+
+
 # ── Config dataclasses ──────────────────────────────────────────────
 
 
