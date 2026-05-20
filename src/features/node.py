@@ -61,7 +61,7 @@ def extract_node_features(g: ig.Graph, config: dict | None = None, variant_name:
     feat_cfg = (config or {}).get("features", {})
     betweenness_node_limit = feat_cfg.get("betweenness_node_limit", 5000)
     burst_window_pct = feat_cfg.get("temporal_burst_window_pct", 0.1)
-    max_workers = feat_cfg.get("max_workers", 12)
+    max_workers = feat_cfg.get("max_workers", 20)
 
     n = g.vcount()
     names = [g.vs[i]["name"] for i in range(n)]
