@@ -15,7 +15,8 @@ from sklearn.preprocessing import StandardScaler
 
 from src.feature_audit.loader import load_feature_frame
 from src.feature_audit.scorer import stratified_split
-from src.optimization.optimizer import RANK_TRANSFORM_FEATURES, WeightOptimizer
+from src.types import BINARY_FEATURES
+from src.optimization.optimizer import WeightOptimizer
 
 logger = logging.getLogger("optimize_weights_holdout")
 
@@ -35,7 +36,7 @@ def _score_with_weights(features_df: pd.DataFrame, weights: dict[str, float]) ->
         if name not in features_df.columns:
             raise KeyError(f"Feature {name!r} not present in eval feature matrix")
         col = features_df[name].to_numpy(dtype=float, copy=True)
-        if name in RANK_TRANSFORM_FEATURES:
+        if name not in BINARY_FEATURES:
             col = pd.Series(col).rank(pct=True).to_numpy()
         score += w * col
     return score
@@ -45,7 +46,7 @@ def _transform_for_lr(features_df: pd.DataFrame, feature_list: list[str]) -> np.
     cols: list[np.ndarray] = []
     for name in feature_list:
         col = features_df[name].to_numpy(dtype=float, copy=True)
-        if name in RANK_TRANSFORM_FEATURES:
+        if name not in BINARY_FEATURES:
             col = pd.Series(col).rank(pct=True).to_numpy()
         cols.append(col)
     return np.column_stack(cols)

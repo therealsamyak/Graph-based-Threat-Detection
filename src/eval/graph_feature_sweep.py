@@ -17,7 +17,7 @@ from sklearn.preprocessing import StandardScaler
 
 from src.feature_audit.loader import load_feature_frame
 from src.feature_audit.scorer import stratified_split
-from src.optimization.optimizer import RANK_TRANSFORM_FEATURES
+from src.types import BINARY_FEATURES
 
 logger = logging.getLogger("test_graph_features")
 
@@ -144,7 +144,7 @@ def _transform_features(features_df: pd.DataFrame, columns: list[str]) -> np.nda
     cols: list[np.ndarray] = []
     for name in columns:
         col = features_df[name].to_numpy(dtype=float, copy=True)
-        if name in RANK_TRANSFORM_FEATURES:
+        if name not in BINARY_FEATURES:
             col = pd.Series(col).rank(pct=True).to_numpy()
         cols.append(col)
     return np.column_stack(cols)
