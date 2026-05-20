@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-05-20T09:53:58.369218+00:00",
+  "weights": {
+    "is_ntlm": 0.40846178300897235,
+    "src_out_degree": 0.48963088528312426,
+    "edge_rarity": 0.08063968893963064
+  },
+  "auc": 0.9650512974814063,
+  "method": "nelder-mead",
+  "iterations": 72,
+  "converged": true,
+  "initial_weights": {
+    "is_ntlm": 0.3333333333333333,
+    "src_out_degree": 0.3333333333333333,
+    "edge_rarity": 0.3333333333333333
+  },
+  "convergence_reason": "converged",
+  "total_time_seconds": 14.120584964752197,
+  "feature_names": [
+    "is_ntlm",
+    "src_out_degree",
+    "edge_rarity"
+  ]
+}
