@@ -1,6 +1,6 @@
 # Real-Time Detection of Lateral Movement in Cloud VPC Networks via Graph-Based Analysis
 
-**ECE 239AS — Machine Learning and Data Mining for Cybersecurity**
+**ECE 239AS: Machine Learning and Data Mining for Cybersecurity**
 **Team:** Ibrahim Pehlivan, Wesley Gunawan, Samyak Kakatur
 **University of California, Los Angeles**
 
@@ -15,15 +15,15 @@ make check lint  # Lint the codebase
 
 Three entry points:
 
-- `main.py` — runs the full pipeline (graph construction → feature extraction → weight optimization → scoring → detection → visualization)
-- `feature.py` — runs held-out AUC feature audit on cached pipeline outputs to rank features by discriminative power
-- `eval.py` — runs evaluation analyses (holdout optimization, tabular/graph ablation, graph feature sweep) on cached pipeline outputs
+- `main.py`: runs the full pipeline (graph construction → feature extraction → weight optimization → scoring → detection → visualization)
+- `feature.py`: runs held-out AUC feature audit on cached pipeline outputs to rank features by discriminative power
+- `eval.py`: runs evaluation analyses (holdout optimization, tabular/graph ablation, graph feature sweep) on cached pipeline outputs
 
 ## Overview
 
-This project detects **lateral movement** in cloud VPC networks by combining network flow and authentication logs into a unified graph. Edges are scored for anomaly likelihood using a weighted sum of graph features, where weights are automatically optimized via Nelder-Mead to maximize ROC AUC.
+This project detects **lateral movement** in cloud VPC networks by combining network flow and authentication logs into a unified graph. Each edge gets an anomaly score from a weighted sum of graph features; weights are tuned automatically via Nelder-Mead to maximize ROC AUC.
 
-**Research Question:** Does combining flow and authentication logs via graph analysis improve detection accuracy compared to single-source baselines?
+**Research question:** Can combining flow and auth logs through graph analysis beat single-source baselines at detecting lateral movement?
 
 ## Methods
 
@@ -52,7 +52,7 @@ Graph-Based-Lateral-Movement-Detection/
 ├── pyproject.toml                   # Dependencies (managed by uv)
 ├── pipeline_config.json             # Pipeline configuration
 │
-├── data/                            # ⚠️  NOT tracked by git — must provide locally
+├── data/                            # ⚠️  NOT tracked by git; must provide locally
 │   └── LANL-Dataset-2015/           # Required dataset directory
 │       ├── auth.txt.gz              #   Authentication events
 │       ├── flows.txt.gz             #   Network flow events
@@ -148,26 +148,26 @@ If your dataset lives elsewhere, edit `pipeline_config.json`:
 }
 ```
 
-All paths in the config are relative to the repo root. No absolute paths are used anywhere in the codebase.
+All paths in the config are relative to the repo root; no absolute paths in configuration.
 
 ## Configuration
 
-All pipeline parameters live in `pipeline_config.json`. Every path is relative to the project root — the repo can be cloned anywhere and will work as long as the dataset files are in place.
+All pipeline parameters live in `pipeline_config.json`. Every path is relative to the project root; the repo can be cloned anywhere and will work as long as the dataset files are in place.
 
-### `data` — Dataset paths
+### `data`: Dataset paths
 
 | Option        | Default                    | Description                                                       |
 | ------------- | -------------------------- | ----------------------------------------------------------------- |
 | `lanl_dir`    | `"data/LANL-Dataset-2015"` | Path to LANL dataset directory (relative to repo root)            |
 | `window_size` | `3600`                     | Time window (seconds) around each red-team event for scoping data |
 
-### `graph` — Graph construction
+### `graph`: Graph construction
 
 | Option           | Default  | Description                                  |
 | ---------------- | -------- | -------------------------------------------- |
 | `progress_every` | `500000` | Log progress every N events during streaming |
 
-### `scoring` — Scoring and thresholding
+### `scoring`: Scoring and thresholding
 
 | Option                   | Default                        | Description                                                                                               |
 | ------------------------ | ------------------------------ | --------------------------------------------------------------------------------------------------------- |
@@ -180,7 +180,7 @@ All pipeline parameters live in `pipeline_config.json`. Every path is relative t
 | `top_k_paths`            | `50`                           | Number of top-scoring paths to retain                                                                     |
 | `top_outgoing_per_node`  | `10`                           | Top outgoing edges per node to follow during path search                                                  |
 
-### `features` — Feature extraction
+### `features`: Feature extraction
 
 | Option                      | Default | Description                                                                         |
 | --------------------------- | ------- | ----------------------------------------------------------------------------------- |
@@ -194,22 +194,22 @@ All pipeline parameters live in `pipeline_config.json`. Every path is relative t
 
 Results saved to `results/<run_id>/`:
 
-- `metrics.csv` — Summary metrics per method
-- `pipeline_run.json` — Full pipeline metadata and timing
-- `figures/` — Visualization plots (graph snapshot, ROC curves, score distribution, timeline)
-- `optimization/` — Weight optimization logs and optimized weights
-- `comparison_table.md` — Method comparison
-- `LANL-2015/<variant>/` — Per-variant outputs (edge_scores.csv, paths.csv, features, etc.)
-- `redteam/` — Red-team events and window intervals
+- `metrics.csv`: Summary metrics per method
+- `pipeline_run.json`: Full pipeline metadata and timing
+- `figures/`: Visualization plots (graph snapshot, ROC curves, score distribution, timeline)
+- `optimization/`: Weight optimization logs and optimized weights
+- `comparison_table.md`: Method comparison
+- `LANL-2015/<variant>/`: Per-variant outputs (edge_scores.csv, paths.csv, features, etc.)
+- `redteam/`: Red-team events and window intervals
 
 Feature audit outputs saved to `feature_results/<audit_id>/`:
 
-- `feature_audit_results.json` — Per-feature AUC and statistics
-- `Feature_Audit_Results.md` — Human-readable markdown report
-- `metadata.json` — Audit run metadata
+- `feature_audit_results.json`: Per-feature AUC and statistics
+- `Feature_Audit_Results.md`: Human-readable markdown report
+- `metadata.json`: Audit run metadata
 
 Evaluation outputs saved to `analysis_results/<run_id>/`:
 
-- `optimization_holdout/` — held-out weight optimization results
-- `tabular_vs_graph_ablation/` — feature group ablation results
-- `graph_features_test/` — graph feature sweep results
+- `optimization_holdout/`: held-out weight optimization results
+- `tabular_vs_graph_ablation/`: feature group ablation results
+- `graph_features_test/`: graph feature sweep results
