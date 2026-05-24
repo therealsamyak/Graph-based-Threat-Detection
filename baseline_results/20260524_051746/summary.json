@@ -1,0 +1,102 @@
+{
+  "timestamp": "20260524_051746",
+  "run_id": "20260524_022620",
+  "variants_evaluated": [
+    "combined",
+    "flow_only",
+    "auth_only"
+  ],
+  "methods": [
+    "One-Class SVM",
+    "Isolation Forest"
+  ],
+  "per_variant_summary": {
+    "combined": {
+      "one_class_svm": {
+        "recall": 0.016233766233766232,
+        "fpr": 0.0009766857431316495,
+        "f1": 0.020366598778004074,
+        "precision": 0.0273224043715847,
+        "auc": 0.7678462823130067,
+        "num_detected_pairs": 5,
+        "num_redteam_pairs": 308
+      },
+      "isolation_forest": {
+        "recall": 0.02922077922077922,
+        "fpr": 0.004971220692568958,
+        "f1": 0.014717906786590353,
+        "precision": 0.009836065573770493,
+        "auc": 0.9387931267256971,
+        "num_detected_pairs": 9,
+        "num_redteam_pairs": 308
+      },
+      "graph_based": {
+        "recall": 0.9448051948051948,
+        "fpr": 0.029450006247266822,
+        "f1": 0.037107880642693186,
+        "precision": 0.01892559833506764,
+        "auc": 0.9755503771659326,
+        "num_detected_pairs": 291,
+        "num_redteam_pairs": 308
+      }
+    },
+    "flow_only": {
+      "one_class_svm": {
+        "recall": 0.022727272727272728,
+        "fpr": 0.0049115017334712,
+        "f1": 0.0219435736677116,
+        "precision": 0.021212121212121213,
+        "auc": 0.7500406981112498,
+        "num_detected_pairs": 7,
+        "num_redteam_pairs": 308
+      },
+      "isolation_forest": {
+        "recall": 0.016233766233766232,
+        "fpr": 0.004926707621190925,
+        "f1": 0.015698587127158554,
+        "precision": 0.015197568389057751,
+        "auc": 0.8246237884485343,
+        "num_detected_pairs": 5,
+        "num_redteam_pairs": 308
+      },
+      "graph_based": {
+        "recall": 0.012987012987012988,
+        "fpr": 0.10000228090049952,
+        "f1": 0.0005941329372447084,
+        "precision": 0.0003040206734057916,
+        "auc": 0.5153557824629162,
+        "num_detected_pairs": 4,
+        "num_redteam_pairs": 308
+      }
+    },
+    "auth_only": {
+      "one_class_svm": {
+        "recall": 0.012987012987012988,
+        "fpr": 0.05003217503217503,
+        "f1": 0.001169077889814409,
+        "precision": 0.000612088752869166,
+        "auc": 0.544178520999713,
+        "num_detected_pairs": 4,
+        "num_redteam_pairs": 308
+      },
+      "isolation_forest": {
+        "recall": 0.2694805194805195,
+        "fpr": 0.09951277808420665,
+        "f1": 0.012405649801958001,
+        "precision": 0.006348963512583187,
+        "auc": 0.9029936477902418,
+        "num_detected_pairs": 83,
+        "num_redteam_pairs": 308
+      },
+      "graph_based": {
+        "recall": 0.9448051948051948,
+        "fpr": 0.029310319522111165,
+        "f1": 0.04626023368571656,
+        "precision": 0.023710584209239795,
+        "auc": 0.9780690638220291,
+        "num_detected_pairs": 291,
+        "num_redteam_pairs": 308
+      }
+    }
+  }
+}
