@@ -157,8 +157,9 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
         )
 
         # Save results
+        variant_out = get_output_dir(run_id, variant)
         save_method_results(
-            output_dir=str(get_output_dir(run_id, variant)),
+            output_dir=str(variant_out),
             method=variant,
             g=mr.graph,
             edge_scores=mr.edge_scores,
@@ -169,6 +170,10 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
             anomalous_pairs=mr.metrics["anomalous_pairs"],
             detected_pairs=mr.metrics["detected_pairs"],
         )
+
+        wl_path = Path(str(variant_out)) / "feature_whitelist.json"
+        wl_path.write_text(json.dumps({"features": whitelist, "source": "pipeline"}, indent=2))
+        logger.info(f"Saved feature_whitelist.json to {wl_path}")
 
         all_results.append(mr.result_dict)
         experiment_results[variant] = {

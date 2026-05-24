@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from src.baselines.data import load_variant_data, prepare_features_and_labels
+from src.baselines.data import find_variant_dir, load_variant_data, load_feature_whitelist, prepare_features_and_labels
 from src.baselines.models import BaselineResult, run_isolation_forest_baseline, run_one_class_svm
 
 logger = logging.getLogger(__name__)
@@ -65,8 +65,10 @@ def evaluate_variant(
     edge_features_df, _graph_edges_df, edge_pairs, redteam_pairs = load_variant_data(
         run_dir, variant
     )
+    variant_dir = find_variant_dir(run_dir, variant)
+    whitelist = load_feature_whitelist(variant_dir, variant)
     X_valid, labels_valid, valid_edge_pairs = prepare_features_and_labels(
-        edge_features_df, edge_pairs, redteam_pairs, variant
+        edge_features_df, edge_pairs, redteam_pairs, variant, feature_whitelist=whitelist,
     )
 
     train_idx, eval_idx = split_unsupervised_train_eval(labels_valid)

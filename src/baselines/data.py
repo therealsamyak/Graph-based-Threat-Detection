@@ -223,14 +223,31 @@ def load_variant_data(
 # ── Feature processing ───────────────────────────────────────────────
 
 
+def load_feature_whitelist(variant_dir: Path, variant: str) -> tuple[str, ...]:
+    """Load feature whitelist from pipeline output, fall back to variant descriptor."""
+    wl_path = variant_dir / "feature_whitelist.json"
+    if wl_path.exists():
+        with open(wl_path) as f:
+            data = json.load(f)
+        features = data.get("features", [])
+        if features:
+            logger.info(f"Using pipeline feature whitelist for {variant}: {features}")
+            return tuple(features)
+    fallback = get_variant(variant).feature_whitelist
+    logger.info(f"No pipeline whitelist found for {variant}, using descriptor: {fallback}")
+    return fallback
+
+
 def prepare_features_and_labels(
     edge_features_df: pd.DataFrame,
     edge_pairs: list[Pair],
     redteam_pairs: set[Pair],
     variant: str,
+    feature_whitelist: tuple[str, ...] | None = None,
 ) -> tuple[pd.DataFrame, np.ndarray, list[Pair]]:
     """Prepare feature matrix and labels with the canonical variant whitelist."""
-    feature_whitelist = get_variant(variant).feature_whitelist
+    if feature_whitelist is None:
+        feature_whitelist = get_variant(variant).feature_whitelist
 
     available_features = set(edge_features_df.columns)
     features_to_use = [f for f in feature_whitelist if f in available_features]
