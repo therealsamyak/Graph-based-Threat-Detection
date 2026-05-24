@@ -86,9 +86,16 @@ def _score_detect_graph(
     total_events: int,
     config: PipelineConfig,
     output_dir: str | None = None,
+    precomputed_features: dict | None = None,
+    feature_whitelist: list[str] | None = None,
 ) -> MethodResult:
     descriptor = get_variant(method_name)
-    feature_whitelist = list(descriptor.feature_whitelist)
+
+    # Use provided whitelist or fall back to variant descriptor
+    if feature_whitelist is not None:
+        whitelist = list(feature_whitelist)
+    else:
+        whitelist = list(descriptor.feature_whitelist)
 
     scoring = config.scoring
     edge_pair_names = compute_edge_pair_names(g)
@@ -97,37 +104,43 @@ def _score_detect_graph(
     logger.info(f"  Red team pairs in graph: {len(rt_in_graph)}/{len(red_pairs)}")
 
     t1 = time.perf_counter()
-    logger.info(
-        f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)..."
-    )
-    all_feat = extract_all_features(g, config=config.to_dict(), variant_name=method_name)
-    logger.info(
-        f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges..."
-    )
+
+    # Use precomputed features or extract fresh
+    if precomputed_features is not None:
+        all_feat = precomputed_features
+        logger.info(f"  Using precomputed features for '{method_name}'")
+    else:
+        logger.info(
+            f"  Extracting features ({g.vcount():,} nodes, {g.ecount():,} edges)..."
+        )
+        all_feat = extract_all_features(g, config=config.to_dict(), variant_name=method_name)
+        logger.info(
+            f"  Features extracted in {time.perf_counter() - t1:.1f}s, scoring edges..."
+        )
 
     ef = all_feat["edge_features"]
     mask_valid = (ef["is_self_loop"].values == 0.0) & (ef["is_user_edge"].values == 0.0)
     labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
 
     available_features = set(ef.columns)
-    missing_features = [feat for feat in feature_whitelist if feat not in available_features]
+    missing_features = [feat for feat in whitelist if feat not in available_features]
     if missing_features:
         raise ValueError(
             f"Variant '{method_name}': Missing features: {missing_features}. "
             f"Available: {sorted(available_features)}"
         )
 
-    logger.info(f"  Variant '{method_name}': {len(feature_whitelist)} features")
+    logger.info(f"  Variant '{method_name}': {len(whitelist)} features")
 
     logger.info("  Running weight optimization...")
     opt = WeightOptimizer(
         ef[mask_valid].reset_index(drop=True),
         labels[mask_valid],
-        feature_whitelist,
+        whitelist,
     )
     opt_output_dir = str(Path(output_dir) / "optimization") if output_dir else None
     opt_result = opt.optimize(output_dir=opt_output_dir)
-    weights_dict = {k: v for k, v in opt_result.items() if k in feature_whitelist}
+    weights_dict = {k: v for k, v in opt_result.items() if k in whitelist}
     logger.info(f"  Optimized weights: {weights_dict}")
     logger.info(f"  Optimized AUC: {opt_result['auc']:.4f}")
 
@@ -218,15 +231,33 @@ def _score_detect_graph(
     )
 
 
-def run_method_pipeline(
+def build_variant_graph(
     data_dir: str,
     windows: list,
-    red_pairs: set,
     config: PipelineConfig,
-    max_events: int | None = None,
-    output_dir: str | None = None,
     variant: str = "combined",
-) -> MethodResult:
+    max_events: int | None = None,
+) -> tuple:
+    """Build graph for a variant. Returns (graph, build_time_seconds, total_events).
+
+    Results are cached via shared cache in .cache/pipeline/ and reused when data files are unchanged.
+    """
+    from src.cache import cache_dir, load_graph, save_graph, _get_data_mtime
+
+    cdir = cache_dir(max_events)
+    data_mtime = _get_data_mtime(data_dir)
+
+    # Try loading from shared cache
+    cached = load_graph(cdir, variant, data_dir=data_dir, max_events=max_events)
+    if cached is not None:
+        g = cached["graph"]
+        logger.info(
+            f"  Loaded cached graph ({variant}): "
+            f"{g.vcount():,} nodes, {g.ecount():,} edges"
+        )
+        return g, cached["build_time"], cached["total_events"]
+
+    # Build from scratch
     data_path = Path(data_dir)
     descriptor = get_variant(variant)
     method_name = descriptor.name
@@ -264,6 +295,7 @@ def run_method_pipeline(
 
     g = graph.build()
     build_time = time.perf_counter() - t0
+    total = n_auth + n_flow
     logger.info(
         f"  Streamed {n_auth:,} auth + {n_flow:,} flow in {build_time:.1f}s "
         f"(variant={method_name})"
@@ -271,13 +303,41 @@ def run_method_pipeline(
     logger.info(f"  Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
     del graph
 
+    # Save to shared cache
+    save_graph(
+        cdir, variant,
+        graph=g, build_time=build_time, total_events=total,
+        data_mtime=data_mtime, max_events=max_events,
+    )
+
+    return g, build_time, total
+
+
+def run_method_pipeline(
+    data_dir: str,
+    windows: list,
+    red_pairs: set,
+    config: PipelineConfig,
+    max_events: int | None = None,
+    output_dir: str | None = None,
+    variant: str = "combined",
+    precomputed_features: dict | None = None,
+    feature_whitelist: list[str] | None = None,
+) -> MethodResult:
+    g, build_time, total_events = build_variant_graph(
+        data_dir, windows, config, variant=variant, max_events=max_events,
+    )
+    method_name = get_variant(variant).name
+
     return _score_detect_graph(
         method_name=method_name,
         dataset="LANL-2015",
         g=g,
         red_pairs=red_pairs,
         build_time=build_time,
-        total_events=n_auth + n_flow,
+        total_events=total_events,
         config=config,
         output_dir=output_dir,
+        precomputed_features=precomputed_features,
+        feature_whitelist=feature_whitelist,
     )
