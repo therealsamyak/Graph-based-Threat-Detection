@@ -8,9 +8,10 @@ from datetime import datetime
 from pathlib import Path
 
 from src.baselines.comparison import build_comparison_table, load_graph_based_results
-from src.baselines.data import _find_variant_dir, find_latest_run
-from src.baselines.runner import build_summary, evaluate_variant
-from src.baselines.types import VALID_VARIANTS
+from src.baselines.data import find_latest_run, find_variant_dir
+from src.baselines.figures import generate_baseline_figures
+from src.baselines.runner import GraphResults, VariantResults, build_summary, evaluate_variant
+from src.variants import list_variants
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +22,7 @@ def run_baselines(
     run_id: str | None = None,
     variant: str | None = None,
 ) -> None:
-    """Run baseline tests (SVM, Isolation Forest) on cached pipeline outputs.
-
-    Args:
-        results_dir: Directory containing cached run outputs.
-        output_dir: Root directory for baseline results.
-        run_id: Specific run_id to evaluate. Defaults to latest.
-        variant: Specific variant to evaluate. Defaults to all found variants.
-    """
-    # ── Determine run directory ──
+    """Run baseline tests (SVM, Isolation Forest) on cached pipeline outputs."""
     if run_id:
         run_dir_path = results_dir / run_id
         if not run_dir_path.exists():
@@ -38,14 +31,13 @@ def run_baselines(
         run_dir_path = find_latest_run(results_dir)
         logger.info(f"Using latest run: {run_dir_path.name}")
 
-    # ── Determine variants to evaluate ──
     variants_to_eval: list[str] = []
-    for v in VALID_VARIANTS:
+    for candidate in list_variants():
         try:
-            _find_variant_dir(run_dir_path, v)
-            variants_to_eval.append(v)
+            find_variant_dir(run_dir_path, candidate)
+            variants_to_eval.append(candidate)
         except FileNotFoundError:
-            pass
+            logger.debug(f"Variant '{candidate}' not found in {run_dir_path}")
 
     if variant:
         if variant not in variants_to_eval:
@@ -63,36 +55,30 @@ def run_baselines(
 
     logger.info(f"Evaluating variants: {variants_to_eval}")
 
-    # ── Create output directory ──
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_output_dir = output_dir / timestamp
     run_output_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"Output directory: {run_output_dir}")
 
-    # ── Evaluate each variant ──
-    per_variant_results: dict[str, dict] = {}
-    graph_results: dict[str, dict | None] = {}
+    per_variant_results: dict[str, VariantResults] = {}
+    graph_results: GraphResults = {}
 
-    for v in variants_to_eval:
+    for candidate in variants_to_eval:
         start_time = time.time()
 
-        # Run baselines
-        v_results = evaluate_variant(run_dir_path, v, run_output_dir)
-        per_variant_results[v] = v_results
+        variant_results = evaluate_variant(run_dir_path, candidate, run_output_dir)
+        per_variant_results[candidate] = variant_results
 
-        # Load graph-based results for comparison
-        graph = load_graph_based_results(run_dir_path, v)
-        graph_results[v] = graph
+        graph = load_graph_based_results(run_dir_path, candidate)
+        graph_results[candidate] = graph
 
         elapsed = time.time() - start_time
-        logger.info(f"Completed {v} in {elapsed:.1f}s")
+        logger.info(f"Completed {candidate} in {elapsed:.1f}s")
 
-    # ── Build comparison table ──
     comparison_md = build_comparison_table(per_variant_results, graph_results)
     (run_output_dir / "comparison_table.md").write_text(comparison_md)
     logger.info(f"Saved {run_output_dir / 'comparison_table.md'}")
 
-    # ── Build summary ──
     build_summary(
         variants_to_eval=variants_to_eval,
         per_variant_results=per_variant_results,
@@ -102,7 +88,9 @@ def run_baselines(
         output_dir=run_output_dir,
     )
 
-    # ── Print summary ──
+    figures_dir = generate_baseline_figures(run_output_dir, results_dir)
+    logger.info(f"Saved baseline figures in {figures_dir}")
+
     print(f"\n{'=' * 70}")
     print(f"Baseline testing complete: {run_output_dir}")
     print(f"Run ID: {run_dir_path.name}")

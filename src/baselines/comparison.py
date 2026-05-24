@@ -2,130 +2,88 @@
 
 from __future__ import annotations
 
-import json
 import logging
+from numbers import Real
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from sklearn.metrics import roc_auc_score
 
-from src.baselines.data import (
-    _find_redteam_pairs,
-    _find_variant_dir,
-    compute_pair_metrics,
-    optimize_threshold_f1,
-)
+from src.baselines.data import evaluate_scores, find_variant_dir, load_variant_data, valid_edge_mask
 
 logger = logging.getLogger(__name__)
 
+GraphResult = dict[str, object]
+VariantResults = dict[str, GraphResult]
 
-def load_graph_based_results(run_dir: Path, variant: str) -> dict | None:
-    """Load existing graph-based detection results from the same run_id.
 
-    Tries to find edge_scores.csv and compute metrics from the graph-based pipeline.
-    """
+def load_graph_based_results(run_dir: Path, variant: str) -> GraphResult | None:
+    """Load existing graph-based detection scores from the same run_id."""
     try:
-        variant_dir = _find_variant_dir(run_dir, variant)
-    except FileNotFoundError:
+        variant_dir = find_variant_dir(run_dir, variant)
+        edge_features_df, _graph_edges_df, edge_pairs, redteam_pairs = load_variant_data(
+            run_dir, variant
+        )
+    except FileNotFoundError as exc:
+        logger.warning(f"Graph-based results unavailable for {variant}: {exc}")
         return None
 
     edge_scores_path = variant_dir / "edge_scores.csv"
-    graph_edges_path = variant_dir / "graph_edges.csv"
-
-    try:
-        redteam_pairs_path = _find_redteam_pairs(run_dir)
-    except FileNotFoundError:
-        return None
-
     if not edge_scores_path.exists():
         logger.warning(f"Graph-based edge_scores.csv not found: {edge_scores_path}")
         return None
 
-    try:
-        edge_scores_df = pd.read_csv(edge_scores_path)
-        graph_edges_df = pd.read_csv(graph_edges_path)
-
-        with open(redteam_pairs_path) as f:
-            redteam_pairs = {(str(p["src"]), str(p["dst"])) for p in json.load(f)}
-
-        edge_pairs = list(
-            zip(
-                graph_edges_df["src"].astype(str).values,
-                graph_edges_df["dst"].astype(str).values,
-            )
+    edge_scores_df = pd.read_csv(edge_scores_path)
+    if "score" not in edge_scores_df.columns:
+        raise ValueError(f"Expected 'score' column in {edge_scores_path}")
+    if len(edge_scores_df) != len(edge_pairs):
+        raise ValueError(
+            f"Score row count ({len(edge_scores_df)}) does not match graph edge count ({len(edge_pairs)})"
         )
 
-        # Get scores
-        if "score" in edge_scores_df.columns:
-            scores = edge_scores_df["score"].values
-        elif "edge_score" in edge_scores_df.columns:
-            scores = edge_scores_df["edge_score"].values
-        else:
-            # Try first numeric column after src/dst
-            numeric_cols = edge_scores_df.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) > 0:
-                scores = edge_scores_df[numeric_cols[0]].values
-            else:
-                logger.warning(f"No score column found in {edge_scores_path}")
-                return None
+    mask = valid_edge_mask(edge_features_df)
+    scores = edge_scores_df["score"].to_numpy(dtype=float)[mask]
+    valid_edge_pairs = [edge_pairs[i] for i in range(len(edge_pairs)) if mask[i]]
 
-        # Valid mask
-        is_self_loop = (
-            edge_scores_df["is_self_loop"].values
-            if "is_self_loop" in edge_scores_df.columns
-            else np.zeros(len(edge_scores_df))
-        )
-        is_user_edge = (
-            edge_scores_df["is_user_edge"].values
-            if "is_user_edge" in edge_scores_df.columns
-            else np.zeros(len(edge_scores_df))
-        )
-        valid_mask = (is_self_loop == 0.0) & (is_user_edge == 0.0)
+    threshold, best_f1, graph_metrics = evaluate_scores(
+        scores,
+        valid_edge_pairs,
+        redteam_pairs,
+    )
 
-        labels = np.fromiter(
-            (pair in redteam_pairs for pair in edge_pairs),
-            dtype=np.float64,
-            count=len(edge_pairs),
-        )
+    return {
+        "method": "Graph-based (weighted sum + path boost)",
+        "threshold": threshold,
+        "f1_at_threshold": best_f1,
+        "auc_edge": float(graph_metrics["auc"]),
+        "pair_metrics": graph_metrics,
+    }
 
-        scores_valid = scores[valid_mask]
-        labels_valid = labels[valid_mask]
-        valid_edge_pairs = [edge_pairs[i] for i in range(len(edge_pairs)) if valid_mask[i]]
 
-        # Optimize threshold
-        best_thresh, best_f1 = optimize_threshold_f1(scores_valid, labels_valid.astype(int))
+def _format_metric(value: object) -> str:
+    if isinstance(value, Real):
+        return f"{float(value):.4f}"
+    return "N/A"
 
-        # Compute pair-level metrics
-        graph_metrics = compute_pair_metrics(
-            scores_valid, labels_valid, valid_edge_pairs, redteam_pairs, best_thresh
-        )
 
-        # AUC
-        try:
-            if len(np.unique(labels_valid)) > 1:
-                graph_auc = float(roc_auc_score(labels_valid, scores_valid))
-            else:
-                graph_auc = 0.0
-        except ValueError:
-            graph_auc = 0.0
+def _table_row(method_name: str, result: GraphResult | None) -> str:
+    if result is None:
+        return f"| {method_name} | N/A | N/A | N/A | N/A | N/A |"
 
-        return {
-            "method": "Graph-based (weighted sum + path boost)",
-            "threshold": best_thresh,
-            "f1_at_threshold": best_f1,
-            "auc_edge": graph_auc,
-            "pair_metrics": graph_metrics,
-        }
+    pair_metrics = result.get("pair_metrics")
+    if not isinstance(pair_metrics, dict):
+        return f"| {method_name} | N/A | N/A | N/A | N/A | N/A |"
 
-    except Exception as e:
-        logger.warning(f"Failed to load graph-based results for {variant}: {e}")
-        return None
+    return (
+        f"| {method_name} | {_format_metric(pair_metrics.get('recall'))} | "
+        f"{_format_metric(pair_metrics.get('fpr'))} | {_format_metric(pair_metrics.get('f1'))} | "
+        f"{_format_metric(pair_metrics.get('precision'))} | "
+        f"{_format_metric(result.get('auc_edge'))} |"
+    )
 
 
 def build_comparison_table(
-    per_variant_results: dict[str, dict],
-    graph_results: dict[str, dict | None],
+    per_variant_results: dict[str, VariantResults],
+    graph_results: dict[str, GraphResult | None],
 ) -> str:
     """Build a markdown comparison table."""
     lines = [
@@ -135,47 +93,19 @@ def build_comparison_table(
         "",
     ]
 
-    for variant in ["combined", "auth_only", "flow_only"]:
-        if variant not in per_variant_results:
-            continue
-
+    for variant in sorted(per_variant_results):
         lines.append(f"### {variant}")
         lines.append("")
-        lines.append(
-            "| Method | Recall | FPR | F1 | Precision | AUC |"
-        )
-        lines.append(
-            "|--------|--------|-----|----|-----------|-----|"
-        )
+        lines.append("| Method | Recall | FPR | F1 | Precision | AUC |")
+        lines.append("|--------|--------|-----|----|-----------|-----|")
+        lines.append(_table_row("Graph-based", graph_results.get(variant)))
 
-        # Graph-based
-        graph = graph_results.get(variant)
-        if graph:
-            pm = graph.get("pair_metrics", {})
-            lines.append(
-                f"| Graph-based | {pm.get('recall', 'N/A'):.4f} | "
-                f"{pm.get('fpr', 'N/A'):.4f} | {pm.get('f1', 'N/A'):.4f} | "
-                f"{pm.get('precision', 'N/A'):.4f} | {graph.get('auc_edge', 'N/A'):.4f} |"
-            )
-        else:
-            lines.append("| Graph-based | N/A | N/A | N/A | N/A | N/A |")
-
-        # Baselines
         variant_results = per_variant_results[variant]
         for method_key, method_name in [
             ("one_class_svm", "One-Class SVM"),
             ("isolation_forest", "Isolation Forest"),
         ]:
-            if method_key in variant_results:
-                pm = variant_results[method_key].get("pair_metrics", {})
-                lines.append(
-                    f"| {method_name} | {pm.get('recall', 'N/A'):.4f} | "
-                    f"{pm.get('fpr', 'N/A'):.4f} | {pm.get('f1', 'N/A'):.4f} | "
-                    f"{pm.get('precision', 'N/A'):.4f} | "
-                    f"{variant_results[method_key].get('auc_edge', 'N/A'):.4f} |"
-                )
-            else:
-                lines.append(f"| {method_name} | N/A | N/A | N/A | N/A | N/A |")
+            lines.append(_table_row(method_name, variant_results.get(method_key)))
 
         lines.append("")
 
