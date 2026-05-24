@@ -1,4 +1,4 @@
-"""Baseline testing: SVM and Isolation Forest for threat detection comparison.
+"""Baseline testing: One-Class SVM and Isolation Forest for threat detection comparison.
 
 Usage:
     uv run baselines.py                                    # Run on latest results
@@ -13,6 +13,7 @@ import logging
 from pathlib import Path
 
 from src.baselines import run_baselines
+from src.variants import list_variants
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Baseline testing: SVM and Isolation Forest for threat detection comparison"
+        description="Baseline testing: One-Class SVM and Isolation Forest for threat detection comparison"
     )
     parser.add_argument(
         "--run_id",
@@ -35,7 +36,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--variant",
         type=str,
         default=None,
-        choices=["combined", "auth_only", "flow_only"],
+        choices=list(list_variants()),
         help="Evaluate specific variant. Default: evaluate all found variants.",
     )
     parser.add_argument(

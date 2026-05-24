@@ -1,19 +1,28 @@
-"""Data loading, feature preparation, and metric computation for baselines."""
+"""Data loading, feature preparation, and score evaluation for baselines."""
 
 from __future__ import annotations
 
 import json
 import logging
+from numbers import Real
 from pathlib import Path
+from typing import TypeAlias
 
 import numpy as np
 import pandas as pd
 import scipy.stats
-from sklearn.metrics import f1_score, roc_auc_score
 
-from src.baselines.types import BINARY_FEATURES, VARIANT_FEATURE_WHITELISTS
+from src.detection import compute_pair_metrics as compute_detection_pair_metrics
+from src.detection import optimize_threshold
+from src.types import BINARY_FEATURES, DetectionParams
+from src.variants import get_variant
 
 logger = logging.getLogger(__name__)
+
+Pair: TypeAlias = tuple[str, str]
+PairMetrics: TypeAlias = dict[str, float | int]
+
+VALID_EDGE_COLUMNS = ("is_self_loop", "is_user_edge")
 
 
 # ── Utility functions ────────────────────────────────────────────────
@@ -21,103 +30,104 @@ logger = logging.getLogger(__name__)
 
 def rank_pct(x: np.ndarray) -> np.ndarray:
     """Transform to percentile ranks within the column."""
-    rank = scipy.stats.rankdata(x, method="average")
+    values = np.asarray(x, dtype=float)
+    if len(values) == 0:
+        return values
+    rank = scipy.stats.rankdata(values, method="average")
     return rank / len(rank)
 
 
-def optimize_threshold_f1(
-    scores: np.ndarray,
-    labels: np.ndarray,
-    percentiles: list[float] | None = None,
-) -> tuple[float, float]:
-    """Auto-optimize threshold by sweeping percentiles to maximize F1.
+def labels_for_pairs(edge_pairs: list[Pair], redteam_pairs: set[Pair]) -> np.ndarray:
+    """Build binary edge labels from red-team src/dst pairs."""
+    return np.fromiter(
+        (pair in redteam_pairs for pair in edge_pairs),
+        dtype=np.float64,
+        count=len(edge_pairs),
+    )
 
-    Returns (best_threshold, best_f1).
+
+def valid_edge_mask(edge_features_df: pd.DataFrame) -> np.ndarray:
+    """Return mask for non-self-loop, non-user edges.
+
+    These columns are part of the cached edge-feature schema. Missing columns are
+    a schema error; silently treating them as zero corrupts metrics.
     """
-    if percentiles is None:
-        percentiles = [90, 95, 97, 99, 99.5, 99.9]
+    missing = [col for col in VALID_EDGE_COLUMNS if col not in edge_features_df.columns]
+    if missing:
+        raise KeyError(f"Missing required edge-feature columns: {missing}")
 
-    best_f1: float = -1.0
-    best_thresh: float = float(scores.min())
-
-    for p in percentiles:
-        thresh = float(np.percentile(scores, p))
-        preds = (scores >= thresh).astype(int)
-        f1 = f1_score(labels, preds, zero_division=0)
-        if f1 > best_f1:
-            best_f1 = f1
-            best_thresh = thresh
-
-    return best_thresh, best_f1
+    return (
+        (edge_features_df["is_self_loop"].to_numpy() == 0.0)
+        & (edge_features_df["is_user_edge"].to_numpy() == 0.0)
+    )
 
 
-def compute_pair_metrics(
+def _metric_as_float(metrics: dict[str, object], key: str) -> float:
+    value = metrics[key]
+    if not isinstance(value, Real):
+        raise TypeError(f"Metric '{key}' is not numeric: {type(value).__name__}")
+    return float(value)
+
+
+def _metric_as_set(metrics: dict[str, object], key: str) -> set[object]:
+    value = metrics[key]
+    if not isinstance(value, set):
+        raise TypeError(f"Metric '{key}' is not a set: {type(value).__name__}")
+    return value
+
+
+def detection_params_for_scores(
     scores: np.ndarray,
-    labels: np.ndarray,
-    edge_pairs: list[tuple[str, str]],
-    redteam_pairs: set[tuple[str, str]],
-    threshold: float,
-) -> dict:
-    """Compute recall, FPR, F1, precision, AUC at the pair level.
+    edge_pairs: list[Pair],
+    redteam_pairs: set[Pair],
+) -> DetectionParams:
+    """Adapt baseline score arrays to the canonical detection interface."""
+    if len(scores) != len(edge_pairs):
+        raise ValueError(
+            f"Score count ({len(scores)}) does not match edge-pair count ({len(edge_pairs)})"
+        )
 
-    For each redteam pair, check if ANY edge between that src-dst pair exceeds threshold.
-    """
-    # Build mapping from pair to max score
-    pair_max_score: dict[tuple[str, str], float] = {}
-    for i, pair in enumerate(edge_pairs):
-        if pair not in pair_max_score:
-            pair_max_score[pair] = scores[i]
-        else:
-            pair_max_score[pair] = max(pair_max_score[pair], scores[i])
+    edge_pair_names = tuple(edge_pairs)
+    all_graph_edges = frozenset(edge_pair_names)
+    positive_pairs_in_graph = frozenset(redteam_pairs & set(all_graph_edges))
 
-    # All unique pairs in the graph
-    all_graph_pairs = set(edge_pairs)
+    return DetectionParams(
+        edge_scores=pd.Series(np.asarray(scores, dtype=float)),
+        mask_valid=pd.Series(np.ones(len(edge_pair_names), dtype=bool)),
+        edge_pair_names=edge_pair_names,
+        positive_pairs_in_graph=positive_pairs_in_graph,
+        all_positive_pairs=frozenset(redteam_pairs),
+        all_graph_edges=all_graph_edges,
+    )
 
-    # Pairs that exceed threshold
-    anomalous_pairs = {pair for pair, score in pair_max_score.items() if score >= threshold}
 
-    # Detected redteam pairs
-    detected_pairs = anomalous_pairs & redteam_pairs
-
-    # Recall: fraction of redteam pairs detected
-    recall = len(detected_pairs) / len(redteam_pairs) if redteam_pairs else 0.0
-
-    # FPR: false positives / (false positives + true negatives)
-    false_positives = len(anomalous_pairs - redteam_pairs)
-    true_negatives = len(all_graph_pairs - anomalous_pairs - redteam_pairs)
-    fpr = false_positives / max(false_positives + true_negatives, 1)
-
-    # Precision
-    precision = len(detected_pairs) / max(len(anomalous_pairs), 1)
-
-    # F1
-    f1 = 2 * recall * precision / (recall + precision) if (recall + precision) > 0 else 0.0
-
-    # AUC: use pair-level scores and labels
-    unique_pairs = sorted(pair_max_score.keys())
-    pair_scores = np.array([pair_max_score[p] for p in unique_pairs])
-    pair_labels = np.array([1.0 if p in redteam_pairs else 0.0 for p in unique_pairs])
-
-    try:
-        if len(np.unique(pair_labels)) > 1:
-            auc = float(roc_auc_score(pair_labels, pair_scores))
-        else:
-            auc = 0.0
-            logger.warning("Only one class present in pairs — AUC undefined")
-    except ValueError:
-        auc = 0.0
-        logger.warning("AUC computation failed")
-
+def summarize_detection_metrics(metrics: dict[str, object], redteam_pairs: set[Pair]) -> PairMetrics:
+    """Keep the baseline JSON schema while reusing canonical detection metrics."""
+    anomalous_pairs = _metric_as_set(metrics, "anomalous_pairs")
+    detected_pairs = _metric_as_set(metrics, "detected_pairs")
     return {
-        "recall": recall,
-        "fpr": fpr,
-        "f1": f1,
-        "precision": precision,
-        "auc": auc,
+        "recall": _metric_as_float(metrics, "recall"),
+        "fpr": _metric_as_float(metrics, "fpr"),
+        "f1": _metric_as_float(metrics, "f1"),
+        "precision": _metric_as_float(metrics, "precision"),
+        "auc": _metric_as_float(metrics, "auc"),
         "num_anomalous_pairs": len(anomalous_pairs),
         "num_detected_pairs": len(detected_pairs),
         "num_redteam_pairs": len(redteam_pairs),
     }
+
+
+def evaluate_scores(
+    scores: np.ndarray,
+    edge_pairs: list[Pair],
+    redteam_pairs: set[Pair],
+) -> tuple[float, float, PairMetrics]:
+    """Optimize threshold and compute pair metrics via canonical detection code."""
+    params = detection_params_for_scores(scores, edge_pairs, redteam_pairs)
+    threshold, _ = optimize_threshold(params)
+    raw_metrics = compute_detection_pair_metrics(params, threshold)
+    metrics = summarize_detection_metrics(raw_metrics, redteam_pairs)
+    return threshold, float(metrics["f1"]), metrics
 
 
 # ── Data loading ─────────────────────────────────────────────────────
@@ -135,19 +145,12 @@ def find_latest_run(results_dir: Path) -> Path:
     return run_dirs[0]
 
 
-def _find_variant_dir(run_dir: Path, variant: str) -> Path:
-    """Find the variant directory, handling nested dataset structures.
-
-    Handles both:
-      - run_dir/variant/
-      - run_dir/*/variant/  (e.g., run_dir/LANL-2015/variant/)
-    """
-    # Try direct path: run_dir/variant/
+def find_variant_dir(run_dir: Path, variant: str) -> Path:
+    """Find a variant directory in direct or nested dataset run layouts."""
     direct = run_dir / variant
     if direct.is_dir() and (direct / "edge_features.csv").exists():
         return direct
 
-    # Try nested: run_dir/*/variant/
     for subdir in run_dir.iterdir():
         if subdir.is_dir():
             nested = subdir / variant
@@ -160,21 +163,18 @@ def _find_variant_dir(run_dir: Path, variant: str) -> Path:
     )
 
 
-def _find_redteam_pairs(run_dir: Path) -> Path:
-    """Find redteam_pairs.json, handling nested dataset structures."""
-    # Try run_dir/redteam/redteam_pairs.json
+def find_redteam_pairs(run_dir: Path) -> Path:
+    """Find redteam_pairs.json in direct, nested, or parent run layouts."""
     candidate = run_dir / "redteam" / "redteam_pairs.json"
     if candidate.exists():
         return candidate
 
-    # Try run_dir/*/redteam/redteam_pairs.json
     for subdir in run_dir.iterdir():
         if subdir.is_dir():
             candidate = subdir / "redteam" / "redteam_pairs.json"
             if candidate.exists():
                 return candidate
 
-    # Try parent level
     candidate = run_dir.parent / "redteam" / "redteam_pairs.json"
     if candidate.exists():
         return candidate
@@ -187,17 +187,10 @@ def _find_redteam_pairs(run_dir: Path) -> Path:
 def load_variant_data(
     run_dir: Path,
     variant: str,
-) -> tuple[pd.DataFrame, pd.DataFrame, list[tuple[str, str]], set[tuple[str, str]]]:
-    """Load edge_features.csv, graph_edges.csv, and redteam_pairs.json for a variant.
-
-    Returns:
-        edge_features_df: Full feature matrix (all edges)
-        graph_edges_df: Edge metadata (src, dst, is_self_loop, is_user_edge)
-        edge_pairs: List of (src, dst) tuples for each edge row
-        redteam_pairs: Set of (src, dst) ground truth pairs
-    """
-    variant_dir = _find_variant_dir(run_dir, variant)
-    redteam_pairs_path = _find_redteam_pairs(run_dir)
+) -> tuple[pd.DataFrame, pd.DataFrame, list[Pair], set[Pair]]:
+    """Load edge_features.csv, graph_edges.csv, and redteam_pairs.json for a variant."""
+    variant_dir = find_variant_dir(run_dir, variant)
+    redteam_pairs_path = find_redteam_pairs(run_dir)
 
     edge_features_path = variant_dir / "edge_features.csv"
     graph_edges_path = variant_dir / "graph_edges.csv"
@@ -214,8 +207,8 @@ def load_variant_data(
 
     edge_pairs = list(
         zip(
-            graph_edges_df["src"].astype(str).values,
-            graph_edges_df["dst"].astype(str).values,
+            graph_edges_df["src"].astype(str).to_numpy(),
+            graph_edges_df["dst"].astype(str).to_numpy(),
         )
     )
 
@@ -232,25 +225,13 @@ def load_variant_data(
 
 def prepare_features_and_labels(
     edge_features_df: pd.DataFrame,
-    graph_edges_df: pd.DataFrame,
-    edge_pairs: list[tuple[str, str]],
-    redteam_pairs: set[tuple[str, str]],
+    edge_pairs: list[Pair],
+    redteam_pairs: set[Pair],
     variant: str,
-) -> tuple[pd.DataFrame, np.ndarray, np.ndarray, list[tuple[str, str]]]:
-    """Prepare feature matrix and labels, applying valid edge mask and rank-percentile transform.
+) -> tuple[pd.DataFrame, np.ndarray, list[Pair]]:
+    """Prepare feature matrix and labels with the canonical variant whitelist."""
+    feature_whitelist = get_variant(variant).feature_whitelist
 
-    Returns:
-        X_transformed: Transformed feature matrix (valid edges only)
-        labels: Binary labels (valid edges only)
-        valid_mask: Boolean mask for valid edges
-        valid_edge_pairs: Edge pairs for valid edges
-    """
-    # Get feature whitelist for this variant
-    feature_whitelist = VARIANT_FEATURE_WHITELISTS.get(variant)
-    if feature_whitelist is None:
-        raise ValueError(f"Unknown variant: {variant}")
-
-    # Check which features are available
     available_features = set(edge_features_df.columns)
     features_to_use = [f for f in feature_whitelist if f in available_features]
     missing = [f for f in feature_whitelist if f not in available_features]
@@ -260,40 +241,18 @@ def prepare_features_and_labels(
     if not features_to_use:
         raise ValueError(f"No features available for variant {variant}")
 
-    # Build valid edge mask: exclude self-loops and user edges
-    is_self_loop = (
-        edge_features_df["is_self_loop"].values
-        if "is_self_loop" in edge_features_df.columns
-        else np.zeros(len(edge_features_df))
-    )
-    is_user_edge = (
-        edge_features_df["is_user_edge"].values
-        if "is_user_edge" in edge_features_df.columns
-        else np.zeros(len(edge_features_df))
-    )
-    valid_mask = (is_self_loop == 0.0) & (is_user_edge == 0.0)
+    valid_mask = valid_edge_mask(edge_features_df)
+    labels = labels_for_pairs(edge_pairs, redteam_pairs)
 
-    # Create binary labels: 1 if (src, dst) pair is in redteam_pairs
-    labels = np.fromiter(
-        (pair in redteam_pairs for pair in edge_pairs),
-        dtype=np.float64,
-        count=len(edge_pairs),
-    )
-
-    # Extract feature columns
     X = edge_features_df[features_to_use].copy()
-
-    # Apply rank-percentile transform to non-binary features
     for col in features_to_use:
         if col not in BINARY_FEATURES:
-            X[col] = rank_pct(X[col].values)
+            X[col] = rank_pct(np.asarray(X[col], dtype=float))
 
-    # Filter to valid edges
     X_valid = X.loc[valid_mask].reset_index(drop=True)
     labels_valid = labels[valid_mask]
     valid_edge_pairs = [edge_pairs[i] for i in range(len(edge_pairs)) if valid_mask[i]]
 
-    # Replace inf/nan
     X_valid = X_valid.replace([np.inf, -np.inf], 0.0).fillna(0.0)
 
     logger.info(
@@ -301,4 +260,4 @@ def prepare_features_and_labels(
         f"{X_valid.shape[1]} features, {int(labels_valid.sum())} positive"
     )
 
-    return X_valid, labels_valid, valid_mask, valid_edge_pairs
+    return X_valid, labels_valid, valid_edge_pairs
