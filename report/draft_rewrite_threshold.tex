@@ -1,0 +1,10 @@
+%% DRAFT — Threshold Selection REWRITE
+%% ACTION: Replace current Section 4.5 (Threshold Selection) entirely with this content.
+%% After inserting Feature Selection and Weight Optimization, this becomes Section 4.7.
+%%
+%% CHANGES from current version:
+%%   - Removed "Future work" block (held-out validation is now implemented)
+
+\subsection{Threshold Selection}
+
+Anomalous edges are identified by thresholding final edge scores. We sweep percentile values $\{90, 95, 97, 99, 99.5, 99.9\}$ and pick the one that maximizes F1 against known red-team pairs. The auto-optimize mode evaluates each percentile by computing precision and recall in pair-space, selecting the threshold that yields the best F1 score. If edge scores have zero variance (all identical), the threshold is set above the maximum score so no edges are flagged.

@@ -1,4 +1,12 @@
-\subsection{Feature Selection Metrics}
+%% DRAFT — Feature Selection (NEW SECTION)
+%% ACTION: Insert as new Section 4.3, after Feature Extraction (current 4.2)
+%% This shifts current 4.3 (Edge Scoring) to 4.5, current 4.4 (Path) to 4.6,
+%% current 4.5 (Threshold) to 4.7.
+%%
+%% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
+%% after the pipeline run completes.
+
+\subsection{Feature Selection}
 \label{sec:feature_selection}
 
 To narrow the graph feature set, we audit each candidate feature with a held-out AUC protocol instead of relying on intuition alone. The cached edge table is joined with node-level statistics, filtered to remove self-loops and user-edge metadata, and labeled by whether each source-destination pair appears in the LANL red-team ground truth. A stratified 50/50 split reserves one half for calibrating the feature ranking and the other half for checking generalization. For each feature, we compute ROC AUC using that feature alone; if red-team edges have a lower mean than benign edges, we invert the AUC so the score measures separability regardless of direction. This puts features like low destination degree and high NTLM usage on the same scale.
