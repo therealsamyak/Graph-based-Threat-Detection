@@ -1,0 +1,18 @@
+{
+  "method": "One-Class SVM",
+  "kernel": "rbf",
+  "nu": 0.1,
+  "threshold": 274.42606531578235,
+  "f1_at_threshold": 0.040345821325648415,
+  "auc_edge": 0.7500406981112498,
+  "pair_metrics": {
+    "recall": 0.022727272727272728,
+    "fpr": 0.0049115017334712,
+    "f1": 0.0219435736677116,
+    "precision": 0.021212121212121213,
+    "auc": 0.7500406981112498,
+    "num_anomalous_pairs": 330,
+    "num_detected_pairs": 7,
+    "num_redteam_pairs": 308
+  }
+}
