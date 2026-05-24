@@ -1,6 +1,9 @@
 % Draft section for the baseline pipeline comparison.
 % Intended for insertion into Final_Report.tex under the evaluation/results section.
 % Do NOT wrap in \documentclass / \begin{document}.
+%
+% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
+% after the pipeline run completes.
 
 \subsection{Baseline Pipeline Comparison}
 \label{sec:baseline_pipeline}
@@ -9,7 +12,7 @@ We compare the graph-based detector against two unsupervised tabular baselines: 
 
 \subsubsection{Protocol}
 
-All methods use the same LANL-2015 edge feature tables and the same three variants: combined authentication-plus-flow features, authentication-only features, and flow-only features. Variant membership and feature whitelists come from the canonical \texttt{src.variants} module, and binary feature handling comes from \texttt{src.types}. Non-binary columns are converted to percentile ranks; binary columns are left unchanged. Edges marked as self-loops or user metadata edges are excluded from evaluation.
+All methods use the same LANL-2015 edge feature tables and the same three variants: combined authentication-plus-flow features, authentication-only features, and flow-only features. Feature whitelists come from the pipeline run's \texttt{feature\_whitelist.json}, ensuring baselines use the exact same features selected by the feature audit. Non-binary columns are converted to percentile ranks; binary columns are left unchanged. Edges marked as self-loops or user metadata edges are excluded from evaluation.
 
 Ground truth comes from LANL red-team source-destination pairs. A graph edge is positive when its \texttt{(src, dst)} pair appears in that set. The one-class baselines train only on normal edges, then evaluate on held-out normal edges plus all positive red-team edges. This is the right contract for unsupervised anomaly detection: learn normal behavior first, then score what looks abnormal.
 
@@ -19,7 +22,10 @@ Thresholds and pair-level metrics are not reimplemented in the baseline package.
 
 \subsubsection{Results}
 
-Table~\ref{tab:baseline_combined}, Table~\ref{tab:baseline_auth}, and Table~\ref{tab:baseline_flow} report the current baseline run at \texttt{baseline\_results/20260524\_051746}, evaluated against graph-pipeline run \texttt{20260524\_022620}. Only the graph method and the two implemented one-class baselines are reported.
+Table~\ref{tab:baseline_combined}, Table~\ref{tab:baseline_auth}, and Table~\ref{tab:baseline_flow} report the baseline run evaluated against the graph-pipeline run. Only the graph method and the two implemented one-class baselines are reported.
+
+%% NOTE: Bold formatting ([PENDING] entries) should be updated to highlight the
+%% best value per column after pipeline results are available.
 
 \begin{table}[h]
 \centering
@@ -28,12 +34,12 @@ Table~\ref{tab:baseline_combined}, Table~\ref{tab:baseline_auth}, and Table~\ref
 \hline
 Method & Recall & FPR & F1 & Precision & AUC & Detected pairs \\
 \hline
-Graph-based & \textbf{0.9448} & 0.0295 & \textbf{0.0371} & 0.0189 & \textbf{0.9756} & \textbf{291/308} \\
-One-Class SVM & 0.0162 & \textbf{0.0010} & 0.0204 & \textbf{0.0273} & 0.7678 & 5/308 \\
-Isolation Forest & 0.0292 & 0.0050 & 0.0147 & 0.0098 & 0.9388 & 9/308 \\
+Graph-based      & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
+One-Class SVM    & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
+Isolation Forest & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
 \hline
 \end{tabular}
-\caption{Combined authentication-plus-flow baseline comparison. The graph-based method has the strongest recall and AUC; the one-class baselines keep false positives low but miss most red-team pairs.}
+\caption{Combined authentication-plus-flow baseline comparison.}
 \label{tab:baseline_combined}
 \end{table}
 
@@ -44,9 +50,9 @@ Isolation Forest & 0.0292 & 0.0050 & 0.0147 & 0.0098 & 0.9388 & 9/308 \\
 \hline
 Method & Recall & FPR & F1 & Precision & AUC & Detected pairs \\
 \hline
-Graph-based & \textbf{0.9448} & \textbf{0.0293} & \textbf{0.0463} & \textbf{0.0237} & \textbf{0.9781} & \textbf{291/308} \\
-One-Class SVM & 0.0130 & 0.0500 & 0.0012 & 0.0006 & 0.5442 & 4/308 \\
-Isolation Forest & 0.2695 & 0.0995 & 0.0124 & 0.0063 & 0.9030 & 83/308 \\
+Graph-based      & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
+One-Class SVM    & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
+Isolation Forest & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
 \hline
 \end{tabular}
 \caption{Authentication-only baseline comparison. Authentication events carry most of the signal for lateral movement in this dataset.}
@@ -60,9 +66,9 @@ Isolation Forest & 0.2695 & 0.0995 & 0.0124 & 0.0063 & 0.9030 & 83/308 \\
 \hline
 Method & Recall & FPR & F1 & Precision & AUC & Detected pairs \\
 \hline
-Graph-based & 0.0130 & 0.1000 & 0.0006 & 0.0003 & 0.5154 & 4/308 \\
-One-Class SVM & \textbf{0.0227} & \textbf{0.0049} & \textbf{0.0219} & \textbf{0.0212} & 0.7500 & \textbf{7/308} \\
-Isolation Forest & 0.0162 & \textbf{0.0049} & 0.0157 & 0.0152 & \textbf{0.8246} & 5/308 \\
+Graph-based      & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
+One-Class SVM    & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
+Isolation Forest & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
 \hline
 \end{tabular}
 \caption{Flow-only baseline comparison. Flow-only data is weak across all methods; it is better treated as supporting context than as the main detection signal.}
@@ -83,8 +89,8 @@ The baseline comparison can be regenerated with:
 
 \begin{verbatim}
 uv run baselines.py
-uv run baselines.py --run_id 20260524_022620
-uv run baselines.py --run_id 20260524_022620 --variant combined
+uv run baselines.py --run_id <RUN_ID>
+uv run baselines.py --run_id <RUN_ID> --variant combined
 \end{verbatim}
 
 Each command writes to \texttt{baseline\_results/<timestamp>/}. The generated figures are stored in \texttt{baseline\_results/<timestamp>/figures/}; the baseline module does not write report-level figure outputs.
