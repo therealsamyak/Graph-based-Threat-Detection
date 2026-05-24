@@ -1,0 +1,18 @@
+{
+  "method": "SVC (supervised)",
+  "kernel": "rbf",
+  "C": 1.0,
+  "threshold": 0.00755633817380892,
+  "f1_at_threshold": 0.032408544070709554,
+  "auc_edge": 0.9533513781385116,
+  "pair_metrics": {
+    "recall": 0.21428571428571427,
+    "fpr": 0.029539743825458112,
+    "f1": 0.031205673758865248,
+    "precision": 0.016828148903620603,
+    "auc": 0.9533513781385116,
+    "num_anomalous_pairs": 3922,
+    "num_detected_pairs": 66,
+    "num_redteam_pairs": 308
+  }
+}
