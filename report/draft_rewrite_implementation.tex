@@ -1,0 +1,13 @@
+%% DRAFT — Implementation REWRITE
+%% ACTION: Replace current Section 5.5 (Implementation) entirely with this content.
+%%
+%% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
+%% after the pipeline run completes.
+
+\subsection{Implementation}
+
+The pipeline is implemented in Python with two execution modes. \texttt{feature.py} runs the held-out AUC feature audit on cached pipeline outputs to identify discriminative features. \texttt{main.py} runs the full detection pipeline: graph construction, feature extraction, Nelder-Mead weight optimization, edge scoring, path scoring, threshold selection, and visualization. All hyperparameters live in a JSON config file.
+
+Graph operations use igraph; weight optimization uses SciPy's \texttt{minimize} with the Nelder-Mead method; baselines and metrics use scikit-learn. The path boost factor ($0.1$), hop limit (4), and top-$k$ path count (50) remain as configurable parameters. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors. End-to-end execution for the combined graph method plus baselines takes approximately \textbf{[PENDING: wall-clock time]} on a \textbf{[PENDING: machine specs]} machine.
+
+A separate evaluation module (\texttt{eval.py}) performs held-out validation of the weight optimizer, logistic-regression baseline comparison, tabular versus graph feature ablation, and graph feature extension sweeps. These analyses are independent of the main pipeline and operate on cached edge tables.
