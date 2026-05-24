@@ -178,7 +178,7 @@ def load_features(cache_path: Path, variant: str) -> dict | None:
         return None
 
     edge_features = pd.read_csv(ef_path, index_col=0)
-    graph_edges = pd.read_csv(ge_path)
+    pd.read_csv(ge_path)  # validate file is readable
 
     node_features = None
     nf_path = vdir / "node_features.csv"
