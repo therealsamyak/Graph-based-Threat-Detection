@@ -1,15 +1,18 @@
-"""Feature audit orchestrator for cached graph pipeline outputs."""
+"""Phase 1: Build graphs, extract features, run audits, save to shared cache."""
 
 from __future__ import annotations
 
 import argparse
-import json
 import logging
-from datetime import datetime
 from pathlib import Path
 
+import pandas as pd
+
+from src.config import load_config
 from src.feature_audit import run_audit
 from src.feature_audit.types import AuditConfig
+from src.features import extract_all_features
+from src.stages import build_variant_graph, load_redteam_data
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,53 +21,21 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _latest_combined_run(results_dir: Path) -> Path:
-    # Search two levels deep: results/<run_id>/combined/ or results/<run_id>/<dataset>/combined/
-    candidates = []
-    for run_dir in results_dir.iterdir():
-        if not run_dir.is_dir():
-            continue
-        # Direct: results/<run_id>/combined/
-        combined = run_dir / "combined"
-        if combined.is_dir():
-            candidates.append(combined)
-        # Nested: results/<run_id>/<dataset>/combined/
-        for sub in run_dir.iterdir():
-            if sub.is_dir():
-                combined = sub / "combined"
-                if combined.is_dir():
-                    candidates.append(combined)
-
-    candidates.sort(key=lambda p: p.parent.name, reverse=True)
-    for candidate in candidates:
-        if (candidate / "edge_features.csv").exists() and (
-            candidate / "graph_edges.csv"
-        ).exists():
-            return candidate
-    raise FileNotFoundError(f"No cached combined run found under {results_dir}")
-
-
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run held-out AUC feature audit on cached graph pipeline features."
+        description="Phase 1: build graphs, extract features, run feature audit, save to shared cache.",
     )
     parser.add_argument(
-        "--run-dir",
+        "--sample",
+        type=int,
+        default=None,
+        help="Max events to stream (for quick testing).",
+    )
+    parser.add_argument(
+        "--data-dir",
         type=Path,
         default=None,
-        help="Cached run directory containing combined edge/node CSVs. Defaults to latest results/*/combined.",
-    )
-    parser.add_argument(
-        "--results-dir",
-        type=Path,
-        default=Path("results"),
-        help="Directory to search for cached pipeline runs when --run-dir is omitted.",
-    )
-    parser.add_argument(
-        "--output-root",
-        type=Path,
-        default=Path("feature_results"),
-        help="Root directory for feature audit outputs.",
+        help="LANL dataset directory. Defaults to config value.",
     )
     parser.add_argument("--holdout-frac", type=float, default=0.5)
     parser.add_argument("--min-auc", type=float, default=0.0)
@@ -81,44 +52,84 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def run(argv: list[str] | None = None):
     args = _parse_args(argv)
-    run_dir = args.run_dir or _latest_combined_run(args.results_dir)
-    audit_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = args.output_root / audit_id
-    output_dir.mkdir(parents=True, exist_ok=True)
+    config = load_config()
+    data_dir = str(args.data_dir) if args.data_dir else config.data.lanl_dir
 
-    log1p_features = AuditConfig().log1p_features if args.log1p else []
-    config = AuditConfig(
-        holdout_frac=args.holdout_frac,
-        min_auc=args.min_auc,
-        log1p_features=log1p_features,
-        random_seed=args.seed,
-    )
+    from src.cache import prepare_cache_dir, save_redteam, save_features, save_top_features
+    from src.variants import get_all_descriptors
 
-    logger.info("Feature audit input: %s", run_dir)
-    logger.info("Feature audit output: %s", output_dir)
-    report = run_audit(run_dir, output_dir, config)
+    # 1. Load redteam data
+    rt, red_pairs, windows = load_redteam_data(data_dir, config.data.window_size)
 
-    metadata = {
-        "audit_id": audit_id,
-        "input_run_dir": str(run_dir),
-        "output_dir": str(output_dir),
-        "selected_feature_count": len(report.selected_features),
-    }
-    (output_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
+    # 2. Prepare cache and save redteam
+    cdir = prepare_cache_dir(args.sample)
+    save_redteam(cdir, rt, red_pairs, windows)
 
-    print("Feature Audit Summary")
-    print(f"Input: {run_dir}")
-    print(f"Output: {output_dir}")
-    print(
-        f"Selected features ({len(report.selected_features)}): {', '.join(report.selected_features)}"
-    )
-    print("Top features:")
-    for result in report.features[:10]:
-        marker = "*" if result.selected else " "
-        print(f"{marker} {result.feature:30s} AUC={result.auc:.4f}")
-    print(f"JSON: {output_dir / 'feature_audit_results.json'}")
-    print(f"Markdown: {output_dir / 'Feature_Audit_Results.md'}")
-    return report
+    descriptors = get_all_descriptors()
+    top_features_map: dict[str, list[str]] = {}
+
+    # 3. For each variant: build graph, extract features, run audit, save top features
+    for descriptor in descriptors:
+        variant = descriptor.name
+        top_n = 5 if variant == "combined" else 3
+        logger.info(f"── Variant: {variant} (top_n={top_n}) ──")
+
+        # Build graph (cached)
+        g, build_time, total_events = build_variant_graph(
+            data_dir, windows, config, variant=variant, max_events=args.sample,
+        )
+
+        # Extract features
+        all_feat = extract_all_features(g, config=config.to_dict(), variant_name=variant)
+
+        # Compute graph_edges for audit
+        edge_rows = [
+            {"src": g.vs[e.source]["name"], "dst": g.vs[e.target]["name"]}
+            for e in g.es
+        ]
+        graph_edges_df = pd.DataFrame(edge_rows)
+
+        # Save to cache
+        save_features(
+            cdir, variant,
+            edge_features=all_feat["edge_features"],
+            node_features=all_feat.get("node_features"),
+            graph_features=all_feat.get("graph_features", {}),
+            graph_edges=graph_edges_df,
+        )
+
+        # Run feature audit
+        variant_dir = cdir / variant
+        audit_config = AuditConfig(
+            holdout_frac=args.holdout_frac,
+            min_auc=args.min_auc,
+            log1p_features=AuditConfig().log1p_features if args.log1p else [],
+            random_seed=args.seed,
+        )
+        report = run_audit(variant_dir, variant_dir, audit_config)
+
+        # Extract top N features (skip duplicates)
+        top_features = [r.feature for r in report.features[:top_n] if not r.is_duplicate_of]
+        if not top_features:
+            # Fallback: take top N regardless of duplicates
+            top_features = [r.feature for r in report.features[:top_n]]
+
+        save_top_features(cdir, variant, top_features, top_n)
+        top_features_map[variant] = top_features
+
+        # Print variant summary
+        logger.info(f"  [{variant}] Top {len(top_features)} features: {top_features}")
+        logger.info(f"  [{variant}] Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
+        logger.info(f"  [{variant}] Build time: {build_time:.1f}s, Events: {total_events:,}")
+
+    # 4. Print overall summary
+    print("=" * 80)
+    print("PHASE 1 COMPLETE: Data Preparation + Feature Audit")
+    print("=" * 80)
+    print(f"Cache: {cdir}")
+    for variant, feats in top_features_map.items():
+        print(f"  [{variant}] Top features: {', '.join(feats)}")
+    print(f"Run 'uv run main.py --sample {args.sample}' to score and detect.")
 
 
 def main() -> None:
