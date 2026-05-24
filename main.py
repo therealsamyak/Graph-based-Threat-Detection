@@ -213,7 +213,6 @@ def run(argv: list[str] | None = None) -> pd.DataFrame:
     logger.info(f"Per-method details saved to {details_path}")
 
     # Save pipeline_run.json
-    combined_mr = all_results[0] if all_results else {}
     pipeline_run = {
         "run_id": run_id,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
