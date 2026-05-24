@@ -1,9 +1,10 @@
-% Draft sections for weight-optimization evaluation.
-% Intended for insertion into Final_Report.tex under \section{Results}.
-% Do NOT wrap in \documentclass / \begin{document}.
-%
-% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
-% after the pipeline run completes.
+%% DRAFT — Weight Optimization Evaluation + Performance Metrics (ADD to Results)
+%% ACTION: Add as subsections in Section 6 (Results), after Baseline Pipeline Comparison.
+%% Contains: held-out validation, LR baseline, tabular/graph ablation,
+%%           graph extensions, synthesis, and computational performance.
+%%
+%% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
+%% after the pipeline run completes.
 
 \subsection{Held-Out Validation of Weight Optimization}
 \label{sec:holdout_weight}
@@ -162,3 +163,9 @@ Known-attacker propagation (personalized PageRank) & [PENDING] (conditional) \\
 \end{table}
 
 Three claims emerge from this evaluation with clear empirical backing. First, graph-derived features carry the bulk of the discriminative signal for lateral-movement detection on LANL-2015. Second, supervised learning is a separate, additive contribution from graph-derived features. Third, among supervised linear methods on the same features, the specific algorithm matters little: Nelder-Mead direct AUC maximization and logistic regression agree to within single-seed noise. The optimizer's value is in producing interpretable weights aligned with the scoring formula, not in outperforming standard alternatives.
+
+
+\subsection{Computational Performance Metrics}
+\label{sec:latency_throughput}
+
+We report two complementary performance metrics per pipeline variant. \emph{Latency} is the total wall-clock time in seconds from the start of event streaming through graph construction, feature extraction, weight optimization, edge and path scoring, and threshold detection. Formally, $L = t_{\text{build}} + t_{\text{score}}$, where $t_{\text{build}}$ is the time to stream raw authentication and flow events into the graph and $t_{\text{score}}$ is the time for the full scoring pipeline (features, optimization, edges, paths, detection). \emph{Throughput} is the average number of events processed per second, computed as $T = N / L$, where $N$ is the total number of raw events (authentication plus flow records) streamed during graph construction. These metrics capture end-to-end pipeline cost rather than any single stage in isolation.

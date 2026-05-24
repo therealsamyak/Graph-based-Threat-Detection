@@ -1,0 +1,22 @@
+%% DRAFT — Edge Scoring REWRITE
+%% ACTION: Replace current Section 4.3 (Edge Scoring) entirely with this content.
+%% After inserting Feature Selection (4.3) and Weight Optimization (4.4), this
+%% becomes Section 4.5.
+%%
+%% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
+%% after the pipeline run completes.
+
+\subsection{Edge Scoring}
+\label{sec:edge_scoring}
+
+Edges are scored with a unified weighted sum over the features selected by the feature audit (Section~\ref{sec:feature_selection}) and weighted by the Nelder-Mead optimizer (Section~\ref{sec:weight_optimization}):
+
+\begin{equation}
+s = \sum_{i=1}^{k} w_i^* \cdot f_i
+\end{equation}
+
+where $w_i^*$ are the optimized weights and $f_i$ are the selected features: \textbf{[PENDING: feature list from pipeline run]}. All non-binary features receive a percentile rank transform before scoring to reduce outlier influence; binary features are used as-is.
+
+Edges where either endpoint is a user account (contains \texttt{@}) or where the source equals the destination (self-loop) receive a score of 0.0, as these have no red-team signal in our labeled data.
+
+This replaces the previous approach of separate auth/flow scoring formulas with different feature sets and an ad-hoc $1.5\times$ auth multiplier. The unified scoring is simpler, data-driven, and applies to all edge types in the combined graph without manual tuning.
