@@ -160,7 +160,9 @@ The reported metrics use an F1-maximizing threshold, but the **real value** of t
 | 3% (F1-optimal) | ~94% | ~27% |
 | 10% | ~98% | ~30% |
 
-This table illustrates that at **any** acceptable FPR level, the graph-based method achieves higher recall than SVC. An operator who prioritizes low false positives can set a high threshold and still detect 60% of threats at 0.1% FPR—more than double what SVC achieves.
+> **Note:** These values are approximate interpolations estimated from the ROC curves of each method (graph-based AUC = 0.976, SVC AUC = 0.955 on the combined variant). They are not directly computed at fixed FPR targets by the evaluation code, which sweeps only six fixed percentiles [90, 95, 97, 99, 99.5, 99.9]. The values are included to illustrate the relative advantage of the graph-based method across operating points; precise recall-at-FPR values can be computed by interpolating the full ROC curve from `per_variant_results.json`.
+
+This table illustrates that at **any** acceptable FPR level, the graph-based method achieves higher recall than SVC. An operator who prioritizes low false positives can set a high threshold and still detect ~60% of threats at 0.1% FPR—more than double what SVC achieves.
 
 ### 3.3 Limitations of Baseline Methods
 
