@@ -21,6 +21,7 @@ check lint:
 all:
 	uv run feature.py
 	uv run main.py
+	uv run baselines.py
 	uv run eval.py
 	git add -A
 	git commit -m "results at $$(date +%Y-%m-%d_%H:%M:%S)"
