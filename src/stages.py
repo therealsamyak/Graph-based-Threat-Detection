@@ -188,6 +188,7 @@ def _score_detect_graph(
     result_dict = {
         "method": method_name,
         "dataset": dataset,
+        "feature_whitelist": list(whitelist),
         "recall": round(metrics["recall"], 4),
         "fpr": round(metrics["fpr"], 4),
         "f1": round(metrics["f1"], 4),
