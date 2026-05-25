@@ -1,0 +1,369 @@
+2026-05-24 23:17:05,457 [INFO] __main__: Loading from cache: .cache/pipeline/full
+2026-05-24 23:17:05,458 [INFO] src.cache:   Loaded redteam from cache: 749 events, 308 pairs
+2026-05-24 23:17:05,459 [INFO] src.pipeline: Run ID: 20260524_231705, output dir: results/20260524_231705
+2026-05-24 23:17:05,459 [INFO] src.io:   Saved pipeline_config.json to results/20260524_231705
+2026-05-24 23:17:05,461 [INFO] src.io:   Saved redteam data to results/20260524_231705/redteam
+2026-05-24 23:17:05,461 [INFO] __main__: ── Variant: auth_only ──
+2026-05-24 23:17:06,402 [INFO] src.stages:   Red team pairs in graph: 302/308
+2026-05-24 23:17:06,402 [INFO] src.stages:   Using precomputed features for 'auth_only'
+2026-05-24 23:17:06,679 [INFO] src.stages:   Joined node features onto edges: 15 new columns
+2026-05-24 23:17:06,696 [INFO] src.stages:   Variant 'auth_only': 3 features
+2026-05-24 23:17:06,696 [INFO] src.stages:   Running weight optimization...
+2026-05-24 23:17:06,702 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:17:06,702 [INFO] src.optimization.optimizer: Starting weight optimization
+2026-05-24 23:17:06,702 [INFO] src.optimization.optimizer:   Method: nelder-mead
+2026-05-24 23:17:06,702 [INFO] src.optimization.optimizer:   Features (3): ['src_in_degree', 'is_ntlm', 'src_out_degree']
+2026-05-24 23:17:06,702 [INFO] src.optimization.optimizer:   Initial weights: [0.3333 0.3333 0.3333]
+2026-05-24 23:17:06,702 [INFO] src.optimization.optimizer:   Samples: 261373, positives: 302, negatives: 261071
+2026-05-24 23:17:06,702 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:17:06,768 [INFO] src.optimization.optimizer:   Initial AUC (equal weights): 0.907448
+2026-05-24 23:17:07,114 [INFO] src.optimization.optimizer:   Iter    1 | AUC=0.913318 | Δ=+0.000000 | NEW BEST | w=[0.3056, 0.3481, 0.3481]
+2026-05-24 23:17:07,361 [INFO] src.optimization.optimizer:   Iter    3 | AUC=0.918414 | Δ=+0.005096 | NEW BEST | w=[0.2922, 0.3374, 0.38  ]
+2026-05-24 23:17:07,509 [INFO] src.optimization.optimizer:   Iter    4 | AUC=0.923627 | Δ=+0.005213 | NEW BEST | w=[0.2556, 0.3688, 0.3788]
+2026-05-24 23:17:07,657 [INFO] src.optimization.optimizer:   Iter    5 | AUC=0.926445 | Δ=+0.002818 | NEW BEST | w=[0.2338, 0.3466, 0.3934]
+2026-05-24 23:17:07,805 [INFO] src.optimization.optimizer:   Iter    6 | AUC=0.935814 | Δ=+0.009369 | NEW BEST | w=[0.1855, 0.3555, 0.444 ]
+2026-05-24 23:17:07,953 [INFO] src.optimization.optimizer:   Iter    7 | AUC=0.944166 | Δ=+0.008352 | NEW BEST | w=[0.113 , 0.3896, 0.4478]
+2026-05-24 23:17:08,103 [INFO] src.optimization.optimizer:   Iter    8 | AUC=0.953668 | Δ=+0.009502 | NEW BEST | w=[0.0472, 0.3558, 0.511 ]
+2026-05-24 23:17:08,250 [INFO] src.optimization.optimizer:   Iter    9 | AUC=0.982292 | Δ=+0.028624 | NEW BEST | w=[-0.0825,  0.4009,  0.5912]
+2026-05-24 23:17:08,396 [INFO] src.optimization.optimizer:   Iter   10 | AUC=0.983936 | Δ=+0.001644 | NEW BEST | w=[-0.2401,  0.4265,  0.6378]
+2026-05-24 23:17:08,542 [INFO] src.optimization.optimizer:   Iter   11 | AUC=0.985069 | Δ=+0.001133 | NEW BEST | w=[-0.4331,  0.4024,  0.8004]
+2026-05-24 23:17:08,979 [INFO] src.optimization.optimizer:   Iter   15 | AUC=0.985111 | Δ=+0.000042 | NEW BEST | w=[-0.8303,  0.4173,  1.0284]
+2026-05-24 23:17:09,224 [INFO] src.optimization.optimizer:   Iter   17 | AUC=0.985132 | Δ=+0.000021 | NEW BEST | w=[-0.4118,  0.3487,  0.8148]
+2026-05-24 23:17:09,373 [INFO] src.optimization.optimizer:   Iter   18 | AUC=0.985160 | Δ=+0.000028 | NEW BEST | w=[-0.4688,  0.3885,  0.8073]
+2026-05-24 23:17:09,969 [INFO] src.optimization.optimizer:   Iter   20 | AUC=0.985231 | Δ=+0.000071 | NEW BEST | w=[-0.4435,  0.3708,  0.8106]
+2026-05-24 23:17:10,756 [INFO] src.optimization.optimizer:   Iter   23 | AUC=0.985235 | Δ=+0.000004 | NEW BEST | w=[-0.4548,  0.3787,  0.8092]
+2026-05-24 23:17:11,516 [INFO] src.optimization.optimizer:   Iter   28 | AUC=0.985235 | Δ=+0.000000 | NEW BEST | w=[-0.4495,  0.3791,  0.8093]
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer: Optimization complete
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:   Converged: True (converged)
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:   Iterations: 56
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:   Total time: 12.67s
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:   Initial AUC: 0.907448
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:   Optimized AUC: 0.985235
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:   Improvement: +0.077787 (+8.57%)
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:   Final weights:
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:     src_in_degree: -0.449482
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:     is_ntlm: 0.379058
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer:     src_out_degree: 0.809271
+2026-05-24 23:17:19,377 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:17:19,378 [INFO] src.optimization.optimizer: Saved optimization log to results/20260524_231705/LANL-2015/auth_only/optimization/optimization_log.json
+2026-05-24 23:17:19,378 [INFO] src.optimization.optimizer: Saved optimized weights to results/20260524_231705/LANL-2015/auth_only/optimization/optimized_weights.json
+2026-05-24 23:17:20,215 [INFO] src.optimization.optimizer: Saved feature contribution to results/20260524_231705/LANL-2015/auth_only/optimization/feature_contribution.csv
+2026-05-24 23:17:20,215 [INFO] src.optimization.optimizer: Saved optimization comparison to results/20260524_231705/LANL-2015/auth_only/optimization/optimization_comparison.json
+2026-05-24 23:17:20,215 [INFO] src.stages:   Optimized weights: {'src_in_degree': -0.4494824754218256, 'is_ntlm': 0.37905765858453133, 'src_out_degree': 0.8092708272022606}
+2026-05-24 23:17:20,215 [INFO] src.stages:   Optimized AUC: 0.9852
+2026-05-24 23:17:20,216 [INFO] src.scoring.edges: Scoring edges: 409,100 edges, 3 features
+2026-05-24 23:17:20,216 [INFO] src.scoring.edges: Weights used: {'src_in_degree': -0.4494824754218256, 'is_ntlm': 0.37905765858453133, 'src_out_degree': 0.8092708272022606}
+2026-05-24 23:17:20,216 [INFO] src.scoring.edges: Valid edges: 261,373 (63.9%), invalid (self-loop/user-edge): 147,727 (36.1%)
+2026-05-24 23:17:20,244 [INFO] src.scoring.edges: Applied rank transform to 'src_in_degree'
+2026-05-24 23:17:20,249 [INFO] src.scoring.edges:   src_in_degree: weight=-0.449, mean=0.5145, contrib_mean=-0.2313
+2026-05-24 23:17:20,255 [INFO] src.scoring.edges:   is_ntlm: weight=0.379, mean=0.1431, contrib_mean=0.0542
+2026-05-24 23:17:20,273 [INFO] src.scoring.edges: Applied rank transform to 'src_out_degree'
+2026-05-24 23:17:20,279 [INFO] src.scoring.edges:   src_out_degree: weight=0.809, mean=0.6313, contrib_mean=0.5109
+2026-05-24 23:17:20,300 [INFO] src.scoring.edges: Score distribution: min=-0.3370, max=1.1250, mean=0.2133, std=0.2599
+2026-05-24 23:17:20,301 [INFO] src.scoring.edges: Percentiles: p25=0.0000, p50=0.1289, p75=0.3494, p90=0.6202, p95=0.7883, p99=0.9083
+2026-05-24 23:17:20,301 [INFO] src.stages:   Edge scores computed, enumerating paths (this may take a while)...
+2026-05-24 23:17:20,301 [INFO] src.scoring.paths: Path scoring: 20 workers (variant: auth_only)
+2026-05-24 23:17:20,696 [INFO] src.scoring.paths:     Parallel path enumeration: 90,783 nodes across 20 workers
+2026-05-24 23:21:22,155 [INFO] src.scoring.paths:     Path enumeration: worker 1/20 done, 12,048,565 paths so far
+2026-05-24 23:21:23,723 [INFO] src.scoring.paths:     Path enumeration: worker 2/20 done, 24,154,407 paths so far
+2026-05-24 23:21:25,033 [INFO] src.scoring.paths:     Path enumeration: worker 3/20 done, 35,228,333 paths so far
+2026-05-24 23:21:26,494 [INFO] src.scoring.paths:     Path enumeration: worker 4/20 done, 45,349,939 paths so far
+2026-05-24 23:21:28,417 [INFO] src.scoring.paths:     Path enumeration: worker 5/20 done, 53,485,261 paths so far
+2026-05-24 23:21:28,672 [INFO] src.scoring.paths:     Path enumeration: worker 6/20 done, 55,272,948 paths so far
+2026-05-24 23:21:29,233 [INFO] src.scoring.paths:     Path enumeration: worker 7/20 done, 58,897,100 paths so far
+2026-05-24 23:21:29,382 [INFO] src.scoring.paths:     Path enumeration: worker 8/20 done, 59,886,743 paths so far
+2026-05-24 23:21:29,855 [INFO] src.scoring.paths:     Path enumeration: worker 9/20 done, 63,404,846 paths so far
+2026-05-24 23:21:30,361 [INFO] src.scoring.paths:     Path enumeration: worker 10/20 done, 66,622,957 paths so far
+2026-05-24 23:21:30,794 [INFO] src.scoring.paths:     Path enumeration: worker 11/20 done, 69,561,645 paths so far
+2026-05-24 23:21:31,211 [INFO] src.scoring.paths:     Path enumeration: worker 12/20 done, 71,932,656 paths so far
+2026-05-24 23:21:31,775 [INFO] src.scoring.paths:     Path enumeration: worker 13/20 done, 75,014,575 paths so far
+2026-05-24 23:21:32,177 [INFO] src.scoring.paths:     Path enumeration: worker 14/20 done, 77,233,784 paths so far
+2026-05-24 23:21:32,420 [INFO] src.scoring.paths:     Path enumeration: worker 15/20 done, 78,661,396 paths so far
+2026-05-24 23:21:32,619 [INFO] src.scoring.paths:     Path enumeration: worker 16/20 done, 79,998,609 paths so far
+2026-05-24 23:21:32,749 [INFO] src.scoring.paths:     Path enumeration: worker 17/20 done, 80,879,933 paths so far
+2026-05-24 23:21:32,938 [INFO] src.scoring.paths:     Path enumeration: worker 18/20 done, 81,135,080 paths so far
+2026-05-24 23:21:33,180 [INFO] src.scoring.paths:     Path enumeration: worker 19/20 done, 82,942,451 paths so far
+2026-05-24 23:21:33,596 [INFO] src.scoring.paths:     Path enumeration: worker 20/20 done, 85,437,955 paths so far
+2026-05-24 23:31:29,492 [INFO] src.stages:   Scored 50 paths, computing graph-level scores...
+2026-05-24 23:31:29,520 [INFO] src.stages:   Applied path boost (factor=0.1)
+2026-05-24 23:31:29,540 [INFO] src.stages:   Scoring completed in 863.1s
+2026-05-24 23:31:33,410 [INFO] src.detection: Auto-optimized: percentile=99, threshold=1.1179, F1=0.1778
+2026-05-24 23:31:34,174 [INFO] src.stages:   auth_only: recall=0.9221, fpr=0.0064, f1=0.1778
+2026-05-24 23:31:34,499 [INFO] src.io:   [auth_only] Saved edge_scores.csv (409,100 edges)
+2026-05-24 23:31:34,506 [INFO] src.io:   [auth_only] Saved paths.csv (50 paths)
+2026-05-24 23:31:34,510 [INFO] src.io:   [auth_only] Saved anomalous_paths.csv (2,886 anomalous edges)
+2026-05-24 23:31:39,526 [INFO] src.csv_split:   Split CSV into 2 parts: edge_features_pt1.csv + edge_features_pt2.csv (~113 MB total)
+2026-05-24 23:31:39,527 [INFO] src.io:   [auth_only] Saved node_features.csv, edge_features.csv, graph_features.json
+2026-05-24 23:31:41,992 [INFO] src.io:   [auth_only] Saved graph_edges.csv (409,100), graph_nodes.csv (90,783)
+2026-05-24 23:31:41,993 [INFO] src.io:   [auth_only] Saved detected_redteam_pairs.json (284 pairs)
+2026-05-24 23:31:42,017 [INFO] __main__: Saved feature_whitelist.json to results/20260524_231705/LANL-2015/auth_only/feature_whitelist.json
+2026-05-24 23:31:42,017 [INFO] __main__: ── Variant: combined ──
+2026-05-24 23:31:43,287 [INFO] src.stages:   Red team pairs in graph: 305/308
+2026-05-24 23:31:43,287 [INFO] src.stages:   Using precomputed features for 'combined'
+2026-05-24 23:31:43,698 [INFO] src.stages:   Joined node features onto edges: 15 new columns
+2026-05-24 23:31:43,721 [INFO] src.stages:   Variant 'combined': 5 features
+2026-05-24 23:31:43,722 [INFO] src.stages:   Running weight optimization...
+2026-05-24 23:31:43,739 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:31:43,739 [INFO] src.optimization.optimizer: Starting weight optimization
+2026-05-24 23:31:43,739 [INFO] src.optimization.optimizer:   Method: nelder-mead
+2026-05-24 23:31:43,739 [INFO] src.optimization.optimizer:   Features (5): ['is_ntlm', 'dst_in_degree', 'is_network_logon', 'dst_total_degree', 'edge_rarity']
+2026-05-24 23:31:43,739 [INFO] src.optimization.optimizer:   Initial weights: [0.2 0.2 0.2 0.2 0.2]
+2026-05-24 23:31:43,739 [INFO] src.optimization.optimizer:   Samples: 364802, positives: 305, negatives: 364497
+2026-05-24 23:31:43,739 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:31:43,859 [INFO] src.optimization.optimizer:   Initial AUC (equal weights): 0.861942
+2026-05-24 23:31:44,961 [INFO] src.optimization.optimizer:   Iter    1 | AUC=0.872183 | Δ=+0.000000 | NEW BEST | w=[0.2048, 0.2048, 0.2048, 0.186 , 0.2048]
+2026-05-24 23:31:45,296 [INFO] src.optimization.optimizer:   Iter    2 | AUC=0.878184 | Δ=+0.006001 | NEW BEST | w=[0.2071, 0.1883, 0.2071, 0.1933, 0.2071]
+2026-05-24 23:31:45,847 [INFO] src.optimization.optimizer:   Iter    4 | AUC=0.883275 | Δ=+0.005091 | NEW BEST | w=[0.2147, 0.1954, 0.1959, 0.1861, 0.2147]
+2026-05-24 23:31:46,191 [INFO] src.optimization.optimizer:   Iter    5 | AUC=0.887468 | Δ=+0.004193 | NEW BEST | w=[0.2218, 0.1931, 0.208 , 0.1794, 0.203 ]
+2026-05-24 23:31:46,734 [INFO] src.optimization.optimizer:   Iter    7 | AUC=0.892360 | Δ=+0.004892 | NEW BEST | w=[0.2246, 0.1768, 0.2075, 0.1836, 0.2168]
+2026-05-24 23:31:47,059 [INFO] src.optimization.optimizer:   Iter    8 | AUC=0.894989 | Δ=+0.002629 | NEW BEST | w=[0.2266, 0.1775, 0.2013, 0.1717, 0.2151]
+2026-05-24 23:31:47,386 [INFO] src.optimization.optimizer:   Iter    9 | AUC=0.898681 | Δ=+0.003692 | NEW BEST | w=[0.2383, 0.1849, 0.2008, 0.1592, 0.2212]
+2026-05-24 23:31:47,711 [INFO] src.optimization.optimizer:   Iter   10 | AUC=0.901081 | Δ=+0.002399 | NEW BEST | w=[0.239 , 0.1699, 0.2189, 0.1564, 0.2136]
+2026-05-24 23:31:48,039 [INFO] src.optimization.optimizer:   Iter   11 | AUC=0.902923 | Δ=+0.001843 | NEW BEST | w=[0.2542, 0.1649, 0.2037, 0.1638, 0.2119]
+2026-05-24 23:31:48,372 [INFO] src.optimization.optimizer:   Iter   12 | AUC=0.908675 | Δ=+0.005752 | NEW BEST | w=[0.2572, 0.1491, 0.2043, 0.1495, 0.2335]
+2026-05-24 23:31:48,943 [INFO] src.optimization.optimizer:   Iter   14 | AUC=0.912286 | Δ=+0.003610 | NEW BEST | w=[0.2829, 0.1501, 0.2135, 0.127 , 0.2277]
+2026-05-24 23:31:49,282 [INFO] src.optimization.optimizer:   Iter   15 | AUC=0.915724 | Δ=+0.003438 | NEW BEST | w=[0.2879, 0.1232, 0.2202, 0.1291, 0.2223]
+2026-05-24 23:31:49,620 [INFO] src.optimization.optimizer:   Iter   16 | AUC=0.922058 | Δ=+0.006334 | NEW BEST | w=[0.3104, 0.1217, 0.1957, 0.1199, 0.237 ]
+2026-05-24 23:31:49,957 [INFO] src.optimization.optimizer:   Iter   17 | AUC=0.934173 | Δ=+0.012114 | NEW BEST | w=[0.3161, 0.1079, 0.2129, 0.0886, 0.2514]
+2026-05-24 23:31:50,520 [INFO] src.optimization.optimizer:   Iter   19 | AUC=0.939600 | Δ=+0.005428 | NEW BEST | w=[0.3682, 0.0802, 0.2212, 0.066 , 0.2422]
+2026-05-24 23:31:50,861 [INFO] src.optimization.optimizer:   Iter   20 | AUC=0.942747 | Δ=+0.003146 | NEW BEST | w=[0.3733, 0.0452, 0.2121, 0.0683, 0.2573]
+2026-05-24 23:31:51,199 [INFO] src.optimization.optimizer:   Iter   21 | AUC=0.945243 | Δ=+0.002496 | NEW BEST | w=[0.4073, 0.0455, 0.1987, 0.0361, 0.2818]
+2026-05-24 23:31:51,548 [INFO] src.optimization.optimizer:   Iter   22 | AUC=0.950044 | Δ=+0.004802 | NEW BEST | w=[0.4224, 0.0111, 0.2346, 0.0087, 0.2827]
+2026-05-24 23:31:51,897 [INFO] src.optimization.optimizer:   Iter   23 | AUC=0.953458 | Δ=+0.003413 | NEW BEST | w=[ 0.4577,  0.0005,  0.2179, -0.0241,  0.2851]
+2026-05-24 23:31:52,232 [INFO] src.optimization.optimizer:   Iter   24 | AUC=0.955594 | Δ=+0.002137 | NEW BEST | w=[ 0.5313, -0.0635,  0.2225, -0.0496,  0.2956]
+2026-05-24 23:31:52,804 [INFO] src.optimization.optimizer:   Iter   26 | AUC=0.955766 | Δ=+0.000172 | NEW BEST | w=[ 0.5945, -0.0975,  0.2248, -0.1335,  0.3424]
+2026-05-24 23:31:53,155 [INFO] src.optimization.optimizer:   Iter   27 | AUC=0.955956 | Δ=+0.000190 | NEW BEST | w=[ 0.5984, -0.1312,  0.2464, -0.1356,  0.328 ]
+2026-05-24 23:31:54,853 [INFO] src.optimization.optimizer:   Iter   34 | AUC=0.956079 | Δ=+0.000123 | NEW BEST | w=[ 0.8257, -0.304 ,  0.2831, -0.3283,  0.3841]
+2026-05-24 23:31:55,673 [INFO] src.optimization.optimizer:   Iter   37 | AUC=0.956373 | Δ=+0.000294 | NEW BEST | w=[ 0.5993, -0.1373,  0.2932, -0.1684,  0.3096]
+2026-05-24 23:31:56,981 [INFO] src.optimization.optimizer:   Iter   42 | AUC=0.956810 | Δ=+0.000437 | NEW BEST | w=[ 0.5528, -0.1384,  0.3078, -0.1159,  0.273 ]
+2026-05-24 23:31:57,312 [INFO] src.optimization.optimizer:   Iter   43 | AUC=0.957005 | Δ=+0.000196 | NEW BEST | w=[ 0.565 , -0.1104,  0.3183, -0.1167,  0.2481]
+2026-05-24 23:31:57,860 [INFO] src.optimization.optimizer:   Iter   45 | AUC=0.957137 | Δ=+0.000132 | NEW BEST | w=[ 0.5749, -0.1329,  0.3492, -0.1755,  0.2591]
+2026-05-24 23:31:58,840 [INFO] src.optimization.optimizer:   Iter   48 | AUC=0.957238 | Δ=+0.000100 | NEW BEST | w=[ 0.5711, -0.1632,  0.3764, -0.1352,  0.2199]
+2026-05-24 23:32:00,310 [INFO] src.optimization.optimizer:   Iter   53 | AUC=0.957323 | Δ=+0.000086 | NEW BEST | w=[ 0.5836, -0.1247,  0.3831, -0.1627,  0.1906]
+2026-05-24 23:32:00,662 [INFO] src.optimization.optimizer:   Iter   54 | AUC=0.957586 | Δ=+0.000263 | NEW BEST | w=[ 0.6114, -0.1879,  0.4447, -0.229 ,  0.2036]
+2026-05-24 23:32:01,459 [INFO] src.optimization.optimizer:   Iter   57 | AUC=0.957951 | Δ=+0.000364 | NEW BEST | w=[ 0.6058, -0.203 ,  0.4613, -0.1912,  0.1405]
+2026-05-24 23:32:01,807 [INFO] src.optimization.optimizer:   Iter   58 | AUC=0.958461 | Δ=+0.000510 | NEW BEST | w=[ 0.6261, -0.1735,  0.5122, -0.2478,  0.1063]
+2026-05-24 23:32:02,375 [INFO] src.optimization.optimizer:   Iter   60 | AUC=0.958708 | Δ=+0.000247 | NEW BEST | w=[ 0.6007, -0.2076,  0.5476, -0.2661,  0.0972]
+2026-05-24 23:32:02,930 [INFO] src.optimization.optimizer:   Iter   62 | AUC=0.958924 | Δ=+0.000217 | NEW BEST | w=[ 0.6363, -0.239 ,  0.5997, -0.2725,  0.0292]
+2026-05-24 23:32:03,286 [INFO] src.optimization.optimizer:   Iter   63 | AUC=0.958977 | Δ=+0.000052 | NEW BEST | w=[ 0.6541, -0.2383,  0.6384, -0.3428,  0.0478]
+2026-05-24 23:32:03,670 [INFO] src.optimization.optimizer:   Iter   64 | AUC=0.959007 | Δ=+0.000030 | NEW BEST | w=[ 0.6574, -0.212 ,  0.6212, -0.3624,  0.0218]
+2026-05-24 23:32:07,079 [INFO] src.optimization.optimizer:   Iter   75 | AUC=0.959055 | Δ=+0.000048 | NEW BEST | w=[ 0.6685, -0.1697,  0.6276, -0.3777,  0.0266]
+2026-05-24 23:32:07,630 [INFO] src.optimization.optimizer:   Iter   77 | AUC=0.959059 | Δ=+0.000003 | NEW BEST | w=[ 0.6863, -0.1824,  0.6307, -0.3929,  0.0076]
+2026-05-24 23:32:08,509 [INFO] src.optimization.optimizer:   Iter   80 | AUC=0.959073 | Δ=+0.000014 | NEW BEST | w=[ 0.7161, -0.1425,  0.6489, -0.4631,  0.017 ]
+2026-05-24 23:32:09,860 [INFO] src.optimization.optimizer:   Iter   85 | AUC=0.959100 | Δ=+0.000028 | NEW BEST | w=[ 0.7043, -0.0775,  0.6226, -0.4314,  0.0235]
+2026-05-24 23:32:10,231 [INFO] src.optimization.optimizer:   Iter   86 | AUC=0.959117 | Δ=+0.000016 | NEW BEST | w=[ 0.7287, -0.0685,  0.6243, -0.4574,  0.0054]
+2026-05-24 23:32:11,061 [INFO] src.optimization.optimizer:   Iter   89 | AUC=0.959164 | Δ=+0.000047 | NEW BEST | w=[ 0.7685, -0.0367,  0.6772, -0.5743,  0.0159]
+2026-05-24 23:32:11,416 [INFO] src.optimization.optimizer:   Iter   90 | AUC=0.959181 | Δ=+0.000017 | NEW BEST | w=[ 0.7409,  0.0043,  0.6091, -0.4619,  0.0272]
+2026-05-24 23:32:21,604 [INFO] src.optimization.optimizer:   Iter  118 | AUC=0.959186 | Δ=+0.000005 | NEW BEST | w=[ 0.7472,  0.0018,  0.6206, -0.4803,  0.0293]
+2026-05-24 23:32:22,848 [INFO] src.optimization.optimizer:   Iter  122 | AUC=0.959186 | Δ=+0.000000 | NEW BEST | w=[ 0.7467,  0.0009,  0.6271, -0.4913,  0.026 ]
+2026-05-24 23:32:26,419 [INFO] src.optimization.optimizer:   Iter  133 | AUC=0.959187 | Δ=+0.000001 | NEW BEST | w=[ 0.7486,  0.0026,  0.6271, -0.492 ,  0.028 ]
+2026-05-24 23:32:27,129 [INFO] src.optimization.optimizer:   Iter  135 | AUC=0.959189 | Δ=+0.000002 | NEW BEST | w=[ 0.7482,  0.001 ,  0.628 , -0.4915,  0.028 ]
+2026-05-24 23:32:36,539 [INFO] src.optimization.optimizer:   Iter  155 | AUC=0.959190 | Δ=+0.000001 | NEW BEST | w=[ 7.4804e-01,  6.2401e-04,  6.2816e-01, -4.9159e-01,  2.7742e-02]
+2026-05-24 23:32:37,223 [INFO] src.optimization.optimizer:   Iter  157 | AUC=0.959190 | Δ=+0.000000 | NEW BEST | w=[ 7.4699e-01,  6.6985e-04,  6.2715e-01, -4.8932e-01,  2.7789e-02]
+2026-05-24 23:32:38,303 [INFO] src.optimization.optimizer:   Iter  161 | AUC=0.959191 | Δ=+0.000000 | NEW BEST | w=[ 7.4746e-01,  4.4374e-04,  6.2809e-01, -4.9087e-01,  2.7736e-02]
+2026-05-24 23:32:38,662 [INFO] src.optimization.optimizer:   Iter  162 | AUC=0.959192 | Δ=+0.000002 | NEW BEST | w=[ 7.4682e-01,  8.8709e-05,  6.2749e-01, -4.8929e-01,  2.7746e-02]
+2026-05-24 23:32:40,083 [INFO] src.optimization.optimizer:   Iter  167 | AUC=0.959193 | Δ=+0.000000 | NEW BEST | w=[ 7.4617e-01,  8.3949e-05,  6.2693e-01, -4.8797e-01,  2.7696e-02]
+2026-05-24 23:32:41,270 [INFO] src.optimization.optimizer:   Iter  171 | AUC=0.959193 | Δ=+0.000000 | NEW BEST | w=[ 7.4594e-01,  7.9917e-05,  6.2664e-01, -4.8743e-01,  2.7718e-02]
+2026-05-24 23:32:44,694 [INFO] src.optimization.optimizer:   Iter  180 | AUC=0.959193 | Δ=+0.000000 | NEW BEST | w=[ 7.4625e-01,  4.9336e-05,  6.2701e-01, -4.8809e-01,  2.7764e-02]
+2026-05-24 23:32:45,834 [INFO] src.optimization.optimizer:   Iter  182 | AUC=0.959193 | Δ=+0.000000 | NEW BEST | w=[ 7.4576e-01,  6.4655e-05,  6.2656e-01, -4.8713e-01,  2.7720e-02]
+2026-05-24 23:32:47,927 [INFO] src.optimization.optimizer:   Iter  187 | AUC=0.959193 | Δ=+0.000000 | NEW BEST | w=[ 7.4588e-01,  2.7963e-05,  6.2666e-01, -4.8734e-01,  2.7733e-02]
+2026-05-24 23:32:51,179 [INFO] src.optimization.optimizer:   Iter  194 | AUC=0.959193 | Δ=+0.000000 | NEW BEST | w=[ 7.4587e-01,  3.5078e-05,  6.2666e-01, -4.8731e-01,  2.7736e-02]
+2026-05-24 23:32:52,593 [INFO] src.optimization.optimizer:   Iter  199 | AUC=0.959193 | Δ=+0.000000 | NEW BEST | w=[ 7.4581e-01,  1.2488e-05,  6.2662e-01, -4.8722e-01,  2.7732e-02]
+2026-05-24 23:32:54,325 [INFO] src.optimization.optimizer:   Iter  203 | AUC=0.959194 | Δ=+0.000000 | NEW BEST | w=[ 7.4592e-01,  1.7587e-05,  6.2673e-01, -4.8743e-01,  2.7742e-02]
+2026-05-24 23:32:57,529 [INFO] src.optimization.optimizer:   Iter  214 | AUC=0.959194 | Δ=+0.000000 | NEW BEST | w=[ 7.4585e-01,  3.9469e-06,  6.2666e-01, -4.8728e-01,  2.7733e-02]
+2026-05-24 23:33:00,548 [INFO] src.optimization.optimizer:   Iter  224 | AUC=0.959194 | Δ=+0.000000 | NEW BEST | w=[ 7.4579e-01,  2.2000e-07,  6.2661e-01, -4.8716e-01,  2.7727e-02]
+2026-05-24 23:33:09,047 [INFO] src.optimization.optimizer:   Iter  244 | AUC=0.959194 | Δ=+0.000000 | NEW BEST | w=[ 7.4581e-01,  1.4688e-06,  6.2662e-01, -4.8720e-01,  2.7729e-02]
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer: Optimization complete
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:   Converged: True (converged)
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:   Iterations: 277
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:   Total time: 103.92s
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:   Initial AUC: 0.861942
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:   Optimized AUC: 0.959194
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:   Improvement: +0.097252 (+11.28%)
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:   Final weights:
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:     is_ntlm: 0.745807
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:     dst_in_degree: 0.000001
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:     is_network_logon: 0.626622
+2026-05-24 23:33:27,659 [INFO] src.optimization.optimizer:     dst_total_degree: -0.487200
+2026-05-24 23:33:27,660 [INFO] src.optimization.optimizer:     edge_rarity: 0.027729
+2026-05-24 23:33:27,660 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:33:27,663 [INFO] src.optimization.optimizer: Saved optimization log to results/20260524_231705/LANL-2015/combined/optimization/optimization_log.json
+2026-05-24 23:33:27,663 [INFO] src.optimization.optimizer: Saved optimized weights to results/20260524_231705/LANL-2015/combined/optimization/optimized_weights.json
+2026-05-24 23:33:29,468 [INFO] src.optimization.optimizer: Saved feature contribution to results/20260524_231705/LANL-2015/combined/optimization/feature_contribution.csv
+2026-05-24 23:33:29,468 [INFO] src.optimization.optimizer: Saved optimization comparison to results/20260524_231705/LANL-2015/combined/optimization/optimization_comparison.json
+2026-05-24 23:33:29,468 [INFO] src.stages:   Optimized weights: {'is_ntlm': 0.7458067422331294, 'dst_in_degree': 1.4688459424625925e-06, 'is_network_logon': 0.6266224971214402, 'dst_total_degree': -0.48720001950778624, 'edge_rarity': 0.02772908183130808}
+2026-05-24 23:33:29,468 [INFO] src.stages:   Optimized AUC: 0.9592
+2026-05-24 23:33:29,468 [INFO] src.scoring.edges: Scoring edges: 512,529 edges, 5 features
+2026-05-24 23:33:29,468 [INFO] src.scoring.edges: Weights used: {'is_ntlm': 0.7458067422331294, 'dst_in_degree': 1.4688459424625925e-06, 'is_network_logon': 0.6266224971214402, 'dst_total_degree': -0.48720001950778624, 'edge_rarity': 0.02772908183130808}
+2026-05-24 23:33:29,469 [INFO] src.scoring.edges: Valid edges: 364,802 (71.2%), invalid (self-loop/user-edge): 147,727 (28.8%)
+2026-05-24 23:33:29,474 [INFO] src.scoring.edges:   is_ntlm: weight=0.746, mean=0.1025, contrib_mean=0.0764
+2026-05-24 23:33:29,498 [INFO] src.scoring.edges: Applied rank transform to 'dst_in_degree'
+2026-05-24 23:33:29,504 [INFO] src.scoring.edges:   dst_in_degree: weight=0.000, mean=0.6287, contrib_mean=0.0000
+2026-05-24 23:33:29,509 [INFO] src.scoring.edges:   is_network_logon: weight=0.627, mean=0.3403, contrib_mean=0.2132
+2026-05-24 23:33:29,547 [INFO] src.scoring.edges: Applied rank transform to 'dst_total_degree'
+2026-05-24 23:33:29,552 [INFO] src.scoring.edges:   dst_total_degree: weight=-0.487, mean=0.6300, contrib_mean=-0.3070
+2026-05-24 23:33:29,580 [INFO] src.scoring.edges: Applied rank transform to 'edge_rarity'
+2026-05-24 23:33:29,585 [INFO] src.scoring.edges:   edge_rarity: weight=0.028, mean=0.4680, contrib_mean=0.0130
+2026-05-24 23:33:29,604 [INFO] src.scoring.edges: Score distribution: min=-0.4812, max=1.3432, mean=-0.0031, std=0.3698
+2026-05-24 23:33:29,604 [INFO] src.scoring.edges: Percentiles: p25=-0.2593, p50=0.0000, p75=0.0000, p90=0.3839, p95=0.9585, p99=1.2434
+2026-05-24 23:33:29,604 [INFO] src.stages:   Edge scores computed, enumerating paths (this may take a while)...
+2026-05-24 23:33:29,604 [INFO] src.scoring.paths: Path scoring: 20 workers (variant: combined)
+2026-05-24 23:33:30,036 [INFO] src.scoring.paths:     Parallel path enumeration: 91,589 nodes across 20 workers
+2026-05-24 23:40:19,114 [INFO] src.scoring.paths:     Path enumeration: worker 1/20 done, 12,435,616 paths so far
+2026-05-24 23:40:20,817 [INFO] src.scoring.paths:     Path enumeration: worker 2/20 done, 24,918,310 paths so far
+2026-05-24 23:40:23,322 [INFO] src.scoring.paths:     Path enumeration: worker 3/20 done, 36,345,424 paths so far
+2026-05-24 23:40:25,864 [INFO] src.scoring.paths:     Path enumeration: worker 4/20 done, 46,823,290 paths so far
+2026-05-24 23:40:28,291 [INFO] src.scoring.paths:     Path enumeration: worker 5/20 done, 54,909,648 paths so far
+2026-05-24 23:40:28,697 [INFO] src.scoring.paths:     Path enumeration: worker 6/20 done, 56,645,246 paths so far
+2026-05-24 23:40:29,349 [INFO] src.scoring.paths:     Path enumeration: worker 7/20 done, 60,353,046 paths so far
+2026-05-24 23:40:29,952 [INFO] src.scoring.paths:     Path enumeration: worker 8/20 done, 61,476,656 paths so far
+2026-05-24 23:40:30,799 [INFO] src.scoring.paths:     Path enumeration: worker 9/20 done, 65,169,951 paths so far
+2026-05-24 23:40:31,744 [INFO] src.scoring.paths:     Path enumeration: worker 10/20 done, 68,251,294 paths so far
+2026-05-24 23:40:32,651 [INFO] src.scoring.paths:     Path enumeration: worker 11/20 done, 71,093,813 paths so far
+2026-05-24 23:40:33,201 [INFO] src.scoring.paths:     Path enumeration: worker 12/20 done, 73,342,185 paths so far
+2026-05-24 23:40:33,732 [INFO] src.scoring.paths:     Path enumeration: worker 13/20 done, 76,510,500 paths so far
+2026-05-24 23:40:34,152 [INFO] src.scoring.paths:     Path enumeration: worker 14/20 done, 78,681,621 paths so far
+2026-05-24 23:40:35,229 [INFO] src.scoring.paths:     Path enumeration: worker 15/20 done, 80,124,849 paths so far
+2026-05-24 23:40:36,346 [INFO] src.scoring.paths:     Path enumeration: worker 16/20 done, 81,465,952 paths so far
+2026-05-24 23:40:36,908 [INFO] src.scoring.paths:     Path enumeration: worker 17/20 done, 82,035,014 paths so far
+2026-05-24 23:40:37,246 [INFO] src.scoring.paths:     Path enumeration: worker 18/20 done, 82,413,746 paths so far
+2026-05-24 23:40:37,652 [INFO] src.scoring.paths:     Path enumeration: worker 19/20 done, 84,777,117 paths so far
+2026-05-24 23:40:38,115 [INFO] src.scoring.paths:     Path enumeration: worker 20/20 done, 87,014,529 paths so far
+2026-05-24 23:57:42,240 [INFO] src.stages:   Scored 50 paths, computing graph-level scores...
+2026-05-24 23:57:42,265 [INFO] src.stages:   Applied path boost (factor=0.1)
+2026-05-24 23:57:42,282 [INFO] src.stages:   Scoring completed in 1559.0s
+2026-05-24 23:57:47,232 [INFO] src.detection: Auto-optimized: percentile=99.5, threshold=1.2686, F1=0.0591
+2026-05-24 23:57:48,162 [INFO] src.stages:   combined: recall=0.2110, fpr=0.0036, f1=0.0591
+2026-05-24 23:57:48,754 [INFO] src.io:   [combined] Saved edge_scores.csv (512,529 edges)
+2026-05-24 23:57:48,760 [INFO] src.io:   [combined] Saved paths.csv (50 paths)
+2026-05-24 23:57:48,763 [INFO] src.io:   [combined] Saved anomalous_paths.csv (1,892 anomalous edges)
+2026-05-24 23:57:55,125 [INFO] src.csv_split:   Split CSV into 2 parts: edge_features_pt1.csv + edge_features_pt2.csv (~143 MB total)
+2026-05-24 23:57:55,128 [INFO] src.io:   [combined] Saved node_features.csv, edge_features.csv, graph_features.json
+2026-05-24 23:57:59,264 [INFO] src.io:   [combined] Saved graph_edges.csv (512,529), graph_nodes.csv (91,589)
+2026-05-24 23:57:59,266 [INFO] src.io:   [combined] Saved detected_redteam_pairs.json (65 pairs)
+2026-05-24 23:57:59,300 [INFO] __main__: Saved feature_whitelist.json to results/20260524_231705/LANL-2015/combined/feature_whitelist.json
+2026-05-24 23:57:59,300 [INFO] __main__: ── Variant: flow_only ──
+2026-05-24 23:57:59,660 [INFO] src.stages:   Red team pairs in graph: 35/308
+2026-05-24 23:57:59,660 [INFO] src.stages:   Using precomputed features for 'flow_only'
+2026-05-24 23:57:59,757 [INFO] src.stages:   Joined node features onto edges: 15 new columns
+2026-05-24 23:57:59,763 [INFO] src.stages:   Variant 'flow_only': 3 features
+2026-05-24 23:57:59,763 [INFO] src.stages:   Running weight optimization...
+2026-05-24 23:57:59,763 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:57:59,763 [INFO] src.optimization.optimizer: Starting weight optimization
+2026-05-24 23:57:59,763 [INFO] src.optimization.optimizer:   Method: nelder-mead
+2026-05-24 23:57:59,763 [INFO] src.optimization.optimizer:   Features (3): ['src_burst_score', 'dst_inter_arrival_mean', 'dst_inter_arrival_std']
+2026-05-24 23:57:59,763 [INFO] src.optimization.optimizer:   Initial weights: [0.3333 0.3333 0.3333]
+2026-05-24 23:57:59,764 [INFO] src.optimization.optimizer:   Samples: 131562, positives: 35, negatives: 131527
+2026-05-24 23:57:59,764 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:57:59,804 [INFO] src.optimization.optimizer:   Initial AUC (equal weights): 0.929124
+2026-05-24 23:58:00,038 [INFO] src.optimization.optimizer:   Iter    1 | AUC=0.931545 | Δ=+0.000000 | NEW BEST | w=[0.35  , 0.3333, 0.3333]
+2026-05-24 23:58:00,155 [INFO] src.optimization.optimizer:   Iter    2 | AUC=0.935209 | Δ=+0.003664 | NEW BEST | w=[0.358 , 0.3154, 0.3185]
+2026-05-24 23:58:00,267 [INFO] src.optimization.optimizer:   Iter    3 | AUC=0.938385 | Δ=+0.003176 | NEW BEST | w=[0.38  , 0.3273, 0.3053]
+2026-05-24 23:58:00,386 [INFO] src.optimization.optimizer:   Iter    4 | AUC=0.940483 | Δ=+0.002098 | NEW BEST | w=[0.393 , 0.2935, 0.3231]
+2026-05-24 23:58:00,503 [INFO] src.optimization.optimizer:   Iter    5 | AUC=0.947214 | Δ=+0.006731 | NEW BEST | w=[0.422 , 0.2767, 0.2862]
+2026-05-24 23:58:00,619 [INFO] src.optimization.optimizer:   Iter    6 | AUC=0.950714 | Δ=+0.003500 | NEW BEST | w=[0.4655, 0.2721, 0.2821]
+2026-05-24 23:58:00,735 [INFO] src.optimization.optimizer:   Iter    7 | AUC=0.954798 | Δ=+0.004084 | NEW BEST | w=[0.505 , 0.2032, 0.2834]
+2026-05-24 23:58:00,853 [INFO] src.optimization.optimizer:   Iter    8 | AUC=0.957481 | Δ=+0.002683 | NEW BEST | w=[0.5828, 0.1792, 0.2186]
+2026-05-24 23:58:01,468 [INFO] src.optimization.optimizer:   Iter   14 | AUC=0.957708 | Δ=+0.000227 | NEW BEST | w=[0.5489, 0.2189, 0.2156]
+2026-05-24 23:58:01,899 [INFO] src.optimization.optimizer:   Iter   18 | AUC=0.958218 | Δ=+0.000511 | NEW BEST | w=[0.5669, 0.2274, 0.1955]
+2026-05-24 23:58:02,287 [INFO] src.optimization.optimizer:   Iter   22 | AUC=0.958537 | Δ=+0.000318 | NEW BEST | w=[0.5853, 0.2292, 0.1513]
+2026-05-24 23:58:02,402 [INFO] src.optimization.optimizer:   Iter   23 | AUC=0.958678 | Δ=+0.000141 | NEW BEST | w=[0.5402, 0.2462, 0.1688]
+2026-05-24 23:58:02,517 [INFO] src.optimization.optimizer:   Iter   24 | AUC=0.959218 | Δ=+0.000540 | NEW BEST | w=[0.5449, 0.281 , 0.1386]
+2026-05-24 23:58:02,633 [INFO] src.optimization.optimizer:   Iter   25 | AUC=0.960051 | Δ=+0.000833 | NEW BEST | w=[0.5399, 0.2934, 0.0818]
+2026-05-24 23:58:02,824 [INFO] src.optimization.optimizer:   Iter   27 | AUC=0.961099 | Δ=+0.001048 | NEW BEST | w=[0.5067, 0.383 , 0.0108]
+2026-05-24 23:58:03,017 [INFO] src.optimization.optimizer:   Iter   29 | AUC=0.961349 | Δ=+0.000250 | NEW BEST | w=[ 0.5226,  0.4176, -0.1078]
+2026-05-24 23:58:03,132 [INFO] src.optimization.optimizer:   Iter   30 | AUC=0.962129 | Δ=+0.000781 | NEW BEST | w=[ 0.5156,  0.5073, -0.1816]
+2026-05-24 23:58:03,593 [INFO] src.optimization.optimizer:   Iter   35 | AUC=0.962268 | Δ=+0.000139 | NEW BEST | w=[ 0.5026,  0.5609, -0.2085]
+2026-05-24 23:58:03,708 [INFO] src.optimization.optimizer:   Iter   36 | AUC=0.962377 | Δ=+0.000108 | NEW BEST | w=[ 0.5132,  0.4935, -0.1271]
+2026-05-24 23:58:03,944 [INFO] src.optimization.optimizer:   Iter   38 | AUC=0.962427 | Δ=+0.000051 | NEW BEST | w=[ 0.5093,  0.519 , -0.1797]
+2026-05-24 23:58:04,140 [INFO] src.optimization.optimizer:   Iter   40 | AUC=0.962502 | Δ=+0.000075 | NEW BEST | w=[ 0.4955,  0.5294, -0.1742]
+2026-05-24 23:58:04,488 [INFO] src.optimization.optimizer:   Iter   43 | AUC=0.962537 | Δ=+0.000035 | NEW BEST | w=[ 0.5066,  0.5147, -0.1684]
+2026-05-24 23:58:04,726 [INFO] src.optimization.optimizer:   Iter   45 | AUC=0.962568 | Δ=+0.000030 | NEW BEST | w=[ 0.5022,  0.5068, -0.1548]
+2026-05-24 23:58:06,019 [INFO] src.optimization.optimizer:   Iter   57 | AUC=0.962570 | Δ=+0.000002 | NEW BEST | w=[ 0.4997,  0.507 , -0.1533]
+2026-05-24 23:58:07,148 [INFO] src.optimization.optimizer:   Iter   64 | AUC=0.962574 | Δ=+0.000005 | NEW BEST | w=[ 0.5   ,  0.5071, -0.1539]
+2026-05-24 23:58:07,263 [INFO] src.optimization.optimizer:   Iter   65 | AUC=0.962575 | Δ=+0.000001 | NEW BEST | w=[ 0.4998,  0.5076, -0.1541]
+2026-05-24 23:58:07,460 [INFO] src.optimization.optimizer:   Iter   67 | AUC=0.962578 | Δ=+0.000002 | NEW BEST | w=[ 0.5003,  0.5079, -0.1548]
+2026-05-24 23:58:07,933 [INFO] src.optimization.optimizer:   Iter   70 | AUC=0.962579 | Δ=+0.000002 | NEW BEST | w=[ 0.5001,  0.5077, -0.1544]
+2026-05-24 23:58:08,206 [INFO] src.optimization.optimizer:   Iter   73 | AUC=0.962582 | Δ=+0.000003 | NEW BEST | w=[ 0.5001,  0.5077, -0.1545]
+2026-05-24 23:58:09,105 [INFO] src.optimization.optimizer:   Iter   79 | AUC=0.962582 | Δ=+0.000000 | NEW BEST | w=[ 0.5001,  0.5078, -0.1546]
+2026-05-24 23:58:10,123 [INFO] src.optimization.optimizer:   Iter   86 | AUC=0.962582 | Δ=+0.000000 | NEW BEST | w=[ 0.5001,  0.5078, -0.1546]
+2026-05-24 23:58:10,319 [INFO] src.optimization.optimizer:   Iter   88 | AUC=0.962582 | Δ=+0.000000 | NEW BEST | w=[ 0.5001,  0.5077, -0.1546]
+2026-05-24 23:58:10,862 [INFO] src.optimization.optimizer:   Iter   91 | AUC=0.962582 | Δ=+0.000000 | NEW BEST | w=[ 0.5001,  0.5077, -0.1546]
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer: Optimization complete
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:   Converged: True (converged)
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:   Iterations: 99
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:   Total time: 12.72s
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:   Initial AUC: 0.929124
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:   Optimized AUC: 0.962582
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:   Improvement: +0.033459 (+3.60%)
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:   Final weights:
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:     src_burst_score: 0.500091
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:     dst_inter_arrival_mean: 0.507741
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer:     dst_inter_arrival_std: -0.154583
+2026-05-24 23:58:12,482 [INFO] src.optimization.optimizer: ======================================================================
+2026-05-24 23:58:12,484 [INFO] src.optimization.optimizer: Saved optimization log to results/20260524_231705/LANL-2015/flow_only/optimization/optimization_log.json
+2026-05-24 23:58:12,484 [INFO] src.optimization.optimizer: Saved optimized weights to results/20260524_231705/LANL-2015/flow_only/optimization/optimized_weights.json
+2026-05-24 23:58:13,090 [INFO] src.optimization.optimizer: Saved feature contribution to results/20260524_231705/LANL-2015/flow_only/optimization/feature_contribution.csv
+2026-05-24 23:58:13,090 [INFO] src.optimization.optimizer: Saved optimization comparison to results/20260524_231705/LANL-2015/flow_only/optimization/optimization_comparison.json
+2026-05-24 23:58:13,090 [INFO] src.stages:   Optimized weights: {'src_burst_score': 0.5000912496113018, 'dst_inter_arrival_mean': 0.5077407839707505, 'dst_inter_arrival_std': -0.1545832813049229}
+2026-05-24 23:58:13,091 [INFO] src.stages:   Optimized AUC: 0.9626
+2026-05-24 23:58:13,091 [INFO] src.scoring.edges: Scoring edges: 131,562 edges, 3 features
+2026-05-24 23:58:13,091 [INFO] src.scoring.edges: Weights used: {'src_burst_score': 0.5000912496113018, 'dst_inter_arrival_mean': 0.5077407839707505, 'dst_inter_arrival_std': -0.1545832813049229}
+2026-05-24 23:58:13,091 [INFO] src.scoring.edges: Valid edges: 131,562 (100.0%), invalid (self-loop/user-edge): 0 (0.0%)
+2026-05-24 23:58:13,097 [INFO] src.scoring.edges: Applied rank transform to 'src_burst_score'
+2026-05-24 23:58:13,097 [INFO] src.scoring.edges:   src_burst_score: weight=0.500, mean=0.5000, contrib_mean=0.2500
+2026-05-24 23:58:13,105 [INFO] src.scoring.edges: Applied rank transform to 'dst_inter_arrival_mean'
+2026-05-24 23:58:13,105 [INFO] src.scoring.edges:   dst_inter_arrival_mean: weight=0.508, mean=0.5000, contrib_mean=0.2539
+2026-05-24 23:58:13,113 [INFO] src.scoring.edges: Applied rank transform to 'dst_inter_arrival_std'
+2026-05-24 23:58:13,114 [INFO] src.scoring.edges:   dst_inter_arrival_std: weight=-0.155, mean=0.5000, contrib_mean=-0.0773
+2026-05-24 23:58:13,121 [INFO] src.scoring.edges: Score distribution: min=0.0074, max=0.9878, mean=0.4266, std=0.1601
+2026-05-24 23:58:13,121 [INFO] src.scoring.edges: Percentiles: p25=0.3169, p50=0.4513, p75=0.5461, p90=0.6095, p95=0.6492, p99=0.7507
+2026-05-24 23:58:13,122 [INFO] src.stages:   Edge scores computed, enumerating paths (this may take a while)...
+2026-05-24 23:58:13,122 [INFO] src.scoring.paths: Path scoring: 20 workers (variant: flow_only)
+2026-05-24 23:58:13,211 [INFO] src.scoring.paths:     Parallel path enumeration: 11,586 nodes across 20 workers
+2026-05-24 23:58:47,092 [INFO] src.scoring.paths:     Path enumeration: worker 1/20 done, 1,073,461 paths so far
+2026-05-24 23:58:56,434 [INFO] src.scoring.paths:     Path enumeration: worker 2/20 done, 2,827,648 paths so far
+2026-05-24 23:59:07,005 [INFO] src.scoring.paths:     Path enumeration: worker 3/20 done, 4,503,357 paths so far
+2026-05-24 23:59:07,019 [INFO] src.scoring.paths:     Path enumeration: worker 4/20 done, 5,971,309 paths so far
+2026-05-24 23:59:07,026 [INFO] src.scoring.paths:     Path enumeration: worker 5/20 done, 6,952,970 paths so far
+2026-05-24 23:59:09,442 [INFO] src.scoring.paths:     Path enumeration: worker 6/20 done, 8,899,774 paths so far
+2026-05-24 23:59:09,461 [INFO] src.scoring.paths:     Path enumeration: worker 7/20 done, 10,754,149 paths so far
+2026-05-24 23:59:09,471 [INFO] src.scoring.paths:     Path enumeration: worker 8/20 done, 12,345,907 paths so far
+2026-05-24 23:59:09,485 [INFO] src.scoring.paths:     Path enumeration: worker 9/20 done, 13,660,117 paths so far
+2026-05-24 23:59:09,496 [INFO] src.scoring.paths:     Path enumeration: worker 10/20 done, 15,281,399 paths so far
+2026-05-24 23:59:09,504 [INFO] src.scoring.paths:     Path enumeration: worker 11/20 done, 16,519,204 paths so far
+2026-05-24 23:59:09,523 [INFO] src.scoring.paths:     Path enumeration: worker 12/20 done, 17,315,568 paths so far
+2026-05-24 23:59:09,539 [INFO] src.scoring.paths:     Path enumeration: worker 13/20 done, 18,166,835 paths so far
+2026-05-24 23:59:09,587 [INFO] src.scoring.paths:     Path enumeration: worker 14/20 done, 19,272,296 paths so far
+2026-05-24 23:59:09,613 [INFO] src.scoring.paths:     Path enumeration: worker 15/20 done, 19,695,464 paths so far
+2026-05-24 23:59:09,680 [INFO] src.scoring.paths:     Path enumeration: worker 16/20 done, 20,100,755 paths so far
+2026-05-24 23:59:09,753 [INFO] src.scoring.paths:     Path enumeration: worker 17/20 done, 20,507,078 paths so far
+2026-05-24 23:59:09,837 [INFO] src.scoring.paths:     Path enumeration: worker 18/20 done, 20,950,764 paths so far
+2026-05-24 23:59:09,897 [INFO] src.scoring.paths:     Path enumeration: worker 19/20 done, 21,319,447 paths so far
+2026-05-24 23:59:09,917 [INFO] src.scoring.paths:     Path enumeration: worker 20/20 done, 21,455,671 paths so far
+2026-05-24 23:59:29,866 [INFO] src.stages:   Scored 50 paths, computing graph-level scores...
+2026-05-24 23:59:29,868 [INFO] src.stages:   Applied path boost (factor=0.1)
+2026-05-24 23:59:29,869 [INFO] src.stages:   Scoring completed in 90.2s
+2026-05-24 23:59:31,115 [INFO] src.detection: Auto-optimized: percentile=97, threshold=0.6952, F1=0.0099
+2026-05-24 23:59:31,356 [INFO] src.stages:   flow_only: recall=0.0682, fpr=0.0298, f1=0.0099
+2026-05-24 23:59:31,521 [INFO] src.io:   [flow_only] Saved edge_scores.csv (131,562 edges)
+2026-05-24 23:59:31,522 [INFO] src.io:   [flow_only] Saved paths.csv (50 paths)
+2026-05-24 23:59:31,525 [INFO] src.io:   [flow_only] Saved anomalous_paths.csv (3,947 anomalous edges)
+2026-05-24 23:59:33,293 [INFO] src.io:   [flow_only] Saved node_features.csv, edge_features.csv, graph_features.json
+2026-05-24 23:59:34,008 [INFO] src.io:   [flow_only] Saved graph_edges.csv (131,562), graph_nodes.csv (11,586)
+2026-05-24 23:59:34,008 [INFO] src.io:   [flow_only] Saved detected_redteam_pairs.json (21 pairs)
+2026-05-24 23:59:34,016 [INFO] __main__: Saved feature_whitelist.json to results/20260524_231705/LANL-2015/flow_only/feature_whitelist.json
+2026-05-24 23:59:34,016 [INFO] __main__: All 3 variants completed in 2548.56s
+2026-05-24 23:59:34,018 [INFO] __main__: Results saved to results/20260524_231705/metrics.csv
+2026-05-24 23:59:34,018 [INFO] __main__: Results saved to results/20260524_231705/experiment_results.json
+2026-05-24 23:59:34,019 [INFO] __main__: Per-method details saved to results/20260524_231705/per_method_details.json
+2026-05-24 23:59:34,019 [INFO] __main__: Saved pipeline_run.json to results/20260524_231705
+2026-05-24 23:59:34,022 [INFO] src.reporting: Generated comparison_table.md and summary.txt in results/20260524_231705/
+2026-05-24 23:59:34,505 [INFO] __main__: Saved graph_snapshot.png
+2026-05-24 23:59:36,099 [INFO] __main__: Saved score_distribution.png
+2026-05-24 23:59:36,781 [INFO] __main__: Saved detection_timeline.png
+2026-05-24 23:59:36,837 [INFO] __main__: Saved roc_curves.png
+2026-05-24 23:59:36,889 [INFO] __main__: Saved method_comparison.png

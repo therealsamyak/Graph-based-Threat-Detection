@@ -1,0 +1,8 @@
+{
+  "features": [
+    "src_burst_score",
+    "dst_inter_arrival_mean",
+    "dst_inter_arrival_std"
+  ],
+  "source": "pipeline"
+}
