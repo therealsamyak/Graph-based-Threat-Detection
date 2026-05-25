@@ -1,0 +1,30 @@
+{
+  "timestamp": "20260525_025350",
+  "cache_dir": ".cache/pipeline/full",
+  "sample": null,
+  "variants": {
+    "auth_only": {
+      "top_features": [
+        "src_in_degree",
+        "is_ntlm",
+        "src_out_degree"
+      ]
+    },
+    "combined": {
+      "top_features": [
+        "is_ntlm",
+        "dst_in_degree",
+        "is_network_logon",
+        "dst_total_degree",
+        "edge_rarity"
+      ]
+    },
+    "flow_only": {
+      "top_features": [
+        "src_burst_score",
+        "dst_inter_arrival_mean",
+        "dst_inter_arrival_std"
+      ]
+    }
+  }
+}
