@@ -1,0 +1,19 @@
+{
+  "method": "Isolation Forest",
+  "n_estimators": 100,
+  "contamination": "auto",
+  "random_state": 42,
+  "threshold": 0.6557470059966637,
+  "f1_at_threshold": 0.13215258855585832,
+  "auc_edge": 0.9725557299764963,
+  "pair_metrics": {
+    "recall": 0.9448051948051948,
+    "fpr": 0.029149047006189862,
+    "f1": 0.13215258855585832,
+    "precision": 0.071044921875,
+    "auc": 0.9725557299764963,
+    "num_anomalous_pairs": 4096,
+    "num_detected_pairs": 291,
+    "num_redteam_pairs": 308
+  }
+}
