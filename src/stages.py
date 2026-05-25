@@ -119,6 +119,20 @@ def _score_detect_graph(
         )
 
     ef = all_feat["edge_features"]
+    node_feat = all_feat.get("node_features")
+    if node_feat is not None and not node_feat.empty:
+        vertex_names = g.vs["name"]
+        sources = [vertex_names[e.source] for e in g.es]
+        targets = [vertex_names[e.target] for e in g.es]
+        src_nf = node_feat.add_prefix("src_")
+        dst_nf = node_feat.add_prefix("dst_")
+        src_joined = src_nf.reindex(sources).reset_index(drop=True)
+        dst_joined = dst_nf.reindex(targets).reset_index(drop=True)
+        existing = set(ef.columns)
+        src_joined = src_joined.drop(columns=[col for col in src_joined.columns if col in existing])
+        dst_joined = dst_joined.drop(columns=[col for col in dst_joined.columns if col in existing])
+        ef = pd.concat([ef.reset_index(drop=True), src_joined, dst_joined], axis=1).replace([float("inf"), float("-inf")], 0.0).fillna(0.0)
+        logger.info(f"  Joined node features onto edges: {len(src_joined.columns) + len(dst_joined.columns)} new columns")
     mask_valid = (ef["is_self_loop"].values == 0.0) & (ef["is_user_edge"].values == 0.0)
     labels = np.array([1.0 if pair in red_pairs else 0.0 for pair in edge_pair_names])
 
