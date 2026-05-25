@@ -1,0 +1,4 @@
+method,dataset,feature_whitelist,recall,fpr,f1,auc,latency,throughput,graph_nodes,graph_edges,rt_pairs_in_graph,anomalous_pairs,threshold,threshold_mode,threshold_percentile_used,max_path_score,mean_edge_score
+auth_only,LANL-2015,"['src_in_degree', 'is_ntlm', 'src_out_degree']",0.9221,0.0064,0.1778,0.9842,4102.71,25367.0,90783,409100,302,2886,1.1179,auto_optimize,99.0,1.125,0.2133
+combined,LANL-2015,"['is_ntlm', 'dst_in_degree', 'is_network_logon', 'dst_total_degree', 'edge_rarity']",0.211,0.0036,0.0591,0.959,6524.41,20796.5,91589,512529,305,1892,1.2686,auto_optimize,99.5,1.3432,-0.0031
+flow_only,LANL-2015,"['src_burst_score', 'dst_inter_arrival_mean', 'dst_inter_arrival_std']",0.0682,0.0298,0.0099,0.9626,497.36,63558.2,11586,131562,35,3947,0.6952,auto_optimize,97.0,0.9878,0.4267

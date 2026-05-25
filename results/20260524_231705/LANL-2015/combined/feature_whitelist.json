@@ -1,0 +1,10 @@
+{
+  "features": [
+    "is_ntlm",
+    "dst_in_degree",
+    "is_network_logon",
+    "dst_total_degree",
+    "edge_rarity"
+  ],
+  "source": "pipeline"
+}
