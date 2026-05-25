@@ -9,6 +9,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+from src.csv_split import csv_exists, load_csv_merged
 from src.eval.holdout_optimizer import run_holdout_optimization
 from src.eval.tabular_graph_ablation import run_tabular_graph_ablation
 from src.eval.graph_feature_sweep import run_graph_feature_sweep
@@ -43,7 +44,7 @@ def _find_variants(results_dir: Path, variant: str | None = None) -> list[tuple[
                     variants.append((variant_name, variant_path))
     valid = []
     for variant_name, variant_path in variants:
-        if (variant_path / "edge_features.csv").exists() and (
+        if csv_exists(variant_path / "edge_features.csv") and (
             variant_path / "graph_edges.csv"
         ).exists():
             valid.append((variant_name, variant_path))
@@ -60,18 +61,13 @@ def _find_variants(results_dir: Path, variant: str | None = None) -> list[tuple[
 def _warn_zero_variance(run_dir: Path, variant: str) -> None:
     """Warn about zero-variance features in edge_features.csv."""
     csv_path = run_dir / "edge_features.csv"
-    if not csv_path.exists():
+    if not csv_exists(csv_path):
         return
-    with open(csv_path, newline="") as f:
-        reader = csv.DictReader(f)
-        rows = list(reader)
-    if not rows:
-        return
-    for col in reader.fieldnames or []:
+    edge_df = load_csv_merged(csv_path)
+    for col in edge_df.columns:
         if col in ("src", "dst"):
             continue
-        values = {row[col] for row in rows}
-        if len(values) <= 1:
+        if edge_df[col].nunique() <= 1:
             logger.warning(
                 f"Feature '{col}' has zero variance in {variant} variant. "
                 "Eval results may be unreliable."
@@ -239,13 +235,13 @@ def main() -> None:
                 raise FileNotFoundError(f"Run directory not found: {run_dir_path}")
             for vname in valid_variants:
                 vpath = run_dir_path / vname
-                if vpath.is_dir() and (vpath / "edge_features.csv").exists() and (vpath / "graph_edges.csv").exists():
+                if vpath.is_dir() and csv_exists(vpath / "edge_features.csv") and (vpath / "graph_edges.csv").exists():
                     variants_to_eval.append((vname, vpath))
                     continue
                 for dataset_dir in run_dir_path.iterdir():
                     if dataset_dir.is_dir():
                         vpath = dataset_dir / vname
-                        if vpath.is_dir() and (vpath / "edge_features.csv").exists() and (vpath / "graph_edges.csv").exists():
+                        if vpath.is_dir() and csv_exists(vpath / "edge_features.csv") and (vpath / "graph_edges.csv").exists():
                             variants_to_eval.append((vname, vpath))
             if args.variant:
                 variants_to_eval = [(v, p) for v, p in variants_to_eval if v == args.variant]
