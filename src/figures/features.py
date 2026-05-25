@@ -10,12 +10,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from src.figures.style import _save_fig, logger
+from src.figures.style import _save_fig, logger, save_placeholder_figure
 
 
 def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
     if audit_data is None:
         logger.warning("Skipping feature audit figure: audit_data is None")
+        save_placeholder_figure(
+            str(output_dir / "feature_audit.png"),
+            "Feature Audit",
+            "audit_data is None",
+        )
         return
 
     rows = []
@@ -26,6 +31,8 @@ def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
             if not isinstance(item, dict):
                 continue
             name = item.get("name")
+            if name is None:
+                name = item.get("feature")
             auc = item.get("auc")
             if name is None or auc is None:
                 continue
@@ -41,6 +48,11 @@ def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
 
     if not rows:
         logger.warning("Skipping feature audit figure: no feature AUC data found")
+        save_placeholder_figure(
+            str(output_dir / "feature_audit.png"),
+            "Feature Audit",
+            "no feature AUC data found",
+        )
         return
 
     df = pd.DataFrame(rows, columns=["feature", "auc"]).sort_values("auc", ascending=True)
@@ -73,14 +85,55 @@ def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
 def plot_ablation(analysis_data: dict | None, output_dir: Path) -> None:
     if analysis_data is None:
         logger.warning("Skipping ablation figure: analysis_data is None")
+        save_placeholder_figure(
+            str(output_dir / "ablation_study.png"),
+            "Ablation Study",
+            "analysis_data is None",
+        )
         return
 
     ablation_data = analysis_data.get("tabular_vs_graph_ablation")
     if not isinstance(ablation_data, dict):
         logger.warning("Skipping ablation figure: tabular_vs_graph_ablation not found")
+        save_placeholder_figure(
+            str(output_dir / "ablation_study.png"),
+            "Ablation Study",
+            "tabular_vs_graph_ablation not found",
+        )
         return
 
     categories = ["pure_tabular", "graph_derived", "combined"]
+    category_aliases = {
+        "pure_tabular": {"pure_tabular", "pure_tabular_only", "tabular", "tabular_only"},
+        "graph_derived": {"graph_derived", "graph_derived_only", "graph", "graph_only"},
+        "combined": {"combined", "all", "all_features"},
+    }
+
+    normalized_ablation_data: dict[str, dict] = {}
+    if isinstance(ablation_data.get("results"), list):
+        for item in ablation_data["results"]:
+            if not isinstance(item, dict):
+                continue
+            name = item.get("name")
+            if not isinstance(name, str):
+                continue
+            lowered = name.lower()
+            matched = next(
+                (
+                    canonical
+                    for canonical, aliases in category_aliases.items()
+                    if lowered in aliases
+                ),
+                None,
+            )
+            if matched is None:
+                continue
+            normalized_ablation_data[matched] = item
+    else:
+        for canonical in categories:
+            node = ablation_data.get(canonical)
+            if isinstance(node, dict):
+                normalized_ablation_data[canonical] = node
     metric_candidates = [
         ("eval_auc", "AUC"),
         ("auc", "AUC"),
@@ -94,7 +147,8 @@ def plot_ablation(analysis_data: dict | None, output_dir: Path) -> None:
     seen_labels = set()
     for key, label in metric_candidates:
         present = any(
-            isinstance(ablation_data.get(cat), dict) and ablation_data.get(cat).get(key) is not None
+            isinstance(normalized_ablation_data.get(cat), dict)
+            and normalized_ablation_data.get(cat).get(key) is not None
             for cat in categories
         )
         if present and label not in seen_labels:
@@ -103,13 +157,18 @@ def plot_ablation(analysis_data: dict | None, output_dir: Path) -> None:
 
     if not metrics:
         logger.warning("Skipping ablation figure: no usable metrics found")
+        save_placeholder_figure(
+            str(output_dir / "ablation_study.png"),
+            "Ablation Study",
+            "no usable metrics found",
+        )
         return
 
     values_by_metric = []
     for key, _ in metrics:
         vals = []
         for cat in categories:
-            cat_data = ablation_data.get(cat)
+            cat_data = normalized_ablation_data.get(cat)
             vals.append(float(cat_data.get(key, 0.0)) if isinstance(cat_data, dict) else 0.0)
         values_by_metric.append(vals)
 
@@ -154,11 +213,21 @@ def plot_ablation(analysis_data: dict | None, output_dir: Path) -> None:
 def plot_feature_sweep(analysis_data: dict | None, output_dir: Path) -> None:
     if analysis_data is None:
         logger.warning("Skipping feature sweep figure: analysis_data is None")
+        save_placeholder_figure(
+            str(output_dir / "feature_sweep.png"),
+            "Feature Sweep",
+            "analysis_data is None",
+        )
         return
 
     sweep_data = analysis_data.get("graph_features_test")
     if not isinstance(sweep_data, dict):
         logger.warning("Skipping feature sweep figure: graph_features_test not found")
+        save_placeholder_figure(
+            str(output_dir / "feature_sweep.png"),
+            "Feature Sweep",
+            "graph_features_test not found",
+        )
         return
 
     rows = []
@@ -187,6 +256,11 @@ def plot_feature_sweep(analysis_data: dict | None, output_dir: Path) -> None:
 
     if not rows:
         logger.warning("Skipping feature sweep figure: no eval_auc/auc entries found")
+        save_placeholder_figure(
+            str(output_dir / "feature_sweep.png"),
+            "Feature Sweep",
+            "no eval_auc/auc entries found",
+        )
         return
 
     df = pd.DataFrame(rows, columns=["group", "auc"])

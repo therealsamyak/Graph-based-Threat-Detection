@@ -8,6 +8,12 @@ import argparse
 from pathlib import Path
 from typing import Any
 
+from src.figures.comparison import (
+    plot_detection_counts,
+    plot_metrics_summary,
+    plot_performance_tradeoff,
+    plot_variant_heatmap,
+)
 from src.figures.detection import (
     plot_detection_timeline,
     plot_graph_statistics,
@@ -24,8 +30,11 @@ from src.figures.features import plot_ablation, plot_feature_audit, plot_feature
 from src.figures.loading import (
     load_analysis_results,
     load_baseline_summary,
+    build_method_variant_matrix,
+    build_method_variant_roc_data,
     load_feature_audit,
     load_metrics,
+    load_per_method_details,
     load_run_metadata,
 )
 from src.figures.methods import plot_method_comparison, plot_radar_chart, plot_roc_curves
@@ -52,12 +61,29 @@ def parse_args() -> argparse.Namespace:
 
 
 def discover_all(run_id: str | None) -> dict[str, Path | None]:
-    return {
+    baselines_dir = find_latest_baselines()
+    sources: dict[str, Path | None] = {
         "results_dir": find_latest_results(run_id),
         "audit_dir": find_latest_feature_audit(),
         "analysis_dir": find_latest_analysis(),
-        "baselines_dir": find_latest_baselines(),
+        "baselines_dir": baselines_dir,
     }
+    if baselines_dir is not None and baselines_dir.is_dir():
+        run_dir = baselines_dir if (baselines_dir / "summary.json").exists() else None
+        if run_dir is None:
+            for candidate in sorted(p for p in baselines_dir.iterdir() if p.is_dir()):
+                if (candidate / "summary.json").exists():
+                    run_dir = candidate
+                    break
+        if run_dir is not None:
+            edge_paths: dict[str, Path] = {}
+            for variant_dir in sorted(p for p in run_dir.iterdir() if p.is_dir()):
+                es = variant_dir / "edge_scores.csv"
+                if es.exists():
+                    edge_paths[variant_dir.name] = es
+            if edge_paths:
+                sources["baseline_edge_score_paths"] = edge_paths
+    return sources
 
 
 def load_all(sources: dict[str, Path | None]) -> dict[str, Any]:
@@ -71,6 +97,11 @@ def load_all(sources: dict[str, Path | None]) -> dict[str, Any]:
     audit_data = load_feature_audit(audit_dir) if audit_dir else None
     analysis_data = load_analysis_results(analysis_dir) if analysis_dir else None
     baseline_summary = load_baseline_summary(baselines_dir) if baselines_dir else None
+
+    # Build unified 3×3 matrix and ROC data
+    per_method_details = load_per_method_details(results_dir) if results_dir else {}
+    matrix = build_method_variant_matrix(per_method_details, baseline_summary or {})
+    roc_data = build_method_variant_roc_data(baselines_dir) if baselines_dir else {}
 
     logger.info(
         "Data sources: results=%s, audit=%s, analysis=%s, baselines=%s",
@@ -86,30 +117,40 @@ def load_all(sources: dict[str, Path | None]) -> dict[str, Any]:
         "audit_data": audit_data,
         "analysis_data": analysis_data,
         "baseline_summary": baseline_summary,
+        "baselines_dir": baselines_dir,
+        "matrix": matrix,
+        "roc_data": roc_data,
     }
 
 
 def generate_all(data: dict[str, Any], output_dir: Path) -> None:
-    metrics_df = data.get("metrics_df")
-    baseline_summary = data.get("baseline_summary")
+    _metrics_df = data.get("metrics_df")
+    _baseline_summary = data.get("baseline_summary")
     audit_data = data.get("audit_data")
     analysis_data = data.get("analysis_data")
     results_dir = data.get("results_dir")
+    baselines_dir = data.get("baselines_dir")
+    matrix = data.get("matrix")
+    roc_data = data.get("roc_data")
 
     generated = 0
     skipped = 0
 
     figures = [
-        ("Method Comparison", lambda: plot_method_comparison(metrics_df, baseline_summary, output_dir)),
-        ("ROC Curves", lambda: plot_roc_curves(metrics_df, baseline_summary, output_dir)),
-        ("Radar Chart", lambda: plot_radar_chart(metrics_df, baseline_summary, output_dir)),
+        ("Method Comparison", lambda: plot_method_comparison(matrix, output_dir)),
+        ("ROC Curves", lambda: plot_roc_curves(matrix, roc_data, output_dir)),
+        ("Radar Chart", lambda: plot_radar_chart(matrix, output_dir)),
         ("Feature Audit", lambda: plot_feature_audit(audit_data, output_dir)),
         ("Ablation", lambda: plot_ablation(analysis_data, output_dir)),
         ("Feature Sweep", lambda: plot_feature_sweep(analysis_data, output_dir)),
-        ("Score Distributions", lambda: plot_score_distributions(results_dir, output_dir)),
-        ("Detection Timeline", lambda: plot_detection_timeline(results_dir, output_dir)),
+        ("Score Distributions", lambda: plot_score_distributions(results_dir, baselines_dir, output_dir)),
+        ("Detection Timeline", lambda: plot_detection_timeline(results_dir, baselines_dir, output_dir)),
         ("Graph Statistics", lambda: plot_graph_statistics(results_dir, output_dir)),
         ("Holdout Validation", lambda: plot_holdout_validation(analysis_data, output_dir)),
+        ("Variant Heatmap", lambda: plot_variant_heatmap(matrix, output_dir)),
+        ("Detection Counts", lambda: plot_detection_counts(matrix, output_dir)),
+        ("Performance Tradeoff", lambda: plot_performance_tradeoff(matrix, output_dir)),
+        ("Metrics Summary", lambda: plot_metrics_summary(matrix, output_dir)),
     ]
 
     for name, fn in figures:
@@ -141,4 +182,8 @@ __all__ = [
     "plot_detection_timeline",
     "plot_graph_statistics",
     "plot_holdout_validation",
+    "plot_variant_heatmap",
+    "plot_detection_counts",
+    "plot_performance_tradeoff",
+    "plot_metrics_summary",
 ]
