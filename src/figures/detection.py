@@ -10,11 +10,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from src.figures.loading import load_edge_scores, load_graph_data, load_redteam_events
-from src.figures.style import _save_fig, logger
+from src.figures.loading import (
+    load_baseline_edge_scores,
+    load_edge_scores,
+    load_graph_data,
+    load_redteam_events,
+)
+from src.figures.style import (
+    BASE_METHOD_COLORS,
+    _save_fig,
+    get_method_label,
+    logger,
+    save_placeholder_figure,
+)
 
 
-def plot_score_distributions(results_dir: Path | None, output_dir: Path) -> None:
+def plot_score_distributions(
+    results_dir: Path | None,
+    baselines_dir: Path | None,
+    output_dir: Path,
+) -> None:
     if results_dir is None or not results_dir.exists():
         logger.warning("Skipping score distributions: results_dir missing")
         return
@@ -31,9 +46,20 @@ def plot_score_distributions(results_dir: Path | None, output_dir: Path) -> None
         logger.warning("Skipping score distributions: no variants discovered")
         return
 
+    # Pre-load baseline edge scores per variant (graceful: None if unavailable)
+    baseline_scores_map: dict[str, pd.DataFrame | None] = {}
+    if baselines_dir is not None and baselines_dir.exists():
+        for variant in variants:
+            baseline_scores_map[variant] = load_baseline_edge_scores(baselines_dir, variant)
+
     fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
     axes_arr = np.atleast_1d(axes)
     plotted = 0
+
+    baseline_methods = [
+        ("one_class_svm", ["one_class_svm_score", "ocsvm_score", "svm_score"]),
+        ("isolation_forest", ["isolation_forest_score", "if_score", "isoforest_score"]),
+    ]
 
     for idx, ax in enumerate(axes_arr):
         if idx >= len(variants):
@@ -72,6 +98,18 @@ def plot_score_distributions(results_dir: Path | None, output_dir: Path) -> None
 
         lo = float(scores.min())
         hi = float(scores.max())
+
+        # Compute global range including baseline scores for consistent bins
+        baseline_df = baseline_scores_map.get(variant)
+        if baseline_df is not None and not baseline_df.empty:
+            for _method, score_candidates in baseline_methods:
+                bc = next((c for c in score_candidates if c in baseline_df.columns), None)
+                if bc is not None:
+                    bvals = pd.to_numeric(baseline_df[bc], errors="coerce").dropna()
+                    if not bvals.empty:
+                        lo = min(lo, float(bvals.min()))
+                        hi = max(hi, float(bvals.max()))
+
         bins = np.linspace(lo, hi, 50) if hi > lo else np.linspace(lo - 1e-6, hi + 1e-6, 50)
 
         ax.hist(base_scores, bins=bins, alpha=0.6, color="#2ecc71", label="Normal", edgecolor="white", linewidth=0.3)
@@ -89,12 +127,30 @@ def plot_score_distributions(results_dir: Path | None, output_dir: Path) -> None
             except Exception:
                 pass
 
+        # Overlay baseline score KDE curves
+        if baseline_df is not None and not baseline_df.empty:
+            _label_col = "label" if "label" in baseline_df.columns else None
+            for method, score_candidates in baseline_methods:
+                bc = next((c for c in score_candidates if c in baseline_df.columns), None)
+                if bc is None:
+                    continue
+                bvals = pd.to_numeric(baseline_df[bc], errors="coerce").dropna()
+                if bvals.empty or len(bvals) < 10:
+                    continue
+                method_color = BASE_METHOD_COLORS.get(method, "#888888")
+                method_label = get_method_label(method, variant)
+                try:
+                    # Plot KDE for all baseline scores (normal + redteam combined)
+                    bvals.plot.kde(ax=ax, color=method_color, linewidth=2.0, alpha=0.9, linestyle="--", label=method_label)
+                except Exception:
+                    logger.debug("KDE failed for %s scores in variant '%s'", method, variant)
+
         ax.set_yscale("log")
         ax.set_title(variant)
         ax.set_xlabel("Score")
         if idx == 0:
             ax.set_ylabel("Count (log)")
-        ax.legend(fontsize=8, framealpha=0.9)
+        ax.legend(fontsize=7, framealpha=0.9, loc="upper right")
         plotted += 1
 
     if plotted == 0:
@@ -107,14 +163,28 @@ def plot_score_distributions(results_dir: Path | None, output_dir: Path) -> None
     _save_fig(fig, str(output_dir / "score_distributions.png"))
 
 
-def plot_detection_timeline(results_dir: Path | None, output_dir: Path) -> None:
+def plot_detection_timeline(
+    results_dir: Path | None,
+    baselines_dir: Path | None,
+    output_dir: Path,
+) -> None:
     if results_dir is None or not results_dir.exists():
         logger.warning("Skipping detection timeline: results_dir missing")
+        save_placeholder_figure(
+            str(output_dir / "detection_timeline.png"),
+            "Detection Timeline",
+            "results_dir missing",
+        )
         return
 
     rt_df = load_redteam_events(results_dir)
     if rt_df is None or rt_df.empty:
         logger.warning("Skipping detection timeline: redteam_events unavailable")
+        save_placeholder_figure(
+            str(output_dir / "detection_timeline.png"),
+            "Detection Timeline",
+            "redteam_events unavailable",
+        )
         return
 
     variant_parent = results_dir / "LANL-2015"
@@ -122,6 +192,11 @@ def plot_detection_timeline(results_dir: Path | None, output_dir: Path) -> None:
     variants = [d.name for d in sorted(scan_root.iterdir()) if d.is_dir() and d.name != "redteam"]
     if not variants:
         logger.warning("Skipping detection timeline: no variants discovered")
+        save_placeholder_figure(
+            str(output_dir / "detection_timeline.png"),
+            "Detection Timeline",
+            "no variants discovered",
+        )
         return
 
     chosen_df = None
@@ -139,6 +214,11 @@ def plot_detection_timeline(results_dir: Path | None, output_dir: Path) -> None:
 
     if chosen_df is None:
         logger.warning("Skipping detection timeline: no edge_scores with timestamp+score columns")
+        save_placeholder_figure(
+            str(output_dir / "detection_timeline.png"),
+            "Detection Timeline",
+            "no edge_scores with timestamp+score columns",
+        )
         return
 
     ts_col = next(c for c in ("timestamp", "time", "ts") if c in chosen_df.columns)
@@ -152,6 +232,11 @@ def plot_detection_timeline(results_dir: Path | None, output_dir: Path) -> None:
     rt_ts_col = next((c for c in ("timestamp", "time", "ts") if c in rt_df.columns), None)
     if rt_ts_col is None:
         logger.warning("Skipping detection timeline: redteam_events has no timestamp column")
+        save_placeholder_figure(
+            str(output_dir / "detection_timeline.png"),
+            "Detection Timeline",
+            "redteam_events has no timestamp column",
+        )
         return
     rt_ts = pd.to_datetime(rt_df[rt_ts_col], errors="coerce")
     if rt_ts.isna().all():
@@ -167,6 +252,11 @@ def plot_detection_timeline(results_dir: Path | None, output_dir: Path) -> None:
     valid = (~ts.isna()) & (~scores.isna())
     if valid.sum() == 0:
         logger.warning("Skipping detection timeline: no valid timestamp/score rows")
+        save_placeholder_figure(
+            str(output_dir / "detection_timeline.png"),
+            "Detection Timeline",
+            "no valid timestamp/score rows",
+        )
         return
 
     fig, ax = plt.subplots(figsize=(12, 5))
@@ -183,7 +273,18 @@ def plot_detection_timeline(results_dir: Path | None, output_dir: Path) -> None:
     if threshold is not None:
         ax.axhline(y=threshold, color="#f39c12", lw=1.5, ls="--", label=f"Threshold ({threshold:.2f})")
 
-    ax.set_title("Detection Timeline — Red Team vs Normal Activity")
+    # Check if baseline methods have timestamp data for multi-method timeline
+    has_baseline_ts = False
+    if baselines_dir is not None and baselines_dir.exists() and chosen_variant is not None:
+        baseline_df = load_baseline_edge_scores(baselines_dir, chosen_variant)
+        if baseline_df is not None and any(c in baseline_df.columns for c in ("timestamp", "time", "ts")):
+            has_baseline_ts = True
+
+    title = "Detection Timeline — Red Team vs Normal Activity"
+    if baselines_dir is not None and baselines_dir.exists() and not has_baseline_ts:
+        title += "\n(Baseline methods: no timestamp data available)"
+
+    ax.set_title(title)
     ax.set_xlabel("Timestamp")
     ax.set_ylabel("Score")
     ax.legend(framealpha=0.9, fontsize=9, loc="upper right")
@@ -252,6 +353,11 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
 def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> None:
     if analysis_data is None:
         logger.warning("Skipping holdout validation: analysis_data is None")
+        save_placeholder_figure(
+            str(output_dir / "holdout_validation.png"),
+            "Holdout Validation",
+            "analysis_data is None",
+        )
         return
 
     holdout = analysis_data.get("holdout_results", {})
@@ -259,6 +365,11 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
         holdout = analysis_data.get("optimization_holdout", {})
     if not isinstance(holdout, dict) or not holdout:
         logger.warning("Skipping holdout validation: holdout_results not found")
+        save_placeholder_figure(
+            str(output_dir / "holdout_validation.png"),
+            "Holdout Validation",
+            "holdout_results not found",
+        )
         return
 
     def _first_value(container: dict, keys: tuple[str, ...]) -> float | None:
@@ -285,6 +396,11 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
     vals = [opt, lr, cal]
     if all(v is None for v in vals):
         logger.warning("Skipping holdout validation: no AUC values found")
+        save_placeholder_figure(
+            str(output_dir / "holdout_validation.png"),
+            "Holdout Validation",
+            "no AUC values found",
+        )
         return
 
     plot_vals = [0.0 if v is None else float(v) for v in vals]
