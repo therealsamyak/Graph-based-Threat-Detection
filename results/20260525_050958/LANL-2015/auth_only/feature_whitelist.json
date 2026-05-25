@@ -1,0 +1,8 @@
+{
+  "features": [
+    "src_in_degree",
+    "is_ntlm",
+    "src_out_degree"
+  ],
+  "source": "pipeline"
+}
