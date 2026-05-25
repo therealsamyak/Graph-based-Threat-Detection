@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.csv_split import csv_exists, load_csv_merged, save_csv_split
+
 logger = logging.getLogger(__name__)
 
 CACHE_ROOT = Path(".cache/pipeline")
@@ -160,7 +162,7 @@ def save_features(
     """Save feature CSVs to cache variant dir."""
     vdir = cache_path / variant
     vdir.mkdir(parents=True, exist_ok=True)
-    edge_features.to_csv(vdir / "edge_features.csv")
+    save_csv_split(edge_features, vdir / "edge_features.csv")
     graph_edges.to_csv(vdir / "graph_edges.csv", index=False)
     if node_features is not None:
         node_features.to_csv(vdir / "node_features.csv")
@@ -174,10 +176,10 @@ def load_features(cache_path: Path, variant: str) -> dict | None:
     vdir = cache_path / variant
     ef_path = vdir / "edge_features.csv"
     ge_path = vdir / "graph_edges.csv"
-    if not ef_path.exists() or not ge_path.exists():
+    if not csv_exists(ef_path) or not ge_path.exists():
         return None
 
-    edge_features = pd.read_csv(ef_path, index_col=0)
+    edge_features = load_csv_merged(ef_path, index_col=0)
     pd.read_csv(ge_path)  # validate file is readable
 
     node_features = None
@@ -237,7 +239,7 @@ def has_complete_cache(cache_path: Path) -> bool:
         vdir = cache_path / variant
         if not (vdir / "graph.pkl").exists():
             return False
-        if not (vdir / "edge_features.csv").exists():
+        if not csv_exists(vdir / "edge_features.csv"):
             return False
         if not (vdir / "top_features.json").exists():
             return False

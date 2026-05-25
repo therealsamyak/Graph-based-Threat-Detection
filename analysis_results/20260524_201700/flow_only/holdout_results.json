@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-05-24T20:17:16.515288",
+  "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260524_193235/LANL-2015/flow_only",
+  "features": [
+    "is_ntlm",
+    "edge_rarity",
+    "dst_in_degree",
+    "is_network_logon",
+    "is_success_auth"
+  ],
+  "holdout_frac": 0.5,
+  "seed": 42,
+  "n_calibration": 65780,
+  "n_eval": 65782,
+  "redteam_calibration": 17,
+  "redteam_eval": 18,
+  "optimizer": {
+    "method": "nelder-mead",
+    "weights": {
+      "is_ntlm": 2.987352987404849,
+      "edge_rarity": -4.516355018721578,
+      "dst_in_degree": -5.7545461946619305,
+      "is_network_logon": 5.198557777232635,
+      "is_success_auth": 1.4101578770621783
+    },
+    "auc_calibration": 0.7646070425798166,
+    "auc_eval": 0.768356885563868,
+    "auc_full_for_reference": 0.7663776801938549,
+    "auc_full_equal_weights_baseline": 0.23555674065835477,
+    "overfit_gap_cal_minus_eval": -0.0037498429840514547,
+    "overfit_gap_relative": -0.004904274712667209,
+    "iterations": 279,
+    "converged": true,
+    "seconds": 13.772131204605103
+  },
+  "logistic_regression": {
+    "auc_calibration": 0.7625819453277412,
+    "auc_eval": 0.7581621826193324,
+    "overfit_gap_cal_minus_eval": 0.004419762708408714,
+    "intercept": -0.5230373798572749,
+    "coefficients": {
+      "is_ntlm": 0.0,
+      "edge_rarity": -0.666788004100423,
+      "dst_in_degree": -1.0075193891513883,
+      "is_network_logon": 0.0,
+      "is_success_auth": 0.0
+    }
+  },
+  "delta_eval_auc_optimizer_minus_lr": 0.010194702944535616
+}

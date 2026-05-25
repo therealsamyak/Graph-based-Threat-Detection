@@ -15,6 +15,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
+from src.csv_split import load_csv_merged
 from src.feature_audit.loader import load_feature_frame
 from src.feature_audit.scorer import stratified_split
 from src.types import BINARY_FEATURES
@@ -199,7 +200,7 @@ def run_graph_feature_sweep(
     # The loader applies the (is_self_loop == 0) & (is_user_edge == 0) mask to
     # both rows and labels. We need the same mask to align graph-derived
     # per-edge features. Re-derive the mask from the raw edge_features.csv.
-    ef_raw = pd.read_csv(run_dir / "edge_features.csv")
+    ef_raw = load_csv_merged(run_dir / "edge_features.csv")
     if len(ef_raw) != len(edges_df):
         logger.error(f"Edge CSV row mismatch: {len(ef_raw)} vs {len(edges_df)}")
         raise ValueError(f"Edge CSV row mismatch: {len(ef_raw)} vs {len(edges_df)}")

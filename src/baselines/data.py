@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
+from src.csv_split import csv_exists, load_csv_merged
 from src.detection import compute_pair_metrics as compute_detection_pair_metrics
 from src.detection import optimize_threshold
 from src.types import BINARY_FEATURES, DetectionParams
@@ -148,13 +149,13 @@ def find_latest_run(results_dir: Path) -> Path:
 def find_variant_dir(run_dir: Path, variant: str) -> Path:
     """Find a variant directory in direct or nested dataset run layouts."""
     direct = run_dir / variant
-    if direct.is_dir() and (direct / "edge_features.csv").exists():
+    if direct.is_dir() and csv_exists(direct / "edge_features.csv"):
         return direct
 
     for subdir in run_dir.iterdir():
         if subdir.is_dir():
             nested = subdir / variant
-            if nested.is_dir() and (nested / "edge_features.csv").exists():
+            if nested.is_dir() and csv_exists(nested / "edge_features.csv"):
                 return nested
 
     raise FileNotFoundError(
@@ -195,11 +196,14 @@ def load_variant_data(
     edge_features_path = variant_dir / "edge_features.csv"
     graph_edges_path = variant_dir / "graph_edges.csv"
 
-    for path in (edge_features_path, graph_edges_path, redteam_pairs_path):
-        if not path.exists():
-            raise FileNotFoundError(f"Required file not found: {path}")
+    if not csv_exists(edge_features_path):
+        raise FileNotFoundError(f"Required file not found: {edge_features_path}")
+    if not graph_edges_path.exists():
+        raise FileNotFoundError(f"Required file not found: {graph_edges_path}")
+    if not redteam_pairs_path.exists():
+        raise FileNotFoundError(f"Required file not found: {redteam_pairs_path}")
 
-    edge_features_df = pd.read_csv(edge_features_path)
+    edge_features_df = load_csv_merged(edge_features_path)
     graph_edges_df = pd.read_csv(graph_edges_path)
 
     with open(redteam_pairs_path) as f:
