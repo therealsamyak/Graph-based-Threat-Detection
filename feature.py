@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -68,6 +70,10 @@ def run(argv: list[str] | None = None):
     descriptors = get_all_descriptors()
     top_features_map: dict[str, list[str]] = {}
 
+    # Permanent results directory
+    feat_results_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    feat_results_dir = Path("feature_results") / feat_results_id
+
     # 3. For each variant: build graph, extract features, run audit, save top features
     for descriptor in descriptors:
         variant = descriptor.name
@@ -98,15 +104,16 @@ def run(argv: list[str] | None = None):
             graph_edges=graph_edges_df,
         )
 
-        # Run feature audit
+        # Run feature audit (load from cache, write to permanent results)
         variant_dir = cdir / variant
+        variant_results_dir = feat_results_dir / variant
         audit_config = AuditConfig(
             holdout_frac=args.holdout_frac,
             min_auc=args.min_auc,
             log1p_features=AuditConfig().log1p_features if args.log1p else [],
             random_seed=args.seed,
         )
-        report = run_audit(variant_dir, variant_dir, audit_config)
+        report = run_audit(variant_dir, variant_results_dir, audit_config)
 
         # Extract top N features (skip duplicates)
         top_features = [r.feature for r in report.features[:top_n] if not r.is_duplicate_of]
@@ -122,11 +129,21 @@ def run(argv: list[str] | None = None):
         logger.info(f"  [{variant}] Graph: {g.vcount():,} nodes, {g.ecount():,} edges")
         logger.info(f"  [{variant}] Build time: {build_time:.1f}s, Events: {total_events:,}")
 
-    # 4. Print overall summary
+    # 4. Save combined summary and print overall results
+    feat_results_dir.mkdir(parents=True, exist_ok=True)
+    summary = {
+        "timestamp": feat_results_id,
+        "cache_dir": str(cdir),
+        "sample": args.sample,
+        "variants": {v: {"top_features": f} for v, f in top_features_map.items()},
+    }
+    (feat_results_dir / "summary.json").write_text(json.dumps(summary, indent=2))
+
     print("=" * 80)
     print("PHASE 1 COMPLETE: Data Preparation + Feature Audit")
     print("=" * 80)
     print(f"Cache: {cdir}")
+    print(f"Feature audit results: {feat_results_dir}")
     for variant, feats in top_features_map.items():
         print(f"  [{variant}] Top features: {', '.join(feats)}")
     print(f"Run 'uv run main.py --sample {args.sample}' to score and detect.")

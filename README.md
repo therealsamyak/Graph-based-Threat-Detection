@@ -202,11 +202,11 @@ Results saved to `results/<run_id>/`:
 - `LANL-2015/<variant>/`: Per-variant outputs (edge_scores.csv, paths.csv, features, etc.)
 - `redteam/`: Red-team events and window intervals
 
-Feature audit outputs saved to `feature_results/<audit_id>/`:
+Feature audit outputs saved to `feature_results/<timestamp>/`:
 
-- `feature_audit_results.json`: Per-feature AUC and statistics
-- `Feature_Audit_Results.md`: Human-readable markdown report
-- `metadata.json`: Audit run metadata
+- `<variant>/feature_audit_results.json`: Per-feature AUC and statistics per variant
+- `<variant>/Feature_Audit_Results.md`: Human-readable markdown report per variant
+- `summary.json`: Combined top features across all variants
 
 Evaluation outputs saved to `analysis_results/<run_id>/`:
 
