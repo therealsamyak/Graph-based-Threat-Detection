@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.csv_split import load_csv_merged
+from src.csv_split import csv_exists, load_csv_merged
 from src.feature_audit.joiner import dedup_against_edge_features, join_node_features
 
 
@@ -49,8 +49,10 @@ def load_feature_frame(run_dir: Path) -> tuple[pd.DataFrame, np.ndarray, list[st
     graph_edges_path = run_dir / "graph_edges.csv"
     redteam_pairs_path = _find_redteam_pairs(run_dir)
 
-    for path in (edge_features_path, graph_edges_path, redteam_pairs_path):
-        _require(path)
+    _require(graph_edges_path)
+    _require(redteam_pairs_path)
+    if not csv_exists(edge_features_path):
+        raise FileNotFoundError(f"Missing required input: {edge_features_path}")
 
     edge_df = load_csv_merged(edge_features_path)
     edges = pd.read_csv(graph_edges_path, usecols=["src", "dst"])
