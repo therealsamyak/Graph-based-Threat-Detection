@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.csv_split import load_csv_merged
 from src.feature_audit.joiner import dedup_against_edge_features, join_node_features
 
 
@@ -51,7 +52,7 @@ def load_feature_frame(run_dir: Path) -> tuple[pd.DataFrame, np.ndarray, list[st
     for path in (edge_features_path, graph_edges_path, redteam_pairs_path):
         _require(path)
 
-    edge_df = pd.read_csv(edge_features_path)
+    edge_df = load_csv_merged(edge_features_path)
     edges = pd.read_csv(graph_edges_path, usecols=["src", "dst"])
     if len(edges) != len(edge_df):
         raise ValueError(

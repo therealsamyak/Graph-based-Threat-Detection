@@ -11,6 +11,7 @@ import pandas as pd
 from scipy.optimize import minimize
 from sklearn.metrics import roc_auc_score
 
+from src.csv_split import load_csv_merged
 from src.types import BINARY_FEATURES
 
 logger = logging.getLogger(__name__)
@@ -237,7 +238,7 @@ def load_run_data(run_dir: str) -> tuple[pd.DataFrame, np.ndarray]:
 
     logger.info(f"Loading run data from {run_dir}")
 
-    edge_features = pd.read_csv(edge_features_path)
+    edge_features = load_csv_merged(edge_features_path)
     logger.info(f"  edge_features.csv: {edge_features.shape[0]:,} rows, {edge_features.shape[1]} columns")
     logger.info(f"  Columns: {list(edge_features.columns)}")
 

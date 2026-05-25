@@ -1,0 +1,12 @@
+LATERAL MOVEMENT DETECTION — KEY FINDINGS
+==================================================
+
+LANL-2015 Results:
+  auth_only: recall=0.9221, f1=0.1778, fpr=0.0064
+  combined: recall=0.2110, f1=0.0591, fpr=0.0036
+  flow_only: recall=0.0682, f1=0.0099, fpr=0.0298
+
+
+Key Takeaways:
+  - Run `uv run python main.py --sample 10000` to populate
+  - Combined auth+flow graph method for lateral movement detection

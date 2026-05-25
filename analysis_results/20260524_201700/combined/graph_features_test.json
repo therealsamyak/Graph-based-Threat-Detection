@@ -1,0 +1,95 @@
+{
+  "timestamp": "2026-05-24T20:21:07.767801",
+  "input_run_dir": "/Users/skakatur/Desktop/CodingStuff/UCLA/ECE239/Graph-Based-Lateral-Movement-Detection/results/20260524_193235/LANL-2015/combined",
+  "attacker_host": "C17693",
+  "holdout_frac": 0.5,
+  "seed": 42,
+  "n_calibration": 182400,
+  "n_eval": 182402,
+  "results": [
+    {
+      "name": "base_5_features",
+      "added_columns": [],
+      "n_features": 5,
+      "cal_auc": 0.9588627894840808,
+      "eval_auc": 0.9557484325205152,
+      "eval_auc_delta_vs_base": 0.0
+    },
+    {
+      "name": "base_plus_pagerank",
+      "added_columns": [
+        "src_pagerank",
+        "dst_pagerank"
+      ],
+      "n_features": 7,
+      "cal_auc": 0.9630560706463605,
+      "eval_auc": 0.9608622613814605,
+      "eval_auc_delta_vs_base": 0.0051138288609452465
+    },
+    {
+      "name": "base_plus_personalized_pagerank",
+      "added_columns": [
+        "src_ppr_attacker",
+        "dst_ppr_attacker"
+      ],
+      "n_features": 7,
+      "cal_auc": 0.9933527355148218,
+      "eval_auc": 0.9921126009567389,
+      "eval_auc_delta_vs_base": 0.0363641684362237
+    },
+    {
+      "name": "base_plus_kcore",
+      "added_columns": [
+        "src_kcore",
+        "dst_kcore"
+      ],
+      "n_features": 7,
+      "cal_auc": 0.9727001913529048,
+      "eval_auc": 0.9707594619255556,
+      "eval_auc_delta_vs_base": 0.0150110294050404
+    },
+    {
+      "name": "base_plus_community",
+      "added_columns": [
+        "cross_community",
+        "src_community_size",
+        "dst_community_size"
+      ],
+      "n_features": 8,
+      "cal_auc": 0.9661517655814287,
+      "eval_auc": 0.960961995649348,
+      "eval_auc_delta_vs_base": 0.00521356312883281
+    },
+    {
+      "name": "base_plus_similarity",
+      "added_columns": [
+        "jaccard",
+        "adamic_adar"
+      ],
+      "n_features": 7,
+      "cal_auc": 0.9597314005611787,
+      "eval_auc": 0.9558091481319979,
+      "eval_auc_delta_vs_base": 6.071561148268678e-05
+    },
+    {
+      "name": "base_plus_all_quick_wins",
+      "added_columns": [
+        "pagerank.src_pagerank",
+        "pagerank.dst_pagerank",
+        "personalized_pagerank.src_ppr_attacker",
+        "personalized_pagerank.dst_ppr_attacker",
+        "kcore.src_kcore",
+        "kcore.dst_kcore",
+        "community.cross_community",
+        "community.src_community_size",
+        "community.dst_community_size",
+        "similarity.jaccard",
+        "similarity.adamic_adar"
+      ],
+      "n_features": 16,
+      "cal_auc": 0.9953565297951432,
+      "eval_auc": 0.9948580009601888,
+      "eval_auc_delta_vs_base": 0.039109568439673614
+    }
+  ]
+}

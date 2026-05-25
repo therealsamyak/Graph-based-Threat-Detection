@@ -9,6 +9,8 @@ from pathlib import Path
 import igraph as ig
 import pandas as pd
 
+from src.csv_split import save_csv_split
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,7 +57,7 @@ def save_method_results(
         logger.info(f"  {tag} Saved anomalous_paths.csv ({len(ap_rows):,} anomalous edges)")
 
     node_features.to_csv(method_dir / "node_features.csv")
-    edge_features.to_csv(method_dir / "edge_features.csv")
+    save_csv_split(edge_features, method_dir / "edge_features.csv")
     with open(method_dir / "graph_features.json", "w") as f:
         json.dump(graph_features, f, indent=2)
     logger.info(f"  {tag} Saved node_features.csv, edge_features.csv, graph_features.json")

@@ -9,6 +9,10 @@ import pandas as pd
 from pathlib import Path
 from scipy.stats import gaussian_kde
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from src.csv_split import load_csv_merged
+
 plt.style.use("seaborn-v0_8-whitegrid")
 plt.rcParams.update({
     "font.size": 11,
@@ -43,7 +47,7 @@ is_redteam = np.array([
 ])
 
 # Filter out self-loops and user edges for cleaner display
-edge_features = pd.read_csv(RESULTS_DIR / "edge_features.csv")
+edge_features = load_csv_merged(RESULTS_DIR / "edge_features.csv")
 is_self_loop = edge_features["is_self_loop"].values if "is_self_loop" in edge_features else np.zeros(len(edge_features))
 is_user_edge = edge_features["is_user_edge"].values if "is_user_edge" in edge_features else np.zeros(len(edge_features))
 valid_mask = (is_self_loop == 0.0) & (is_user_edge == 0.0)
