@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-24T23:58:12.483281",
+  "equal_weight_auc": 0.9291236237209307,
+  "optimized_auc": 0.9625823703769677,
+  "improvement_pct": 3.6011081627697985,
+  "per_feature": {
+    "src_burst_score": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 0.5000912496113018,
+      "delta": 0.1667579162779685
+    },
+    "dst_inter_arrival_mean": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": 0.5077407839707505,
+      "delta": 0.1744074506374172
+    },
+    "dst_inter_arrival_std": {
+      "weight_before": 0.3333333333333333,
+      "weight_after": -0.1545832813049229,
+      "delta": -0.4879166146382562
+    }
+  }
+}
