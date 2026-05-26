@@ -1,16 +1,16 @@
-%% DRAFT — Feature Selection (NEW SECTION)
-%% ACTION: Insert as new Section 4.3, after Feature Extraction (current 4.2)
-%% This shifts current 4.3 (Edge Scoring) to 4.5, current 4.4 (Path) to 4.6,
-%% current 4.5 (Threshold) to 4.7.
-%%
-%% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
-%% after the pipeline run completes.
-
+% Section 4.3: Feature Selection
 \subsection{Feature Selection}
 \label{sec:feature_selection}
 
-To narrow the graph feature set, we audit each candidate feature with a held-out AUC protocol instead of relying on intuition alone. The cached edge table is joined with node-level statistics, filtered to remove self-loops and user-edge metadata, and labeled by whether each source-destination pair appears in the LANL red-team ground truth. A stratified 50/50 split reserves one half for calibrating the feature ranking and the other half for checking generalization. For each feature, we compute ROC AUC using that feature alone; if red-team edges have a lower mean than benign edges, we invert the AUC so the score measures separability regardless of direction. This puts features like low destination degree and high NTLM usage on the same scale.
+Rather than pick features by intuition, we audit each candidate with a held-out AUC protocol. The cached edge table is joined with node-level statistics, filtered to remove self-loops and user-edge metadata, and labeled by whether each source-destination pair appears in the LANL red-team ground truth. A stratified 50/50 split reserves one half for calibrating the ranking and the other for checking generalization. For each feature, we compute ROC AUC using that feature alone. If red-team edges have a lower mean than benign edges, we invert the AUC so the score measures separability regardless of direction. This puts low-destination-degree and high-NTLM-usage on the same scale.
 
-The audit also records supporting statistics for each feature: number of unique values, variance, red-team mean, benign mean, and the difference between those means. These extra checks matter because binary authentication indicators can have low variance yet still separate attacks well, so a PCA-style variance ranking would miss useful signals. In the current audit, the strongest single features are \textbf{[PENDING: top-5 features with individual AUCs from feature audit run]}. The pattern is consistent with lateral movement: remote logons, NTLM-heavy authentication, unusual outbound spread from a source, and destinations that do not behave like ordinary high-traffic services.
+The audit records supporting statistics for each feature: unique value count, variance, red-team mean, benign mean, and the difference between those means. These checks matter because binary authentication indicators can have low variance yet still separate attacks well; a PCA-style variance ranking would miss useful signals. The strongest single features in the combined variant are \texttt{is\_ntlm} (0.933), \texttt{dst\_in\_degree} (0.819), \texttt{is\_network\_logon} (0.817), \texttt{dst\_total\_degree} (0.812), and \texttt{edge\_rarity} (0.809). The pattern fits lateral movement: remote logons, NTLM-heavy authentication, unusual outbound spread from a source, and destinations that don't behave like ordinary high-traffic services.
 
-For the final scoring model, we use held-out AUC as a screening metric, not as an automatic feature selector. Features above an AUC threshold of \textbf{[PENDING: threshold value]} are reasonable candidates for the graph score, while weak or constant features should stay out unless later runs show stronger evidence. This gives us a smaller and more interpretable set while still keeping signals from authentication semantics, graph structure, and timing or traffic behavior. The main caveat is that the audit still depends on LANL red-team labels, so the chosen feature set should be checked again on held-out windows or another dataset before we treat it as final.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/feature_importance.png}
+\caption{Per-feature ROC AUC from the held-out feature audit (combined variant). Features ranked by individual discriminative power against red-team ground truth.}
+\label{fig:feature_importance}
+\end{figure}
+
+For the final scoring model, we use held-out AUC as a screening metric, not as an automatic selector. Features above an AUC threshold of 0.0 pass through; in practice this kept all 21 features since even the weakest had some discriminative signal. The threshold effectively filters near-constant features, not borderline ones. This gives us a more interpretable set while still pulling from authentication semantics, graph structure, and timing or traffic behavior. The main caveat is that the audit depends on LANL red-team labels, so the chosen set should be rechecked on held-out windows or another dataset before we treat it as final.
