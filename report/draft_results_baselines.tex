@@ -67,6 +67,13 @@ Isolation Forest & 0.042 & 0.100 & 0.004 & 0.002 & 0.718 & 13/308 \\
 
 \noindent $^\dagger$Graph-method detected pairs are out of the red-team pairs that exist as edges in the constructed graph (305 for combined, 302 for auth-only, 35 for flow-only), not the full 308 red-team pairs. Baselines score all source-destination pairs directly and use 308 as the denominator. Recall for the graph method is computed against the graph-visible red-team pairs.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{roc_curves.png}
+\caption{ROC curves for all three methods across combined, auth-only, and flow-only variants. The graph-based method consistently achieves the highest AUC with the steepest initial rise.}
+\label{fig:roc_curves}
+\end{figure}
+
 \subsubsection{Interpretation}
 
 The combined variant tells a clear story. The graph-based method has the highest AUC (0.959) and the lowest false positive rate (0.004) of any method. Isolation Forest catches more red-team pairs in absolute terms (181 vs.\ 65), but pays for it with a sevenfold higher FPR (0.029). In a real deployment, that difference in false alarm volume matters more than raw recall. One-Class SVM is the most conservative of the three: it fires on almost nothing (recall 0.052), and its AUC of 0.800 reflects weak ranking ability on combined features.
