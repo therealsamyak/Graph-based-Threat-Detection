@@ -201,13 +201,17 @@ Detection lift comes from feature representation more than the optimizer.
 ### Speaker notes
 The evaluation decomposes the improvement. Supervised learning on tabular features is one contribution. Graph-derived local features add another roughly +0.037 AUC. Label-free multi-hop features add a modest +0.015. Known-attacker propagation can add +0.036, but only when a compromised seed is known.
 
-## Slide 23: Claims Should Stay Scoped to LANL Until Revision
+## Slide 23: Lots of Future Work Left to be Done
 
 ### Slide content
-LANL is one environment; deployment metrics remain revision items.
+- Runtime and scalability: latency, throughput, CPU/memory profiling on stream-scale data.
+- New datasets: evaluate on cloud-native VPC flow logs (AWS VPC Flow, Azure NSG, GCP VPC) to test generalization beyond LANL.
+- Industry partnership: collaborate with a cloud provider for real deployment telemetry and live red-team exercises.
+- Streaming graph: incremental graph updates instead of batch rebuilds for true real-time detection.
+- Adaptive thresholds: drift-aware threshold tuning as network baseline shifts over time.
 
 ### Speaker notes
-The feature audit depends on LANL red-team labels, so the selected set should be rechecked on held-out LANL windows during revision. LANL attacks emphasize SMB, SSH, credential reuse, and reconnaissance, so the current claims should stay scoped to LANL-2015. Proposed paper items such as latency, throughput, CPU and memory overhead, and direct related-work metric comparisons should be framed as future revision work. Personalized PageRank should be framed as post-detection scoping, not cold-start detection.
+This project evaluated on LANL-2015 only, so the most important next step is testing on modern cloud environments. Partnering with a cloud network provider would give access to real VPC flow logs and authentication telemetry at production scale, plus the ability to run controlled red-team exercises. On the systems side, we have not measured latency or throughput — the current pipeline is batch-oriented, so profiling ingest-to-alert time and memory usage under streaming conditions is essential before any deployment claim. Incremental graph updates (adding edges without rebuilding the whole graph) would be needed for true real-time operation. Threshold drift is another practical concern: as network behavior evolves, fixed percentile thresholds may degrade, so adaptive or drift-aware methods are worth exploring.
 
 ## Slide 24: Conclusion: Auth Semantics and Graph Features Drive Detection
 
