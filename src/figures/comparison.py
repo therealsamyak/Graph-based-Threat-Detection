@@ -39,7 +39,7 @@ _VARIANT_MARKERS = {
 # 1. Variant heatmap
 # ---------------------------------------------------------------------------
 def plot_variant_heatmap(matrix: pd.DataFrame, output_dir: Path) -> None:
-    """3×3 heatmaps for AUC, F1, Recall across method×variant."""
+    """3×3 heatmaps for AUC, F1, Recall across method×variant (separate PNGs)."""
     if matrix is None or matrix.empty:
         logger.warning("plot_variant_heatmap: empty matrix, skipping")
         return
@@ -51,9 +51,7 @@ def plot_variant_heatmap(matrix: pd.DataFrame, output_dir: Path) -> None:
         "Recall Across Method×Variant",
     ]
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-
-    for ax, metric, title in zip(axes, metrics, titles):
+    for metric, title in zip(metrics, titles):
         data = np.full((len(METHOD_ORDER), len(VARIANT_ORDER)), np.nan)
         for i, method in enumerate(METHOD_ORDER):
             for j, variant in enumerate(VARIANT_ORDER):
@@ -65,7 +63,16 @@ def plot_variant_heatmap(matrix: pd.DataFrame, output_dir: Path) -> None:
                     if val is not None and not pd.isna(val):
                         data[i, j] = float(val)
 
+        fig, ax = plt.subplots(figsize=(8, 5))
         im = ax.imshow(data, cmap=plt.cm.RdYlGn, vmin=0, vmax=1, aspect="auto")
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        ax.tick_params(axis="both", which="both", length=0)
+        ax.grid(False)
+        ax.xaxis.grid(False)
+        ax.yaxis.grid(False)
+        for line in ax.get_xgridlines() + ax.get_ygridlines():
+            line.set_visible(False)
         fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
         ax.set_xticks(range(len(VARIANT_ORDER)))
@@ -86,9 +93,10 @@ def plot_variant_heatmap(matrix: pd.DataFrame, output_dir: Path) -> None:
                         color="white" if val < 0.4 else "black",
                     )
 
-    fig.tight_layout()
-    _save_fig(fig, str(output_dir / "variant_heatmap.png"))
-    logger.info("Saved variant_heatmap.png")
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"variant_heatmap_{metric}.png"))
+        plt.close(fig)
+        logger.info(f"Saved variant_heatmap_{metric}.png")
 
 
 # ---------------------------------------------------------------------------
@@ -151,7 +159,7 @@ def plot_detection_counts(matrix: pd.DataFrame, output_dir: Path) -> None:
     ax.set_xticklabels(labels, rotation=45, ha="right")
     ax.set_ylabel("Count")
     ax.set_title("Detection Counts: Predicted vs Ground Truth")
-    ax.legend()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1))
 
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "detection_counts.png"))
@@ -218,7 +226,7 @@ def plot_performance_tradeoff(matrix: pd.DataFrame, output_dir: Path) -> None:
         plt.close(fig)
         return
 
-    ax.legend(handles, labels, loc="upper right", fontsize=8, framealpha=0.9)
+    ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=8, framealpha=0.9)
     ax.set_xlabel("Latency (ms)")
     ax.set_ylabel("AUC")
     ax.set_title("Accuracy vs Speed Tradeoff")

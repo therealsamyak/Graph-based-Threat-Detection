@@ -36,6 +36,13 @@ VARIANT_LABELS = {
     "flow_only": "Flow Only",
 }
 
+# Display names for methods (no variant suffix)
+METHOD_DISPLAY_NAMES = {
+    "graph_based": "Graph-based",
+    "one_class_svm": "One-Class SVM",
+    "isolation_forest": "Isolation Forest",
+}
+
 # Base colors for methods
 BASE_METHOD_COLORS = {
     "graph_based": "#2196F3",
@@ -63,8 +70,8 @@ for method in METHOD_ORDER:
     for variant in VARIANT_ORDER:
         variant_label = VARIANT_LABELS[variant]
         method_display = {
-            "graph_based": "Graph",
-            "one_class_svm": "SVM",
+            "graph_based": "Graph-based",
+            "one_class_svm": "One-Class SVM",
             "isolation_forest": "Isolation Forest",
         }[method]
         METHOD_LABELS[(method, variant)] = f"{method_display} ({variant_label})"
