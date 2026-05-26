@@ -1,3 +1,5 @@
+%% REPLACE Section 5.5 (Implementation)
+
 \subsection{Implementation}
 
 The pipeline is implemented in Python with two execution modes. The feature audit mode runs a held-out AUC evaluation on cached pipeline outputs to identify discriminative features. The main execution mode runs the full pipeline: graph construction, feature extraction, Nelder-Mead weight optimization, edge scoring, path scoring, threshold selection, and visualization. Hyperparameters are stored in a JSON config file.
