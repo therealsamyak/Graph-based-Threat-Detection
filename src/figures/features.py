@@ -7,6 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 
@@ -78,24 +79,27 @@ def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
 
     ordered_variants = [v for v in ("combined", "auth_only", "flow_only") if v in rows_by_variant]
     ordered_variants.extend(v for v in rows_by_variant if v not in ordered_variants)
-    fig, axes = plt.subplots(1, len(ordered_variants), figsize=(6 * len(ordered_variants), 6), sharex=True)
-    axes_arr = np.atleast_1d(axes)
 
-    for ax, variant in zip(axes_arr, ordered_variants):
+    for variant in ordered_variants:
+        fig, ax = plt.subplots(figsize=(8, 6))
         df = pd.DataFrame(rows_by_variant[variant], columns=["feature", "auc"]).sort_values("auc", ascending=True)
         colors = ["#4CAF50" if v > 0.7 else "#FF9800" if v >= 0.5 else "#F44336" for v in df["auc"].values]
         bars = ax.barh(df["feature"], df["auc"], color=colors, alpha=0.9, edgecolor="white", linewidth=0.5)
-        ax.axvline(0.5, linestyle="--", color="gray", linewidth=1)
         for bar, val in zip(bars, df["auc"].values):
             ax.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2, f"{val:.2f}", ha="left", va="center", fontsize=8)
-        ax.set_title(variant.replace("_", " ").title())
+        ax.set_title(f"Feature Audit — {variant.replace('_', ' ').title()}")
         ax.set_xlabel("AUC Score")
+        ax.set_ylabel("Feature")
         ax.set_xlim(0, max(1.0, float(df["auc"].max()) + 0.08))
-
-    axes_arr[0].set_ylabel("Feature")
-    fig.suptitle("Individual Feature Discriminative Power (AUC)")
-    fig.tight_layout(rect=[0, 0, 1, 0.94])
-    _save_fig(fig, str(output_dir / "feature_audit.png"))
+        legend_handles = [
+            mpatches.Patch(color="#4CAF50", label="Strong feature (AUC > 0.70)"),
+            mpatches.Patch(color="#FF9800", label="Weak feature (0.50-0.70)"),
+            mpatches.Patch(color="#F44336", label="Below random (AUC < 0.50)"),
+        ]
+        ax.legend(handles=legend_handles, fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"feature_audit_{variant}.png"))
+        plt.close(fig)
 
 
 def _analysis_result_rows(result_data: dict) -> list[dict]:
@@ -173,11 +177,11 @@ def plot_ablation(analysis_data: dict | None, output_dir: Path) -> None:
 
     ax.set_xticks(x)
     ax.set_xticklabels(["Pure Tabular", "Graph Derived", "Combined"])
-    ax.set_ylabel("Evaluation AUC")
-    ax.set_xlabel("Feature Category")
+    ax.set_ylabel("Holdout Evaluation AUC")
+    ax.set_xlabel("Feature Set")
     ax.set_ylim(0, 1.15)
     ax.set_title("Feature Category Ablation Study")
-    ax.legend(framealpha=0.9)
+    ax.legend(title="Variant", framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "ablation_study.png"))
 
@@ -207,23 +211,27 @@ def plot_feature_sweep(analysis_data: dict | None, output_dir: Path) -> None:
 
     ordered_variants = [v for v in ("combined", "auth_only", "flow_only") if v in rows_by_variant]
     ordered_variants.extend(v for v in rows_by_variant if v not in ordered_variants)
-    fig, axes = plt.subplots(1, len(ordered_variants), figsize=(6 * len(ordered_variants), 5), sharey=True)
-    axes_arr = np.atleast_1d(axes)
 
-    for ax, variant in zip(axes_arr, ordered_variants):
+    for variant in ordered_variants:
+        fig, ax = plt.subplots(figsize=(10, 5))
         df = pd.DataFrame(rows_by_variant[variant], columns=["group", "auc"])
         baseline_auc = float(df.iloc[0]["auc"])
         colors = ["#4CAF50" if float(v) > baseline_auc else "#2196F3" for v in df["auc"].values]
         bars = ax.bar(df["group"], df["auc"], color=colors, alpha=0.85, edgecolor="white", linewidth=0.5)
-        ax.axhline(baseline_auc, linestyle="--", color="gray", linewidth=1)
         for bar, val in zip(bars, df["auc"].values):
             ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, f"{val:.2f}", ha="center", va="bottom", fontsize=7)
-        ax.set_title(variant.replace("_", " ").title())
+        ax.set_title(f"Feature Sweep — {variant.replace('_', ' ').title()}")
         ax.set_xlabel("Feature Group")
+        ax.set_ylabel("Holdout Evaluation AUC")
         ax.set_ylim(0, max(1.0, float(df["auc"].max()) + 0.08))
         ax.tick_params(axis="x", rotation=35)
-
-    axes_arr[0].set_ylabel("Evaluation AUC")
-    fig.suptitle("Graph Feature Contribution Analysis")
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
-    _save_fig(fig, str(output_dir / "feature_sweep.png"))
+        for tick in ax.get_xticklabels():
+            tick.set_ha("right")
+        legend_handles = [
+            mpatches.Patch(color="#2196F3", label="At or below base AUC"),
+            mpatches.Patch(color="#4CAF50", label="Improves over base AUC"),
+        ]
+        ax.legend(handles=legend_handles, fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"feature_sweep_{variant}.png"))
+        plt.close(fig)
