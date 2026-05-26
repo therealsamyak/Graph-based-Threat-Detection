@@ -7,7 +7,7 @@ Ibrahim Pehlivan, Wesley Gunawan, Samyak Kakatur
 ECE 239AS, UCLA
 
 ### Speaker notes
-Open with the core framing: lateral movement happens after initial compromise, when an attacker pivots through internal machines toward higher-value targets. The project asks whether combining network flow logs and authentication logs inside one graph improves detection compared with using either source alone. Content-balanced speaker split: Ibrahim covers Slides 1–8 for framing, prior work, LANL scope, and graph construction; Wesley covers Slides 9–16 for variants, features, scoring, path/threshold logic, and baselines; Samyak covers Slides 17–25 for results, validation, ablations, limitations, and conclusion. The counts are 8/8/9, but aim for equal time by keeping visual-result slides tight.
+Open with the core framing: lateral movement happens after initial compromise, when an attacker pivots through internal machines toward higher-value targets. The project asks whether combining network flow logs and authentication logs inside one graph improves detection compared with using either source alone. Content-balanced speaker split: Ibrahim covers Slides 1–8 for framing, prior work, LANL scope, and graph construction; Wesley covers Slides 9–16 for variants, features, scoring, path/threshold logic, and baselines; Samyak covers Slides 17–24 for results, validation, ablations, limitations, and conclusion.
 
 ## Slide 2: Main Takeaways: Auth Logs and Graph Features Drive Detection
 
@@ -193,20 +193,7 @@ The supervised linear method barely changes the outcome. Logistic regression and
 ### Speaker notes
 Pure tabular features reach eval AUC 0.9529. Graph-derived features alone reach 0.9867. Combined features reach 0.9904. Adding graph-derived features on top of tabular raises eval AUC by 0.0375, while adding tabular features on top of graph features adds only 0.0037. This is the strongest evidence that representation, not optimizer choice, drives the result.
 
-## Slide 22: Multi-Hop Extensions Add Mostly Modest Label-Free Gains
-
-### Slide content
-![Feature sweep – auth only](feature_sweep_auth_only.png)  
-![Feature sweep – combined](feature_sweep_combined.png)  
-![Feature sweep – flow only](feature_sweep_flow_only.png)
-
-- How to read: x-axis = added graph feature group; y-axis = evaluation AUC; each panel is one variant; dashed line = local-feature baseline.
-- Takeaway: known-seed PageRank is strongest but conditional; k-core is the cleanest label-free extension.
-
-### Speaker notes
-Personalized PageRank seeded at known compromised host `C17693` gives the largest gain, but production would need a known compromised seed first. Label-free multi-hop features such as k-core and Louvain communities add smaller, defensible gains. Standard PageRank and Jaccard/Adamic-Adar contribute little here. This slide separates practical future work from oracle-like seeded propagation.
-
-## Slide 23: Representation Matters More Than Optimizer Choice
+## Slide 22: Representation Matters More Than Optimizer Choice
 
 ### Slide content
 Detection lift comes from feature representation more than the optimizer.
@@ -214,7 +201,7 @@ Detection lift comes from feature representation more than the optimizer.
 ### Speaker notes
 The evaluation decomposes the improvement. Supervised learning on tabular features is one contribution. Graph-derived local features add another roughly +0.037 AUC. Label-free multi-hop features add a modest +0.015. Known-attacker propagation can add +0.036, but only when a compromised seed is known.
 
-## Slide 24: Claims Should Stay Scoped to LANL Until Revision
+## Slide 23: Claims Should Stay Scoped to LANL Until Revision
 
 ### Slide content
 LANL is one environment; deployment metrics remain revision items.
@@ -222,7 +209,7 @@ LANL is one environment; deployment metrics remain revision items.
 ### Speaker notes
 The feature audit depends on LANL red-team labels, so the selected set should be rechecked on held-out LANL windows during revision. LANL attacks emphasize SMB, SSH, credential reuse, and reconnaissance, so the current claims should stay scoped to LANL-2015. Proposed paper items such as latency, throughput, CPU and memory overhead, and direct related-work metric comparisons should be framed as future revision work. Personalized PageRank should be framed as post-detection scoping, not cold-start detection.
 
-## Slide 25: Conclusion: Auth Semantics and Graph Features Drive Detection
+## Slide 24: Conclusion: Auth Semantics and Graph Features Drive Detection
 
 ### Slide content
 1. Authentication logs carry the strongest lateral-movement signal.
