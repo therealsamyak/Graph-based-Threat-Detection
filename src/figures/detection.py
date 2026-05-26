@@ -386,31 +386,24 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
     lr = _first_value(holdout, ("lr_baseline", "baseline_auc", "logreg_auc", "lr_auc"))
     cal = _first_value(holdout, ("calibrated", "calibrated_auc", "calibration_auc"))
 
-    nested_opt_keys = ("auc_eval", "eval_auc", "auc")
-    nested_cal_keys = ("auc_calibration", "calibrated_auc", "calibration_auc", "eval_auc", "auc")
-    nested_lr_keys = ("auc_eval", "eval_auc", "auc", "lr_auc")
+    def _nested_first_value(container_keys: tuple[str, ...], value_keys: tuple[str, ...]) -> float | None:
+        for key in container_keys:
+            nested = holdout.get(key)
+            if isinstance(nested, dict):
+                value = _first_value(nested, value_keys)
+                if value is not None:
+                    return value
+        return None
 
     if opt is None:
-        for key in ("optimized", "optimizer"):
-            nested = holdout.get(key)
-            if isinstance(nested, dict):
-                opt = _first_value(nested, nested_opt_keys)
-                if opt is not None:
-                    break
+        opt = _nested_first_value(("optimized", "optimizer"), ("auc_eval", "eval_auc", "auc"))
     if lr is None:
-        for key in ("baseline", "logistic_regression", "lr"):
-            nested = holdout.get(key)
-            if isinstance(nested, dict):
-                lr = _first_value(nested, nested_lr_keys)
-                if lr is not None:
-                    break
+        lr = _nested_first_value(("baseline", "logistic_regression", "lr"), ("auc_eval", "eval_auc", "auc", "lr_auc"))
     if cal is None:
-        for key in ("calibration", "optimizer", "optimized"):
-            nested = holdout.get(key)
-            if isinstance(nested, dict):
-                cal = _first_value(nested, nested_cal_keys)
-                if cal is not None:
-                    break
+        cal = _nested_first_value(
+            ("calibration", "optimizer", "optimized"),
+            ("auc_calibration", "calibrated_auc", "calibration_auc", "eval_auc", "auc"),
+        )
 
     vals = [opt, lr, cal]
     if all(v is None for v in vals):
