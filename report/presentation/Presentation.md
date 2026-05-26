@@ -7,7 +7,9 @@ Ibrahim Pehlivan, Wesley Gunawan, Samyak Kakatur
 ECE 239AS, UCLA
 
 ### Speaker notes
-Open with the core framing: lateral movement happens after initial compromise, when an attacker pivots through internal machines toward higher-value targets. The project asks whether combining network flow logs and authentication logs inside one graph improves detection compared with using either source alone. Content-balanced speaker split: Ibrahim covers Slides 1–8 for framing, prior work, LANL scope, and graph construction; Wesley covers Slides 9–16 for variants, features, scoring, path/threshold logic, and baselines; Samyak covers Slides 17–24 for results, validation, ablations, limitations, and conclusion.
+- Lateral movement = post-compromise pivoting through internal machines toward high-value targets
+- Core question: does combining flow + auth logs in one graph beat either source alone?
+- Speaker split: Ibrahim (1–8), Wesley (9–16), Samyak (17–24)
 
 ## Slide 2: Main Takeaways: Auth Logs and Graph Features Drive Detection
 
@@ -17,7 +19,9 @@ Open with the core framing: lateral movement happens after initial compromise, w
 3. Weight optimization generalizes; the main value is interpretable scoring.
 
 ### Speaker notes
-These are the three points to keep returning to. The combined graph is the main system, but the experiments show a sharper nuance: auth-only is extremely strong on LANL, graph features add substantial discriminative power, and Nelder-Mead is useful mainly because it gives a transparent weighted score rather than because it beats logistic regression.
+- These three points are the thread through the whole talk
+- Auth-only very strong on LANL; graph features add real discriminative power
+- Nelder-Mead value = transparent weighted score, not beating logistic regression
 
 ## Slide 3: Internal Telemetry Is Split and Noisy
 
@@ -25,7 +29,9 @@ These are the three points to keep returning to. The combined graph is the main 
 Internal cloud traffic is noisy, trusted by default, and split across separate telemetry sources.
 
 ### Speaker notes
-Flow logs show who connected to whom, but not whether the connection was an attacker session or normal administration. Authentication logs show logons, but miss reconnaissance or service exploitation that never creates a login event. Perimeter IDS also sees mostly north-south traffic, while lateral movement is east-west inside the VPC.
+- Flow logs → who connected to whom, but not if malicious vs admin
+- Auth logs → logons, but miss recon/service exploitation w/o login
+- Perimeter IDS → mostly north-south; lateral movement is east-west inside VPC
 
 ## Slide 4: We Test Whether Graph Fusion Beats Single-Source Baselines
 
@@ -33,7 +39,9 @@ Flow logs show who connected to whom, but not whether the connection was an atta
 Can graph-based analysis of combined flow and authentication logs detect lateral movement better than single-source or tabular baselines?
 
 ### Speaker notes
-The original proposal emphasized low latency and real-time processing. The implemented report centers on LANL-2015 evaluation: build graph variants from flow-only, auth-only, and combined logs, then compare them with unsupervised tabular anomaly detectors using aligned metrics.
+- Original proposal: low latency + real-time
+- Implemented scope: LANL-2015 evaluation
+- Build graph variants (flow-only, auth-only, combined) → compare vs tabular baselines on aligned metrics
 
 ## Slide 5: Prior Work Motivates Graphs; Our Test Fuses Auth and Flow
 
@@ -42,7 +50,12 @@ The original proposal emphasized low latency and real-time processing. The imple
 - Our angle: unified auth + flow graph with interpretable edge/path scoring.
 
 ### Speaker notes
-Use this slide to make the paper-presentation framing clearer. Hopper motivates login-graph path detection; Euler motivates temporal graph modeling; POIROT motivates provenance graphs but relies on known attack templates; HOLMES motivates multi-log kill-chain correlation. Kitsune and NoDoze motivate flow-feature baselines and rarity-based triage. Our difference is combining authentication and flow telemetry in one graph, then evaluating source ablations and tabular baselines on lateral-movement pairs.
+- Hopper → login-graph path detection
+- Euler → temporal graph modeling
+- POIROT → provenance graphs, but needs known attack templates
+- HOLMES → multi-log kill-chain correlation
+- Kitsune / NoDoze → flow-feature baselines + rarity-based triage
+- Our angle: unified auth + flow graph → source ablations + tabular baselines on lateral-movement pairs
 
 ## Slide 6: We Detect Post-Compromise Pivots, Not Initial Access
 
@@ -50,7 +63,8 @@ Use this slide to make the paper-presentation framing clearer. Hopper motivates 
 Assume one machine is already compromised; detect the pivoting behavior that follows.
 
 ### Speaker notes
-The attacker may scan internal hosts, reuse credentials, SSH or RDP into machines, use SMB, or exploit services. The goal is not initial access detection. It is detecting source-destination pairs that match red-team lateral movement behavior after foothold.
+- Attacker actions: scan hosts, reuse creds, SSH/RDP, SMB, exploit services
+- Goal: NOT initial access → detect source-dest pairs matching red-team lateral movement post-foothold
 
 ## Slide 7: All Reported Results Use LANL-2015 Only
 
@@ -58,7 +72,9 @@ The attacker may scan internal hosts, reuse credentials, SSH or RDP into machine
 LANL-2015 only: 58 days, 1.6B+ events, 749 red-team events, 308 attack pairs.
 
 ### Speaker notes
-LANL-2015 spans 58 days, 1.6B+ events, 749 red-team events, and 308 unique red-team source-destination pairs across authentication, flow, and red-team files. To avoid loading all events, the pipeline scopes to ±3,600 seconds around red-team events, merges overlaps into 25 intervals, and streams only events inside those windows. The presentation should be clear that every reported experiment and figure is LANL-only.
+- 58 days, 1.6B+ events, 749 red-team events, 308 unique red-team src-dst pairs
+- Pipeline scopes ±3600s around red-team events → 25 overlapping intervals → streams only those windows
+- Every experiment/figure = LANL-only
 
 ## Slide 8: The Graph Unifies Machines, Users, Auth Events, and Flows
 
@@ -66,7 +82,9 @@ LANL-2015 spans 58 days, 1.6B+ events, 749 red-team events, and 308 unique red-t
 Computers and users become nodes; auth events and flow records become directed edges.
 
 ### Speaker notes
-Authentication records create computer-to-computer edges, and when user fields exist, user-to-user metadata edges. Flow records create computer-to-computer edges with protocol, ports, packets, bytes, duration, and timestamps. Duplicate source-destination events increment edge weight rather than becoming separate graph edges.
+- Auth records → computer-to-computer edges; user fields → user-to-user metadata edges
+- Flow records → computer-to-computer edges w/ protocol, ports, packets, bytes, duration, timestamps
+- Duplicate src-dst events → increment edge weight (not separate edges)
 
 ## Slide 9: Source Ablations Separate Fusion From Single-Source Signal
 
@@ -76,7 +94,9 @@ Authentication records create computer-to-computer edges, and when user fields e
 - `flow_only`: flow edges only
 
 ### Speaker notes
-These variants answer the key source-ablation question. If combined wins, multi-source correlation matters. If auth-only wins, authentication semantics dominate. If flow-only is weak, network connectivity alone is not enough for this dataset.
+- If combined wins → multi-source correlation matters
+- If auth-only wins → auth semantics dominate
+- If flow-only weak → network connectivity alone insufficient for this dataset
 
 ## Slide 10: Features Span Connection, Host, and Network Behavior
 
@@ -84,7 +104,9 @@ These variants answer the key source-ablation question. If combined wins, multi-
 23 unique features across connection, host, and network levels.
 
 ### Speaker notes
-Connection features include edge rarity, NTLM, network logon, auth success, lateral-movement ports, protocol rarity, byte-per-packet ratio, and duration. Host features include degree, fan-out ratio, betweenness, inter-arrival statistics, burst score, and active duration. Network features include density, clustering, components, node count, and edge count.
+- Connection: edge rarity, NTLM, network logon, auth success, LM ports, protocol rarity, byte/packet ratio, duration
+- Host: degree, fan-out ratio, betweenness, inter-arrival stats, burst score, active duration
+- Network: density, clustering, components, node count, edge count
 
 ## Slide 11: NTLM and Graph Degree Dominate Single-Feature Signal
 
@@ -97,7 +119,9 @@ Connection features include edge rarity, NTLM, network logon, auth success, late
 - Takeaway: NTLM/network-logon semantics and destination degree are the strongest single-feature signals.
 
 ### Speaker notes
-Start by explaining the metric: AUC (Area Under the ROC Curve) is the probability that a randomly chosen red-team edge scores higher than a randomly chosen benign edge. An AUC of 1.0 means perfect ranking; 0.5 means no better than random guessing; the dashed line at 0.5 marks that baseline. Then walk through the top combined-variant features: `is_ntlm` at 0.933, `dst_in_degree` at 0.819, `is_network_logon` at 0.817, `dst_total_degree` at 0.812, and `edge_rarity` at 0.809. The point is not that one feature solves the problem; it is that authentication semantics plus graph structure are the right signal family.
+- AUC = P(red-team edge scores > benign edge); 1.0 = perfect, 0.5 = random (dashed line)
+- Top combined features: `is_ntlm` 0.933, `dst_in_degree` 0.819, `is_network_logon` 0.817, `dst_total_degree` 0.812, `edge_rarity` 0.809
+- Key insight: auth semantics + graph structure = right signal family (not one silver-bullet feature)
 
 ## Slide 12: Nelder-Mead Makes the Score Interpretable
 
@@ -105,7 +129,9 @@ Start by explaining the metric: AUC (Area Under the ROC Curve) is the probabilit
 Nelder-Mead learns feature weights by maximizing ROC AUC over labeled red-team pairs.
 
 ### Speaker notes
-Drafts supersede the final report here. The final approach is not hand-tuned feature weights. It uses a derivative-free Nelder-Mead simplex search over a weighted sum. Non-binary features are percentile-ranked to reduce outlier influence; binary features pass through unchanged.
+- Not hand-tuned weights → derivative-free Nelder-Mead simplex search over weighted sum
+- Non-binary features → percentile-ranked (reduce outlier influence)
+- Binary features → pass through unchanged
 
 ## Slide 13: Edge Scores Are Weighted Sums Over Audited Features
 
@@ -113,7 +139,11 @@ Drafts supersede the final report here. The final approach is not hand-tuned fea
 `s = Σ wᵢ* · fᵢ`
 
 ### Speaker notes
-For the combined variant, the selected features are `is_ntlm`, `dst_in_degree`, `is_network_logon`, `dst_total_degree`, and `edge_rarity`. In the formula, the star on `wᵢ*` means the weight was optimized rather than hand-picked. Auth-only uses `src_in_degree`, `is_ntlm`, and `src_out_degree`. Flow-only uses `src_burst_score`, `dst_inter_arrival_mean`, and `dst_inter_arrival_std`. User-account edges and self-loops receive score 0 because they carry no red-team signal in the labeled data.
+- Combined: `is_ntlm`, `dst_in_degree`, `is_network_logon`, `dst_total_degree`, `edge_rarity`
+- Auth-only: `src_in_degree`, `is_ntlm`, `src_out_degree`
+- Flow-only: `src_burst_score`, `dst_inter_arrival_mean`, `dst_inter_arrival_std`
+- `wᵢ*` = optimized weight (not hand-picked)
+- User-account edges + self-loops → score 0 (no red-team signal)
 
 ## Slide 14: Path Boosting Adds Multi-Hop Context
 
@@ -121,7 +151,9 @@ For the combined variant, the selected features are `is_ntlm`, `dst_in_degree`, 
 Single suspicious edges are not enough; lateral movement is often multi-hop.
 
 ### Speaker notes
-The pipeline enumerates paths up to 4 hops with BFS, following only the top 10 outgoing edges per node by edge score. Each path score averages three views: geometric mean, maximum edge score, and arithmetic mean. The top 50 paths are kept, and edges in those paths receive a 0.1 × path-score boost capped at 1.0.
+- BFS up to 4 hops, follow top 10 outgoing edges/node by edge score
+- Path score = avg of: geometric mean, max edge score, arithmetic mean
+- Top 50 paths kept → edges in those paths get 0.1 × path-score boost (capped at 1.0)
 
 ## Slide 15: Thresholds Are Chosen in Pair-Space for F1
 
@@ -129,7 +161,8 @@ The pipeline enumerates paths up to 4 hops with BFS, following only the top 10 o
 Sweep percentiles `{90, 95, 97, 99, 99.5, 99.9}` and choose the best F1.
 
 ### Speaker notes
-Metrics are computed in pair-space: after thresholding edges, anomalous edges collapse into source-destination pairs and are compared with red-team pairs. If all edge scores have zero variance, the threshold is set above the maximum score so no edges are flagged.
+- Pair-space metrics: threshold edges → collapse to src-dst pairs → compare vs red-team pairs
+- Zero-variance scores → threshold set above max (nothing flagged)
 
 ## Slide 16: Baselines Use the Same Feature Vectors for Fair Comparison
 
@@ -137,7 +170,10 @@ Metrics are computed in pair-space: after thresholding edges, anomalous edges co
 Compare graph scoring against One-Class SVM and Isolation Forest on the same edge features.
 
 ### Speaker notes
-One-Class SVM uses an RBF kernel with `nu=0.1`; Isolation Forest uses 100 trees, `contamination="auto"`, seed 42. Both train only on normal edges, evaluate on held-out normal edges plus red-team edges, and use the same threshold optimizer and pair-metric calculator as the graph detector.
+- One-Class SVM: RBF kernel, ν=0.1
+- Isolation Forest: 100 trees, contamination="auto", seed 42
+- Both: train on normal edges only, eval on held-out normal + red-team edges
+- Same threshold optimizer + pair-metric calculator as graph detector
 
 ## Slide 17: Combined Graph Ranks Best While Keeping Alert Cost Low
 
@@ -150,7 +186,12 @@ One-Class SVM uses an RBF kernel with `nu=0.1`; Isolation Forest uses 100 trees,
 - Takeaway: graph scoring gives the best combined-variant AUC; Isolation Forest buys recall with more alert cost.
 
 ### Speaker notes
-First clarify what each panel measures. AUC (top panel): threshold-independent ranking quality — what fraction of the time a random attack edge scores higher than a random benign edge; higher is better, 1.0 is perfect. F1 (middle panel): harmonic mean of precision (what fraction of flagged edges are actually attacks) and recall (what fraction of real attacks were caught); higher is better, 1.0 is perfect. A high F1 means the detector both catches most attacks and does not flood analysts with false alarms. Recall (bottom panel): what fraction of the 308 red-team pairs were detected; higher means more attacks caught, but a detector that flags everything would have recall 1.0 and terrible precision. The combined graph method achieves AUC 0.959 with FPR 0.004 (only 0.4% of benign pairs incorrectly flagged). Isolation Forest detects more red-team pairs in the combined setting, but its higher false-positive rate means more analyst burden. Present this as a tradeoff, not a universal win.
+- AUC (top): threshold-independent ranking; P(attack edge > benign edge); higher better, 1.0 perfect
+- F1 (mid): harmonic mean of precision + recall; high = catches attacks w/o flooding false alarms
+- Recall (bottom): fraction of 308 red-team pairs detected; high = more caught, but flagging everything = recall 1.0 + terrible precision
+- Combined graph: AUC 0.959, FPR 0.004 (0.4% benign pairs flagged)
+- Isolation Forest: more pairs detected but higher FPR → more analyst burden
+- Present as tradeoff, not universal win
 
 ## Slide 18: Auth-Only Is Strongest in LANL; Flow-Only Is Not Actionable
 
@@ -160,7 +201,10 @@ Combined: AUC 0.959, recall 0.211, FPR 0.004.
 Flow-only: AUC 0.963, recall 0.068, FPR 0.030.
 
 ### Speaker notes
-Explain the metrics briefly before interpreting the numbers. AUC: probability a random attack edge outscores a random benign edge (higher = better ranking). Recall: fraction of the 308 red-team pairs the detector actually flagged (higher = more attacks caught). FPR (false positive rate): fraction of benign pairs incorrectly flagged as attacks (lower = fewer false alarms, less analyst fatigue). With that framing: auth-only catches 92% of attacks with only 0.6% false positives — the strongest single source. Combined has the fewest false alarms (0.4%) but catches only 21% of attacks at its threshold, meaning it is very precise but conservative. Flow-only ranks edges decently (AUC 0.963) but flags barely 7% of attacks with 3% false positives, making it unusable as a standalone detector. The takeaway is that auth semantics drive detection on LANL; flow adds noise more than signal in this dataset.
+- Auth-only: 92% recall, 0.6% FPR → strongest single source
+- Combined: fewest false alarms (0.4%) but only 21% recall → precise but conservative
+- Flow-only: ranks decently (AUC 0.963) but 7% recall + 3% FPR → unusable standalone
+- Takeaway: auth semantics drive detection; flow adds noise more than signal on LANL
 
 ## Slide 19: Optimized Weights Generalize on Held-Out Edges
 
@@ -171,7 +215,10 @@ Explain the metrics briefly before interpreting the numbers. AUC: probability a 
 - Takeaway: calibration and held-out AUC stay nearly identical, so optimized weights are not just memorizing.
 
 ### Speaker notes
-Explain the setup: edges are split 50/50 into calibration (used to fit weights) and evaluation (held-out, never seen during optimization). The y-axis is AUC — the probability a random attack edge outscores a random benign edge (higher = better). If weights were memorizing the training data, held-out AUC would drop sharply. The held-out split shows calibration AUC 0.9646 and evaluation AUC 0.9630, a gap of only 0.0016 or 0.17%. The equal-weight baseline is about 0.9101, so optimized weights improve ranking by ~5.4 points without a meaningful held-out penalty. This confirms the weights generalize rather than overfit.
+- 50/50 split: calibration (fit weights) vs evaluation (held-out, never seen)
+- Calibration AUC 0.9646 vs eval AUC 0.9630 → gap 0.17%
+- Equal-weight baseline ~0.9101 → optimized weights +5.4 pts w/ no held-out penalty
+- Confirms generalization, not overfitting
 
 ## Slide 20: Logistic Regression Matches Nelder-Mead, So Features Drive Lift
 
@@ -180,7 +227,9 @@ Nelder-Mead eval AUC: 0.9630.
 Logistic regression eval AUC: 0.9624.
 
 ### Speaker notes
-Both AUC values (0.9630 vs 0.9624) are nearly identical — AUC here is the probability a random attack edge outscores a random benign edge, so a difference of 0.0006 is noise. The takeaway: the supervised linear method barely changes the outcome. Logistic regression and Nelder-Mead agree within single-seed variability. So the optimizer should be presented as an interpretable scoring mechanism aligned with the project's formula, not as a novel learner outperforming standard supervised models.
+- NM eval AUC 0.9630 vs LR eval AUC 0.9624 → diff 0.0006 = noise
+- Takeaway: optimizer choice barely matters
+- NM = interpretable scoring mechanism aligned w/ project formula, not a novel learner
 
 ## Slide 21: Graph Features Explain Most of the AUC Gain
 
@@ -191,7 +240,12 @@ Both AUC values (0.9630 vs 0.9624) are nearly identical — AUC here is the prob
 - Takeaway: graph-derived features outperform pure tabular features and explain most of the gain.
 
 ### Speaker notes
-Recall that AUC is the probability a random attack edge outscores a random benign edge (higher = better ranking, 1.0 = perfect). Pure tabular features reach eval AUC 0.9529. Graph-derived features alone reach 0.9867. Combined features reach 0.9904. Adding graph-derived features on top of tabular raises eval AUC by 0.0375 (+3.75 percentage points of ranking quality), while adding tabular features on top of graph features adds only 0.0037. This is the strongest evidence that representation, not optimizer choice, drives the result.
+- Tabular-only features: eval AUC 0.9529
+- Graph-derived only: 0.9867
+- Both combined: 0.9904
+- Adding graph features on top of tabular: +0.0375 AUC
+- Adding tabular on top of graph: +0.0037 only
+- Strongest evidence: representation drives results, not optimizer choice
 
 ## Slide 22: Representation Matters More Than Optimizer Choice
 
@@ -199,7 +253,10 @@ Recall that AUC is the probability a random attack edge outscores a random benig
 Detection lift comes from feature representation more than the optimizer.
 
 ### Speaker notes
-The evaluation decomposes the improvement. Supervised learning on tabular features is one contribution. Graph-derived local features add another roughly +0.037 AUC. Label-free multi-hop features add a modest +0.015. Known-attacker propagation can add +0.036, but only when a compromised seed is known.
+- Tabular supervised learning: baseline contribution
+- Graph-derived local features: +~0.037 AUC
+- Label-free multi-hop features: +~0.015
+- Known-attacker propagation: +~0.036 (only w/ compromised seed known)
 
 ## Slide 23: Lots of Future Work Left to be Done
 
@@ -211,7 +268,11 @@ The evaluation decomposes the improvement. Supervised learning on tabular featur
 - Adaptive thresholds: drift-aware threshold tuning as network baseline shifts over time.
 
 ### Speaker notes
-This project evaluated on LANL-2015 only, so the most important next step is testing on modern cloud environments. Partnering with a cloud network provider would give access to real VPC flow logs and authentication telemetry at production scale, plus the ability to run controlled red-team exercises. On the systems side, we have not measured latency or throughput — the current pipeline is batch-oriented, so profiling ingest-to-alert time and memory usage under streaming conditions is essential before any deployment claim. Incremental graph updates (adding edges without rebuilding the whole graph) would be needed for true real-time operation. Threshold drift is another practical concern: as network behavior evolves, fixed percentile thresholds may degrade, so adaptive or drift-aware methods are worth exploring.
+- LANL-only → biggest gap: no modern cloud eval (AWS/Azure/GCP VPC flow logs)
+- Cloud provider partnership → real VPC telemetry + controlled red-team exercises
+- No latency/throughput measured yet; pipeline is batch → need ingest-to-alert profiling
+- Incremental graph updates needed for true real-time
+- Fixed thresholds may drift as network behavior evolves → adaptive/drift-aware methods
 
 ## Slide 24: Conclusion: Auth Semantics and Graph Features Drive Detection
 
@@ -221,4 +282,6 @@ This project evaluated on LANL-2015 only, so the most important next step is tes
 3. Weight optimization generalizes; the main value is interpretable scoring.
 
 ### Speaker notes
-Restate the same takeaways from Slide 2. The project’s strongest claim is not simply “combined logs always win.” The more precise claim is that graph-based representations of auth and flow telemetry expose relational patterns that tabular methods miss, while auth semantics dominate this LANL evaluation.
+- Restate Slide 2 takeaways
+- Claim is NOT "combined logs always win"
+- Precise claim: graph-based representations of auth + flow expose relational patterns tabular methods miss; auth semantics dominate this LANL eval
