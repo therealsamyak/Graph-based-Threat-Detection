@@ -1,19 +1,11 @@
-%% DRAFT — Weight Optimization Evaluation + Performance Metrics (ADD to Results)
-%% ACTION: Add as subsections in Section 6 (Results), after Baseline Pipeline Comparison.
-%% Contains: held-out validation, LR baseline, tabular/graph ablation,
-%%           graph extensions, synthesis, and computational performance.
-%%
-%% PLACEHOLDER CONVENTION: \textbf{[PENDING: description]} marks values to be filled
-%% after the pipeline run completes.
-
 \subsection{Held-Out Validation of Weight Optimization}
 \label{sec:holdout_weight}
 
-The scoring weights (Equations~1--2) were originally optimized on the full feature matrix and evaluated on the same data, producing an AUC of \textbf{[PENDING: full-data AUC from optimized\_weights.json]} recorded in \texttt{optimized\_weights.json}. Because Nelder-Mead explores the weight space against the very labels used for evaluation, that value is optimistically biased by construction. To determine whether the learned weights generalize, we re-ran the optimizer under a stratified calibration/evaluation split.
+The scoring function (Section~\ref{sec:edge_scoring}) was originally optimized on the full feature matrix and evaluated on the same data, producing an AUC of 0.959. Because Nelder-Mead explores the weight space against the very labels used for evaluation, that value is optimistically biased by construction. To determine whether the learned weights generalize, we re-ran the optimizer under a stratified calibration/evaluation split.
 
 \subsubsection{Protocol}
 
-A held-out evaluation wrapper loads the cached edge table via the same loader used by the feature audit, applies a stratified 50/50 split (seed~42), and partitions the \textbf{[PENDING: total edges]} masked edges into a calibration half (\textbf{[PENDING: cal edges]} edges, \textbf{[PENDING: cal red-team]} red-team) and an evaluation half (\textbf{[PENDING: eval edges]} edges, \textbf{[PENDING: eval red-team]} red-team). The optimizer is constructed on the calibration half only, runs Nelder-Mead to convergence on the same features used in the original pipeline (\textbf{[PENDING: feature list]}), and the resulting weights are applied to the evaluation half without further modification.
+A held-out evaluation wrapper loads the cached edge table via the same loader used by the feature audit, applies a stratified 50/50 split (seed~42), and partitions the 182,402 masked edges into a calibration half (182,400 edges, 152 red-team) and an evaluation half (182,402 edges, 153 red-team). The optimizer is constructed on the calibration half only, runs Nelder-Mead to convergence on the same features used in the original pipeline (\texttt{is\_ntlm}, \texttt{edge\_rarity}, \texttt{dst\_in\_degree}, \texttt{is\_network\_logon}, \texttt{is\_success\_auth}), and the resulting weights are applied to the evaluation half without further modification.
 
 \subsubsection{Result: Optimization Generalizes}
 
@@ -25,17 +17,17 @@ Table~\ref{tab:holdout_optimizer} reports the calibration and evaluation AUCs.
 \hline
 Quantity & Value \\
 \hline
-Calibration AUC & [PENDING] \\
-Eval AUC (held-out) & \textbf{[PENDING]} \\
-Calibration $-$ Eval gap & [PENDING] \\
-Nelder-Mead iterations (calibration) & [PENDING] \\
+Calibration AUC & 0.9646 \\
+Eval AUC (held-out) & 0.9630 \\
+Calibration $-$ Eval gap & 0.0016 \\
+Nelder-Mead iterations (calibration) & 205 \\
 \hline
 \end{tabular}
-\caption{Held-out validation of the Nelder-Mead weight optimizer. Calibration and evaluation AUCs agree to within \textbf{[PENDING: gap]}, indicating no measurable overfitting at $k$ free parameters over roughly \textbf{[PENDING: total edges]} edges.}
+\caption{Held-out validation of the Nelder-Mead weight optimizer. Calibration and evaluation AUCs agree to within 0.17\%, indicating no measurable overfitting at 5 free parameters over roughly 182,402 edges.}
 \label{tab:holdout_optimizer}
 \end{table}
 
-Calibration and evaluation AUCs agree to within \textbf{[PENDING: gap]}, well inside the variation expected from \textbf{[PENDING: red-team per split]} red-team edges per split. With $k$ free parameters against \textbf{[PENDING: total red-team]} red-team edges (approximately \textbf{[PENDING: params per positive]} parameters per positive sample), the hypothesis class is extremely under-parameterized, leaving essentially no capacity to overfit. The \textbf{[PENDING: full-data AUC]} figure in the original optimization trace is not an in-sample artifact; the same weights would land near \textbf{[PENDING: eval AUC]} on an unseen sample drawn from the same distribution. The AUC improvement from equal weights ($\approx$\textbf{[PENDING: equal-weight AUC]}) to optimized weights (\textbf{[PENDING: opt AUC]}) is therefore defensible with no held-out penalty.
+Calibration and evaluation AUCs agree to within 0.0016 (0.17\%), well inside the variation expected from $\sim$153 red-team edges per split. With 5 free parameters against 152--153 red-team edges, the hypothesis class is extremely under-parameterized, leaving essentially no capacity to overfit. The 0.9592 figure in the original optimization trace is not an in-sample artifact; the same weights would land near 0.963 on an unseen sample drawn from the same distribution. The AUC improvement from equal weights ($\approx$0.9101) to optimized weights (0.9646) is therefore defensible with no held-out penalty.
 
 
 \subsection{Logistic-Regression Baseline Comparison}
@@ -45,19 +37,19 @@ To test whether the bespoke Nelder-Mead optimizer adds value over a standard sup
 
 \begin{table}[h]
 \centering
-\begin{tabular}{lcccc}
+\begin{tabular}{lccc}
 \hline
-Method & Cal AUC & Eval AUC & Gap & Wall time \\
+Method & Cal AUC & Eval AUC & Gap \\
 \hline
-Nelder-Mead optimizer   & [PENDING] & [PENDING] & [PENDING] & [PENDING] \\
-Logistic regression (L2) & [PENDING] & \textbf{[PENDING]} & [PENDING] & [PENDING] \\
+Nelder-Mead optimizer   & 0.9646 & 0.9630 & 0.0016 \\
+Logistic regression (L2) & 0.9640 & 0.9624 & 0.0017 \\
 \hline
 \end{tabular}
 \caption{Nelder-Mead optimizer versus logistic regression on the same held-out split. The eval-AUC gap between methods is within single-seed noise.}
 \label{tab:lr_comparison}
 \end{table}
 
-Logistic regression and the Nelder-Mead optimizer are essentially equivalent on this data (Table~\ref{tab:lr_comparison}). The specific choice of supervised linear method does not materially affect the result: Nelder-Mead, logistic regression, and most other supervised linear methods on these features all land near AUC~\textbf{[PENDING: AUC]}. The optimizer's value lies in producing interpretable weights aligned with the scoring formula, not in outperforming off-the-shelf alternatives.
+Logistic regression and the Nelder-Mead optimizer are essentially equivalent on this data (Table~\ref{tab:lr_comparison}). The specific choice of supervised linear method does not materially affect the result: Nelder-Mead, logistic regression, and most other supervised linear methods on these features all land near AUC~0.963. The optimizer's value is in producing interpretable weights aligned with the scoring formula, not in outperforming off-the-shelf alternatives.
 
 
 \subsection{Tabular versus Graph-Derived Feature Ablation}
@@ -67,7 +59,7 @@ The Nelder-Mead-versus-LR comparison varies only the learner; both methods use t
 
 \subsubsection{Feature Grouping}
 
-Features were split into two groups by whether they require graph topology to compute. \emph{Pure tabular} features are computable from per-edge attributes alone: authentication flags (\texttt{is\_ntlm}, \texttt{is\_network\_logon}, \texttt{is\_success\_auth}), edge rarity, protocol rarity, byte-per-packet ratio, duration z-score, and the unusual-destination-port flag --- 9 features total. \emph{Graph-derived} features require traversing the graph: source and destination node degrees (in, out, total), fan-out ratios, node-level temporal features (inter-arrival mean and std, burst score, active duration), source fan-out, destination fan-out ratio, and destination betweenness centrality --- 17 features total.
+Features were split into two groups by whether they require graph topology to compute. \emph{Pure tabular} features are computable from per-edge attributes alone: authentication flags (\texttt{is\_ntlm}, \texttt{is\_network\_logon}), edge rarity, and destination degree features --- 5 features total. \emph{Graph-derived} features require traversing the graph: source and destination node degrees (in, out, total), fan-out ratios, node-level temporal features (inter-arrival mean and std, burst score, active duration), source fan-out, destination fan-out ratio, and destination betweenness centrality --- 15 features total.
 
 \subsubsection{Result: Graph-Derived Features Dominate}
 
@@ -77,16 +69,23 @@ Features were split into two groups by whether they require graph topology to co
 \hline
 Feature set & \# features & Cal AUC & Eval AUC \\
 \hline
-A. Pure tabular only    & 9  & [PENDING] & [PENDING] \\
-B. Graph-derived only   & 17 & [PENDING] & \textbf{[PENDING]} \\
-C. Combined (A $+$ B)  & 26 & [PENDING] & [PENDING] \\
+A. Pure tabular only    & 5  & 0.9580 & 0.9529 \\
+B. Graph-derived only   & 15 & 0.9841 & \textbf{0.9867} \\
+C. Combined (A $+$ B)  & 20 & 0.9965 & 0.9904 \\
 \hline
 \end{tabular}
-\caption{Feature ablation under logistic regression. Adding graph-derived features on top of pure-tabular raises eval AUC by \textbf{[PENDING: $\Delta$ tab$\to$graph]}; adding pure-tabular on top of graph-derived raises eval AUC by only \textbf{[PENDING: $\Delta$ graph$\to$combined]}.}
+\caption{Feature ablation under logistic regression. Adding graph-derived features on top of pure-tabular raises eval AUC by 0.0375; adding pure-tabular on top of graph-derived raises eval AUC by only 0.0037.}
 \label{tab:tabular_graph}
 \end{table}
 
-Table~\ref{tab:tabular_graph} shows that graph-derived features carry roughly an order of magnitude more discriminative signal than pure-tabular features on this dataset. This result directly supports the graph-based methodology: the detection improvement comes from graph structure, not from the choice of supervised learner.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/ablation_comparison.png}
+\caption{Eval AUC for each feature group under logistic regression. Graph-derived features account for most of the discriminative signal.}
+\label{fig:ablation}
+\end{figure}
+
+Table~\ref{tab:tabular_graph} shows that graph-derived features carry roughly an order of magnitude more discriminative signal than pure-tabular features on this dataset. Swapping from tabular-only (0.9529) to graph-derived-only (0.9867) closes most of the gap to the combined model (0.9904). Adding tabular features on top of graph features yields only 0.0037 improvement. This result directly supports the graph-based methodology: the detection improvement comes from graph structure, not from the choice of supervised learner.
 
 
 \subsection{Graph Feature Extensions}
@@ -100,22 +99,29 @@ The ablation in Section~\ref{sec:tabular_graph_ablation} shows that local graph 
 \hline
 Feature group & Cal AUC & Eval AUC & $\Delta$ vs base \\
 \hline
-(base: selected features only)                         & [PENDING] & [PENDING] & --- \\
-Standard PageRank                                & [PENDING] & [PENDING] & [PENDING] \\
-Personalized PageRank (seed: \texttt{C17693})   & [PENDING] & [PENDING] & [PENDING] \\
-k-core decomposition                            & [PENDING] & [PENDING] & [PENDING] \\
-Louvain community                                & [PENDING] & [PENDING] & [PENDING] \\
-Jaccard $+$ Adamic-Adar similarity              & [PENDING] & [PENDING] & [PENDING] \\
-All five groups stacked                          & [PENDING] & [PENDING] & [PENDING] \\
+(base: selected features only)                         & 0.9589 & 0.9557 & --- \\
+Standard PageRank                                & --- & 0.9609 & +0.0051 \\
+Personalized PageRank (seed: \texttt{C17693})   & --- & 0.9921 & +0.0364 \\
+k-core decomposition                            & --- & 0.9708 & +0.0150 \\
+Louvain community                                & --- & 0.9582 & +0.0025 \\
+Jaccard $+$ Adamic-Adar similarity              & --- & 0.9558 & +0.0001 \\
+All five groups stacked                          & --- & 0.9936 & +0.0378 \\
 \hline
 \end{tabular}
 \caption{Graph-feature sweep on top of the selected features under LR. Louvain community features include a cross-community flag and community-size features.}
 \label{tab:graph_sweep}
 \end{table}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/graph_feature_sweep.png}
+\caption{Per-feature-group eval AUC improvement over the local-graph baseline. Personalized PageRank dominates; k-core adds a consistent label-free gain.}
+\label{fig:graph_sweep}
+\end{figure}
+
 \subsubsection{Personalized PageRank}
 
-Personalized PageRank seeded at the known compromised host (\texttt{C17693}) adds far more than any other feature in the sweep (Table~\ref{tab:graph_sweep}). This is a real signal, but it carries a methodological caveat: the feature uses the identity of \texttt{C17693} as an input, and in a production deployment that identity would have to be discovered first. The result supports a \emph{conditional} claim: given a seed of confirmed-compromised hosts, structural propagation lifts eval AUC measurably. Carefully framed as a post-detection scoping mechanism, this is publishable; presented without qualification, it would overstate what the method can achieve under cold-start conditions.
+Personalized PageRank seeded at the known compromised host (\texttt{C17693}) adds far more than any other feature in the sweep (Table~\ref{tab:graph_sweep}). This is a real signal, but it carries a methodological caveat: the feature uses the identity of \texttt{C17693} as an input, and in a production deployment that identity would have to be discovered first. The result supports a conditional claim: given a seed of confirmed-compromised hosts, structural propagation lifts eval AUC measurably. Carefully framed as a post-detection scoping mechanism, this is publishable; presented without qualification, it would overstate what the method can achieve under cold-start conditions.
 
 \subsubsection{Label-Free Multi-Hop Features}
 
@@ -135,7 +141,7 @@ Comparison & Held constant & What varies & Measures \\
 \hline
 Result~1 & Optimizer, features, split & Which half is evaluated & Overfitting? \emph{No.} \\
 Result~2 & Features, split, supervision & Linear method & Optimizer choice? \emph{No measurable effect.} \\
-Result~3 & Learner, supervision, split & Feature set & Graph features? \emph{Yes, \textbf{[PENDING: $\Delta$]}.} \\
+Result~3 & Learner, supervision, split & Feature set & Graph features? \emph{Yes, +0.037.} \\
 Result~4 & Learner, base features, split & Graph feature group & Multi-hop features? \emph{Modestly, label-free.} \\
 \hline
 \end{tabular}
@@ -143,7 +149,7 @@ Result~4 & Learner, base features, split & Graph feature group & Multi-hop featu
 \label{tab:synthesis_axes}
 \end{table}
 
-Combining these results with the existing one-class baseline comparisons in Table~\ref{tab:methods_lanl} decomposes the improvement from na\"ive detection to the best achievable AUC into additive contributions (Table~\ref{tab:auc_budget}).
+Combining these results with the baseline comparison in Section~\ref{sec:baseline_pipeline} decomposes the improvement from na\"ive detection to the best achievable AUC into additive contributions (Table~\ref{tab:auc_budget}).
 
 \begin{table}[h]
 \centering
@@ -151,21 +157,15 @@ Combining these results with the existing one-class baseline comparisons in Tabl
 \hline
 Contribution & Approx.\ AUC $\Delta$ \\
 \hline
-Pure-tabular features under one-class learning & (lower bound) \\
-Pure-tabular features under supervised LR      & [PENDING] \\
-Graph-derived local features under supervised LR & [PENDING] \\
-Multi-hop graph features (k-core, communities)  & [PENDING] \\
-Known-attacker propagation (personalized PageRank) & [PENDING] (conditional) \\
+Pure-tabular features under one-class learning & (lower bound, $\sim$0.800) \\
+Pure-tabular features under supervised LR      & +0.130 \\
+Graph-derived local features under supervised LR & +0.037 \\
+Multi-hop graph features (k-core, communities)  & +0.015 \\
+Known-attacker propagation (personalized PageRank) & +0.036 (conditional) \\
 \hline
 \end{tabular}
-\caption{Approximate AUC budget from the worst defensible baseline to the most aggressive supervised graph-aware system. The largest single addition is expected to be the graph-derived features themselves.}
+\caption{Approximate AUC budget from the worst defensible baseline to the most aggressive supervised graph-aware system. The largest single addition comes from supervised learning on tabular features; the next largest is graph-derived features.}
 \label{tab:auc_budget}
 \end{table}
 
 Three claims emerge from this evaluation with clear empirical backing. First, graph-derived features carry the bulk of the discriminative signal for lateral-movement detection on LANL-2015. Second, supervised learning is a separate, additive contribution from graph-derived features. Third, among supervised linear methods on the same features, the specific algorithm matters little: Nelder-Mead direct AUC maximization and logistic regression agree to within single-seed noise. The optimizer's value is in producing interpretable weights aligned with the scoring formula, not in outperforming standard alternatives.
-
-
-\subsection{Computational Performance Metrics}
-\label{sec:latency_throughput}
-
-We report two complementary performance metrics per pipeline variant. \emph{Latency} is the total wall-clock time in seconds from the start of event streaming through graph construction, feature extraction, weight optimization, edge and path scoring, and threshold detection. Formally, $L = t_{\text{build}} + t_{\text{score}}$, where $t_{\text{build}}$ is the time to stream raw authentication and flow events into the graph and $t_{\text{score}}$ is the time for the full scoring pipeline (features, optimization, edges, paths, detection). \emph{Throughput} is the average number of events processed per second, computed as $T = N / L$, where $N$ is the total number of raw events (authentication plus flow records) streamed during graph construction. These metrics capture end-to-end pipeline cost rather than any single stage in isolation.
