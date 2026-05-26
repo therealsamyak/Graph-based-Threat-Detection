@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +15,6 @@ from src.figures.loading import (
     load_baseline_edge_scores,
     load_edge_scores,
     load_graph_data,
-    load_redteam_events,
 )
 from src.figures.style import (
     BASE_METHOD_COLORS,
@@ -116,34 +116,27 @@ def plot_score_distributions(
         if not red_scores.empty:
             ax.hist(red_scores, bins=bins, alpha=0.7, color="#e74c3c", label="Red team", edgecolor="white", linewidth=0.3)
 
-        if len(base_scores) > 10:
-            try:
-                base_scores.plot.kde(ax=ax, color="#27ae60", linewidth=1.5, alpha=0.8)
-            except Exception:
-                pass
-        if len(red_scores) > 10:
-            try:
-                red_scores.plot.kde(ax=ax, color="#c0392b", linewidth=1.5, alpha=0.8)
-            except Exception:
-                pass
-
-        # Overlay baseline score KDE curves
+        # Overlay baseline scores as count histograms too. KDE densities on a log-count
+        # axis make the figure look synthetic because density values can be tiny.
         if baseline_df is not None and not baseline_df.empty:
-            _label_col = "label" if "label" in baseline_df.columns else None
             for method, score_candidates in baseline_methods:
                 bc = next((c for c in score_candidates if c in baseline_df.columns), None)
                 if bc is None:
                     continue
                 bvals = pd.to_numeric(baseline_df[bc], errors="coerce").dropna()
-                if bvals.empty or len(bvals) < 10:
+                if bvals.empty:
                     continue
                 method_color = BASE_METHOD_COLORS.get(method, "#888888")
                 method_label = get_method_label(method, variant)
-                try:
-                    # Plot KDE for all baseline scores (normal + redteam combined)
-                    bvals.plot.kde(ax=ax, color=method_color, linewidth=2.0, alpha=0.9, linestyle="--", label=method_label)
-                except Exception:
-                    logger.debug("KDE failed for %s scores in variant '%s'", method, variant)
+                ax.hist(
+                    bvals,
+                    bins=bins,
+                    histtype="step",
+                    color=method_color,
+                    linewidth=1.8,
+                    linestyle="--",
+                    label=method_label,
+                )
 
         ax.set_yscale("log")
         ax.set_title(variant)
@@ -163,27 +156,27 @@ def plot_score_distributions(
     _save_fig(fig, str(output_dir / "score_distributions.png"))
 
 
+def _numeric_time(series: pd.Series) -> pd.Series:
+    numeric = cast(pd.Series, pd.to_numeric(series, errors="coerce"))
+    if bool(numeric.notna().any()):
+        return numeric
+    dt = cast(pd.Series, pd.to_datetime(series, errors="coerce"))
+    seconds = pd.Series(dt.astype("int64") / 1_000_000_000, index=series.index)
+    return cast(pd.Series, seconds.where(dt.notna()))
+
+
 def plot_detection_timeline(
     results_dir: Path | None,
     baselines_dir: Path | None,
     output_dir: Path,
 ) -> None:
+    _ = baselines_dir
     if results_dir is None or not results_dir.exists():
         logger.warning("Skipping detection timeline: results_dir missing")
         save_placeholder_figure(
             str(output_dir / "detection_timeline.png"),
             "Detection Timeline",
             "results_dir missing",
-        )
-        return
-
-    rt_df = load_redteam_events(results_dir)
-    if rt_df is None or rt_df.empty:
-        logger.warning("Skipping detection timeline: redteam_events unavailable")
-        save_placeholder_figure(
-            str(output_dir / "detection_timeline.png"),
-            "Detection Timeline",
-            "redteam_events unavailable",
         )
         return
 
@@ -199,58 +192,29 @@ def plot_detection_timeline(
         )
         return
 
-    chosen_df = None
-    chosen_variant = None
+    panel_data: list[tuple[str, pd.Series, pd.Series, pd.Series]] = []
     for variant in variants:
         df = load_edge_scores(results_dir, variant)
         if df is None or df.empty:
             continue
-        if any(c in df.columns for c in ("timestamp", "time", "ts")) and any(
-            c in df.columns for c in ("score", "edge_score", "anomaly_score")
-        ):
-            chosen_df = df
-            chosen_variant = variant
-            break
+        ts_col = next((c for c in ("timestamp", "time", "ts") if c in df.columns), None)
+        score_col = next((c for c in ("score", "edge_score", "anomaly_score") if c in df.columns), None)
+        if ts_col is None or score_col is None:
+            logger.info("Detection timeline omits variant '%s': timestamp or score column missing", variant)
+            continue
 
-    if chosen_df is None:
-        logger.warning("Skipping detection timeline: no edge_scores with timestamp+score columns")
-        save_placeholder_figure(
-            str(output_dir / "detection_timeline.png"),
-            "Detection Timeline",
-            "no edge_scores with timestamp+score columns",
-        )
-        return
+        ts = _numeric_time(df[ts_col])
+        scores = pd.to_numeric(df[score_col], errors="coerce")
+        red_col = next((c for c in ("is_redteam", "red_team", "redteam", "label") if c in df.columns), None)
+        if red_col is None:
+            mask_rt = pd.Series(False, index=df.index)
+        else:
+            mask_rt = pd.to_numeric(df[red_col], errors="coerce").fillna(0).astype(int) == 1
+        valid = (~ts.isna()) & (~scores.isna())
+        if valid.any():
+            panel_data.append((variant, ts[valid], scores[valid], mask_rt[valid]))
 
-    ts_col = next(c for c in ("timestamp", "time", "ts") if c in chosen_df.columns)
-    score_col = next(c for c in ("score", "edge_score", "anomaly_score") if c in chosen_df.columns)
-
-    ts = pd.to_datetime(chosen_df[ts_col], errors="coerce")
-    if ts.isna().all():
-        ts = pd.to_datetime(pd.to_numeric(chosen_df[ts_col], errors="coerce"), unit="s", errors="coerce")
-    scores = pd.to_numeric(chosen_df[score_col], errors="coerce")
-
-    rt_ts_col = next((c for c in ("timestamp", "time", "ts") if c in rt_df.columns), None)
-    if rt_ts_col is None:
-        logger.warning("Skipping detection timeline: redteam_events has no timestamp column")
-        save_placeholder_figure(
-            str(output_dir / "detection_timeline.png"),
-            "Detection Timeline",
-            "redteam_events has no timestamp column",
-        )
-        return
-    rt_ts = pd.to_datetime(rt_df[rt_ts_col], errors="coerce")
-    if rt_ts.isna().all():
-        rt_ts = pd.to_datetime(pd.to_numeric(rt_df[rt_ts_col], errors="coerce"), unit="s", errors="coerce")
-    rt_set = set(rt_ts.dropna())
-
-    red_col = next((c for c in ("is_redteam", "red_team", "redteam", "label") if c in chosen_df.columns), None)
-    if red_col is not None:
-        mask_rt = pd.to_numeric(chosen_df[red_col], errors="coerce").fillna(0).astype(int) == 1
-    else:
-        mask_rt = ts.isin(rt_set)
-
-    valid = (~ts.isna()) & (~scores.isna())
-    if valid.sum() == 0:
+    if not panel_data:
         logger.warning("Skipping detection timeline: no valid timestamp/score rows")
         save_placeholder_figure(
             str(output_dir / "detection_timeline.png"),
@@ -259,39 +223,21 @@ def plot_detection_timeline(
         )
         return
 
-    fig, ax = plt.subplots(figsize=(12, 5))
-    ax.scatter(ts[valid & ~mask_rt], scores[valid & ~mask_rt], s=6, alpha=0.35, color="#3498db", label="Normal", rasterized=True)
-    ax.scatter(ts[valid & mask_rt], scores[valid & mask_rt], s=24, alpha=0.9, color="#e74c3c", marker="x", linewidths=1.2, label="Red team")
+    fig, axes = plt.subplots(len(panel_data), 1, figsize=(12, 3.6 * len(panel_data)), sharex=True)
+    axes_arr = np.atleast_1d(axes)
+    for ax, (variant, ts, scores, mask_rt) in zip(axes_arr, panel_data):
+        ax.scatter(ts[~mask_rt], scores[~mask_rt], s=5, alpha=0.25, color="#3498db", label="Normal", rasterized=True)
+        if mask_rt.any():
+            ax.scatter(ts[mask_rt], scores[mask_rt], s=24, alpha=0.9, color="#e74c3c", marker="x", linewidths=1.2, label="Red team")
+        ax.set_title(variant.replace("_", " ").title())
+        ax.set_ylabel("Score")
+        ax.legend(framealpha=0.9, fontsize=8, loc="upper right")
 
-    threshold = None
-    for th_col in ("threshold", "detection_threshold"):
-        if th_col in chosen_df.columns:
-            th_vals = pd.to_numeric(chosen_df[th_col], errors="coerce").dropna()
-            if not th_vals.empty:
-                threshold = float(th_vals.iloc[0])
-                break
-    if threshold is not None:
-        ax.axhline(y=threshold, color="#f39c12", lw=1.5, ls="--", label=f"Threshold ({threshold:.2f})")
-
-    # Check if baseline methods have timestamp data for multi-method timeline
-    has_baseline_ts = False
-    if baselines_dir is not None and baselines_dir.exists() and chosen_variant is not None:
-        baseline_df = load_baseline_edge_scores(baselines_dir, chosen_variant)
-        if baseline_df is not None and any(c in baseline_df.columns for c in ("timestamp", "time", "ts")):
-            has_baseline_ts = True
-
-    title = "Detection Timeline — Red Team vs Normal Activity"
-    if baselines_dir is not None and baselines_dir.exists() and not has_baseline_ts:
-        title += "\n(Baseline methods: no timestamp data available)"
-
-    ax.set_title(title)
-    ax.set_xlabel("Timestamp")
-    ax.set_ylabel("Score")
-    ax.legend(framealpha=0.9, fontsize=9, loc="upper right")
-    fig.autofmt_xdate()
-    fig.tight_layout()
+    axes_arr[-1].set_xlabel("LANL time (seconds)")
+    fig.suptitle("Detection Timeline — Red Team vs Normal Activity")
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
     _save_fig(fig, str(output_dir / "detection_timeline.png"))
-    logger.info("Detection timeline plotted using variant '%s'", chosen_variant)
+    logger.info("Detection timeline plotted for %d variants", len(panel_data))
 
 
 def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
@@ -315,8 +261,13 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
         edge_count = int(len(edges_df)) if edges_df is not None else 0
         if nodes_df is not None and not nodes_df.empty:
             node_count = int(len(nodes_df))
-        elif edges_df is not None and not edges_df.empty and {"source", "target"}.issubset(edges_df.columns):
-            node_count = int(pd.unique(pd.concat([edges_df["source"], edges_df["target"]], axis=0)).shape[0])
+        elif edges_df is not None and not edges_df.empty:
+            if {"src", "dst"}.issubset(edges_df.columns):
+                node_count = int(pd.unique(pd.concat([edges_df["src"], edges_df["dst"]], axis=0)).shape[0])
+            elif {"source", "target"}.issubset(edges_df.columns):
+                node_count = int(pd.unique(pd.concat([edges_df["source"], edges_df["target"]], axis=0)).shape[0])
+            else:
+                node_count = 0
         else:
             node_count = 0
 
@@ -350,20 +301,50 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
     _save_fig(fig, str(output_dir / "graph_statistics.png"))
 
 
-def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> None:
-    if analysis_data is None:
-        logger.warning("Skipping holdout validation: analysis_data is None")
-        save_placeholder_figure(
-            str(output_dir / "holdout_validation.png"),
-            "Holdout Validation",
-            "analysis_data is None",
-        )
-        return
+def _holdout_data_by_variant(analysis_data: dict | None) -> dict[str, dict]:
+    if not isinstance(analysis_data, dict):
+        return {}
+    per_variant = analysis_data.get("per_variant")
+    if isinstance(per_variant, dict):
+        out: dict[str, dict] = {}
+        for variant, variant_data in per_variant.items():
+            if not isinstance(variant_data, dict):
+                continue
+            holdout = variant_data.get("holdout_results") or variant_data.get("optimization_holdout")
+            if isinstance(holdout, dict):
+                out[str(variant)] = holdout
+        if out:
+            return out
+    holdout = analysis_data.get("holdout_results") or analysis_data.get("optimization_holdout")
+    if isinstance(holdout, dict):
+        return {"combined": holdout}
+    return {}
 
-    holdout = analysis_data.get("holdout_results", {})
-    if not isinstance(holdout, dict) or not holdout:
-        holdout = analysis_data.get("optimization_holdout", {})
-    if not isinstance(holdout, dict) or not holdout:
+
+def _first_float(container: dict, keys: tuple[str, ...]) -> float | None:
+    for key in keys:
+        val = container.get(key)
+        if val is not None:
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                continue
+    return None
+
+
+def _nested_float(container: dict, container_keys: tuple[str, ...], value_keys: tuple[str, ...]) -> float | None:
+    for key in container_keys:
+        nested = container.get(key)
+        if isinstance(nested, dict):
+            value = _first_float(nested, value_keys)
+            if value is not None:
+                return value
+    return None
+
+
+def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> None:
+    holdouts = _holdout_data_by_variant(analysis_data)
+    if not holdouts:
         logger.warning("Skipping holdout validation: holdout_results not found")
         save_placeholder_figure(
             str(output_dir / "holdout_validation.png"),
@@ -372,41 +353,21 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
         )
         return
 
-    def _first_value(container: dict, keys: tuple[str, ...]) -> float | None:
-        for key in keys:
-            val = container.get(key)
-            if val is not None:
-                try:
-                    return float(val)
-                except (TypeError, ValueError):
-                    continue
-        return None
+    rows: dict[str, tuple[float | None, float | None, float | None]] = {}
+    for variant, holdout in holdouts.items():
+        opt_eval = _first_float(holdout, ("eval_auc", "auc", "optimized_auc", "best_auc"))
+        if opt_eval is None:
+            opt_eval = _nested_float(holdout, ("optimizer", "optimized"), ("auc_eval", "eval_auc", "auc"))
+        lr_eval = _first_float(holdout, ("lr_baseline", "baseline_auc", "logreg_auc", "lr_auc"))
+        if lr_eval is None:
+            lr_eval = _nested_float(holdout, ("logistic_regression", "baseline", "lr"), ("auc_eval", "eval_auc", "auc", "lr_auc"))
+        opt_cal = _nested_float(holdout, ("optimizer", "optimized"), ("auc_calibration", "calibrated_auc", "calibration_auc"))
+        if opt_cal is None:
+            opt_cal = _first_float(holdout, ("calibrated", "calibrated_auc", "calibration_auc"))
+        if any(v is not None for v in (opt_eval, lr_eval, opt_cal)):
+            rows[variant] = (opt_eval, lr_eval, opt_cal)
 
-    opt = _first_value(holdout, ("eval_auc", "auc", "optimized_auc", "best_auc"))
-    lr = _first_value(holdout, ("lr_baseline", "baseline_auc", "logreg_auc", "lr_auc"))
-    cal = _first_value(holdout, ("calibrated", "calibrated_auc", "calibration_auc"))
-
-    def _nested_first_value(container_keys: tuple[str, ...], value_keys: tuple[str, ...]) -> float | None:
-        for key in container_keys:
-            nested = holdout.get(key)
-            if isinstance(nested, dict):
-                value = _first_value(nested, value_keys)
-                if value is not None:
-                    return value
-        return None
-
-    if opt is None:
-        opt = _nested_first_value(("optimized", "optimizer"), ("auc_eval", "eval_auc", "auc"))
-    if lr is None:
-        lr = _nested_first_value(("baseline", "logistic_regression", "lr"), ("auc_eval", "eval_auc", "auc", "lr_auc"))
-    if cal is None:
-        cal = _nested_first_value(
-            ("calibration", "optimizer", "optimized"),
-            ("auc_calibration", "calibrated_auc", "calibration_auc", "eval_auc", "auc"),
-        )
-
-    vals = [opt, lr, cal]
-    if all(v is None for v in vals):
+    if not rows:
         logger.warning("Skipping holdout validation: no AUC values found")
         save_placeholder_figure(
             str(output_dir / "holdout_validation.png"),
@@ -415,18 +376,27 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
         )
         return
 
-    plot_vals = [0.0 if v is None else float(v) for v in vals]
-    labels = ["Optimized", "LR Baseline", "Calibrated"]
+    ordered_variants = [v for v in ("combined", "auth_only", "flow_only") if v in rows]
+    ordered_variants.extend(v for v in rows if v not in ordered_variants)
+    labels = ["Optimizer Eval", "LR Eval", "Optimizer Cal"]
     colors = ["#2196F3", "#FF9800", "#4CAF50"]
+    x = np.arange(len(ordered_variants))
+    width = 0.24
 
-    fig, ax = plt.subplots()
-    bars = ax.bar(labels, plot_vals, color=colors, alpha=0.85, edgecolor="white", linewidth=0.5)
-    for bar, val in zip(bars, vals):
-        text = "n/a" if val is None else f"{val:.3f}"
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, text, ha="center", va="bottom", fontsize=9)
+    fig, ax = plt.subplots(figsize=(10, 5.5))
+    for idx, label in enumerate(labels):
+        vals = [rows[variant][idx] for variant in ordered_variants]
+        plot_vals = [0.0 if val is None else val for val in vals]
+        bars = ax.bar(x + (idx - 1) * width, plot_vals, width, label=label, color=colors[idx], alpha=0.85, edgecolor="white", linewidth=0.5)
+        for bar, val in zip(bars, vals):
+            text = "n/a" if val is None else f"{val:.3f}"
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, text, ha="center", va="bottom", fontsize=8)
 
-    ax.set_ylim(0, max(1.0, max(plot_vals) + 0.08))
+    ax.set_xticks(x)
+    ax.set_xticklabels([v.replace("_", " ").title() for v in ordered_variants])
+    ax.set_ylim(0, 1.08)
     ax.set_ylabel("AUC")
-    ax.set_title("Holdout Validation — Optimized vs Baseline")
+    ax.set_title("Holdout Validation — Optimized vs Logistic Regression")
+    ax.legend(framealpha=0.9)
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "holdout_validation.png"))
