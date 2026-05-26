@@ -386,12 +386,31 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
     lr = _first_value(holdout, ("lr_baseline", "baseline_auc", "logreg_auc", "lr_auc"))
     cal = _first_value(holdout, ("calibrated", "calibrated_auc", "calibration_auc"))
 
-    if opt is None and isinstance(holdout.get("optimized"), dict):
-        opt = _first_value(holdout["optimized"], ("eval_auc", "auc"))
-    if lr is None and isinstance(holdout.get("baseline"), dict):
-        lr = _first_value(holdout["baseline"], ("eval_auc", "auc", "lr_auc"))
-    if cal is None and isinstance(holdout.get("calibration"), dict):
-        cal = _first_value(holdout["calibration"], ("eval_auc", "auc", "calibrated_auc"))
+    nested_opt_keys = ("auc_eval", "eval_auc", "auc")
+    nested_cal_keys = ("auc_calibration", "calibrated_auc", "calibration_auc", "eval_auc", "auc")
+    nested_lr_keys = ("auc_eval", "eval_auc", "auc", "lr_auc")
+
+    if opt is None:
+        for key in ("optimized", "optimizer"):
+            nested = holdout.get(key)
+            if isinstance(nested, dict):
+                opt = _first_value(nested, nested_opt_keys)
+                if opt is not None:
+                    break
+    if lr is None:
+        for key in ("baseline", "logistic_regression", "lr"):
+            nested = holdout.get(key)
+            if isinstance(nested, dict):
+                lr = _first_value(nested, nested_lr_keys)
+                if lr is not None:
+                    break
+    if cal is None:
+        for key in ("calibration", "optimizer", "optimized"):
+            nested = holdout.get(key)
+            if isinstance(nested, dict):
+                cal = _first_value(nested, nested_cal_keys)
+                if cal is not None:
+                    break
 
     vals = [opt, lr, cal]
     if all(v is None for v in vals):
