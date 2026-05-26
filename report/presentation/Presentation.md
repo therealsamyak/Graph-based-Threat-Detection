@@ -89,9 +89,11 @@ Connection features include edge rarity, NTLM, network logon, auth success, late
 ## Slide 11: NTLM and Graph Degree Dominate Single-Feature Signal
 
 ### Slide content
-![Feature audit](feature_audit.png)
+![Feature audit – auth only](feature_audit_auth_only.png)  
+![Feature audit – combined](feature_audit_combined.png)  
+![Feature audit – flow only](feature_audit_flow_only.png)
 
-- How to read: x-axis = ROC AUC; y-axis = candidate feature; panels = graph variant; dashed 0.5 = random ranking.
+- How to read: x-axis = ROC AUC; y-axis = candidate feature; each panel is one graph variant; dashed 0.5 = random ranking.
 - Takeaway: NTLM/network-logon semantics and destination degree are the strongest single-feature signals.
 
 ### Speaker notes
@@ -140,9 +142,11 @@ One-Class SVM uses an RBF kernel with `nu=0.1`; Isolation Forest uses 100 trees,
 ## Slide 17: Combined Graph Ranks Best While Keeping Alert Cost Low
 
 ### Slide content
-![Method comparison](method_comparison.png)
+![Method comparison – AUC](method_comparison_auc.png)  
+![Method comparison – F1](method_comparison_f1.png)  
+![Method comparison – Recall](method_comparison_recall.png)
 
-- How to read: x-axis = graph variant; y-axis = metric score; panels = AUC, F1, recall; colors = detector.
+- How to read: x-axis = graph variant; y-axis = metric score; each panel is one metric (AUC, F1, recall); colors = detector.
 - Takeaway: graph scoring gives the best combined-variant AUC; Isolation Forest buys recall with more alert cost.
 
 ### Speaker notes
@@ -192,9 +196,11 @@ Pure tabular features reach eval AUC 0.9529. Graph-derived features alone reach 
 ## Slide 22: Multi-Hop Extensions Add Mostly Modest Label-Free Gains
 
 ### Slide content
-![Feature sweep](feature_sweep.png)
+![Feature sweep – auth only](feature_sweep_auth_only.png)  
+![Feature sweep – combined](feature_sweep_combined.png)  
+![Feature sweep – flow only](feature_sweep_flow_only.png)
 
-- How to read: x-axis = added graph feature group; y-axis = evaluation AUC; dashed line = local-feature baseline.
+- How to read: x-axis = added graph feature group; y-axis = evaluation AUC; each panel is one variant; dashed line = local-feature baseline.
 - Takeaway: known-seed PageRank is strongest but conditional; k-core is the cleanest label-free extension.
 
 ### Speaker notes
