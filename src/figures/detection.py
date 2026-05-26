@@ -52,39 +52,25 @@ def plot_score_distributions(
         for variant in variants:
             baseline_scores_map[variant] = load_baseline_edge_scores(baselines_dir, variant)
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
-    axes_arr = np.atleast_1d(axes)
-    plotted = 0
-
     baseline_methods = [
         ("one_class_svm", ["one_class_svm_score", "ocsvm_score", "svm_score"]),
         ("isolation_forest", ["isolation_forest_score", "if_score", "isoforest_score"]),
     ]
 
-    for idx, ax in enumerate(axes_arr):
-        if idx >= len(variants):
-            ax.axis("off")
-            continue
-
-        variant = variants[idx]
+    plotted = 0
+    for variant in variants:
         df = load_edge_scores(results_dir, variant)
         if df is None or df.empty:
-            ax.text(0.5, 0.5, f"{variant}\nno data", ha="center", va="center", transform=ax.transAxes)
-            ax.set_title(variant)
             continue
 
         score_col = next((c for c in ("score", "edge_score", "anomaly_score") if c in df.columns), None)
         if score_col is None:
             logger.warning("Skipping variant '%s' in score distributions: score column missing", variant)
-            ax.text(0.5, 0.5, f"{variant}\nscore column missing", ha="center", va="center", transform=ax.transAxes)
-            ax.set_title(variant)
             continue
 
         red_col = next((c for c in ("is_redteam", "red_team", "redteam", "label") if c in df.columns), None)
         scores = pd.to_numeric(df[score_col], errors="coerce").dropna()
         if scores.empty:
-            ax.text(0.5, 0.5, f"{variant}\nno score values", ha="center", va="center", transform=ax.transAxes)
-            ax.set_title(variant)
             continue
 
         if red_col is not None:
@@ -112,6 +98,7 @@ def plot_score_distributions(
 
         bins = np.linspace(lo, hi, 50) if hi > lo else np.linspace(lo - 1e-6, hi + 1e-6, 50)
 
+        fig, ax = plt.subplots(figsize=(10, 5))
         ax.hist(base_scores, bins=bins, alpha=0.6, color="#2ecc71", label="Normal", edgecolor="white", linewidth=0.3)
         if not red_scores.empty:
             ax.hist(red_scores, bins=bins, alpha=0.7, color="#e74c3c", label="Red team", edgecolor="white", linewidth=0.3)
@@ -139,21 +126,18 @@ def plot_score_distributions(
                 )
 
         ax.set_yscale("log")
-        ax.set_title(variant)
+        ax.set_title(f"Score Distribution — {variant}")
         ax.set_xlabel("Score")
-        if idx == 0:
-            ax.set_ylabel("Count (log)")
-        ax.legend(fontsize=7, framealpha=0.9, loc="upper right")
+        ax.set_ylabel("Count (log)")
+        ax.legend(fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"score_distributions_{variant}.png"))
+        plt.close(fig)
         plotted += 1
 
     if plotted == 0:
-        plt.close(fig)
         logger.warning("Skipping score distributions: no plottable variant data")
         return
-
-    fig.suptitle("Edge Score Distributions by Variant")
-    fig.tight_layout()
-    _save_fig(fig, str(output_dir / "score_distributions.png"))
 
 
 def _numeric_time(series: pd.Series) -> pd.Series:
@@ -223,20 +207,18 @@ def plot_detection_timeline(
         )
         return
 
-    fig, axes = plt.subplots(len(panel_data), 1, figsize=(12, 3.6 * len(panel_data)), sharex=True)
-    axes_arr = np.atleast_1d(axes)
-    for ax, (variant, ts, scores, mask_rt) in zip(axes_arr, panel_data):
+    for variant, ts, scores, mask_rt in panel_data:
+        fig, ax = plt.subplots(figsize=(12, 4))
         ax.scatter(ts[~mask_rt], scores[~mask_rt], s=5, alpha=0.25, color="#3498db", label="Normal", rasterized=True)
         if mask_rt.any():
             ax.scatter(ts[mask_rt], scores[mask_rt], s=24, alpha=0.9, color="#e74c3c", marker="x", linewidths=1.2, label="Red team")
-        ax.set_title(variant.replace("_", " ").title())
+        ax.set_title(f"Detection Timeline — {variant.replace('_', ' ').title()}")
+        ax.set_xlabel("LANL time (seconds)")
         ax.set_ylabel("Score")
-        ax.legend(framealpha=0.9, fontsize=8, loc="upper right")
-
-    axes_arr[-1].set_xlabel("LANL time (seconds)")
-    fig.suptitle("Detection Timeline — Red Team vs Normal Activity")
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    _save_fig(fig, str(output_dir / "detection_timeline.png"))
+        ax.legend(framealpha=0.9, fontsize=8, loc="upper left", bbox_to_anchor=(1.02, 1))
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"detection_timeline_{variant}.png"))
+        plt.close(fig)
     logger.info("Detection timeline plotted for %d variants", len(panel_data))
 
 
@@ -296,7 +278,7 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
     ax.set_title("Graph Topology Statistics by Variant")
     ax.set_xlabel("Variant")
     ax.set_ylabel("Value")
-    ax.legend(framealpha=0.9)
+    ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "graph_statistics.png"))
 
@@ -378,7 +360,7 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
 
     ordered_variants = [v for v in ("combined", "auth_only", "flow_only") if v in rows]
     ordered_variants.extend(v for v in rows if v not in ordered_variants)
-    labels = ["Optimizer Eval", "LR Eval", "Optimizer Cal"]
+    labels = ["Optimized Model - Evaluation", "Logistic Regression - Evaluation", "Optimized Model - Calibration"]
     colors = ["#2196F3", "#FF9800", "#4CAF50"]
     x = np.arange(len(ordered_variants))
     width = 0.24
@@ -395,8 +377,9 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
     ax.set_xticks(x)
     ax.set_xticklabels([v.replace("_", " ").title() for v in ordered_variants])
     ax.set_ylim(0, 1.08)
-    ax.set_ylabel("AUC")
-    ax.set_title("Holdout Validation — Optimized vs Logistic Regression")
-    ax.legend(framealpha=0.9)
+    ax.set_ylabel("Holdout/Calibration AUC")
+    ax.set_xlabel("Feature Set")
+    ax.set_title("Holdout Validation - Optimized vs Logistic Regression")
+    ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "holdout_validation.png"))

@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from src.figures.style import (
+    METHOD_DISPLAY_NAMES,
     METHOD_ORDER,
     VARIANT_LABELS,
     VARIANT_ORDER,
@@ -25,34 +26,37 @@ def plot_method_comparison(
     matrix: pd.DataFrame | None,
     output_dir: Path,
 ) -> None:
-    """Grouped-bar chart: 3 subplots (AUC, F1, Recall) × 3 variant groups × 3 methods."""
+    """Grouped-bar charts: one standalone figure per metric (AUC, F1, Recall)."""
     if matrix is None or matrix.empty:
         logger.warning("No data available for method comparison figure")
         return
 
     metrics_cols = ["auc", "f1", "recall"]
-    metric_labels = ["AUC", "F1", "Recall"]
+    metric_titles = ["AUC Score", "F1 Score", "Recall Score"]
+    y_labels = ["AUC", "F1 Score", "Recall"]
+    suffixes = ["auc", "f1", "recall"]
     n_variants = len(VARIANT_ORDER)
     n_methods = len(METHOD_ORDER)
     bar_width = 0.22
 
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5), sharey=True)
-
-    for ax, col, label in zip(axes, metrics_cols, metric_labels):
+    for col, title, y_label, suffix in zip(metrics_cols, metric_titles, y_labels, suffixes):
+        fig, ax = plt.subplots(figsize=(8, 5))
         x = np.arange(n_variants)
+        panel_max = 0.0
 
         for j, method in enumerate(METHOD_ORDER):
             vals = []
             for variant in VARIANT_ORDER:
                 row = matrix[(matrix["method"] == method) & (matrix["variant"] == variant)]
                 vals.append(float(row[col].iloc[0]) if not row.empty else 0.0)
+            panel_max = max(panel_max, max(vals, default=0.0))
 
             offset = (j - n_methods / 2 + 0.5) * bar_width
             colors = [get_method_color(method, v) for v in VARIANT_ORDER]
             bars = ax.bar(
                 x + offset, vals, bar_width,
                 color=colors, alpha=0.85,
-                label=method.replace("_", " ").title(),
+                label=METHOD_DISPLAY_NAMES[method],
                 edgecolor="white", linewidth=0.5,
             )
             for bar, val in zip(bars, vals):
@@ -64,22 +68,27 @@ def plot_method_comparison(
 
         ax.set_xticks(x)
         ax.set_xticklabels([VARIANT_LABELS[v] for v in VARIANT_ORDER])
-        ax.set_ylim(0, 1.15)
-        ax.set_ylabel("Score")
-        ax.set_title(label)
-        ax.legend(fontsize=8, framealpha=0.9, loc="upper right")
-
-    fig.suptitle("Detection Performance Across Methods", fontsize=14, fontweight="bold")
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    _save_fig(fig, str(output_dir / "method_comparison.png"))
-
+        if col == "f1":
+            ax.set_ylim(0, min(1.0, max(0.25, panel_max * 1.25 + 0.03)))
+        else:
+            ax.set_ylim(0, 1.08)
+        ax.set_ylabel(y_label)
+        ax.set_title(f"{title} — Detection Performance", fontsize=13, fontweight="bold")
+        ax.legend(
+            title="Detector",
+            bbox_to_anchor=(1.02, 1), loc="upper left",
+            framealpha=0.9,
+        )
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"method_comparison_{suffix}.png"))
+        plt.close(fig)
 
 def plot_roc_curves(
     matrix: pd.DataFrame | None,
     roc_data: dict | None,
     output_dir: Path,
 ) -> None:
-    """ROC curves: 3 panels (one per variant), real curves for SVM/IF, synthetic for graph_based."""
+    """ROC curves: one standalone figure per variant, real curves for SVM/IF, synthetic for graph_based."""
     if matrix is None or matrix.empty:
         logger.warning("No data available for ROC curves figure")
         return
@@ -87,9 +96,8 @@ def plot_roc_curves(
     if roc_data is None:
         roc_data = {}
 
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-
-    for ax, variant in zip(axes, VARIANT_ORDER):
+    for variant in VARIANT_ORDER:
+        fig, ax = plt.subplots(figsize=(8, 6))
         variant_label = VARIANT_LABELS[variant]
 
         for method in METHOD_ORDER:
@@ -111,24 +119,23 @@ def plot_roc_curves(
                 ax.plot(fpr, tpr, color=color, lw=2, label=label, linestyle="--")
 
         ax.plot([0, 1], [0, 1], "--", color="gray", lw=1, label="Random classifier")
-        ax.set_title(f"ROC — {variant_label}")
+        ax.set_title(f"ROC Curve — {variant_label}", fontsize=13, fontweight="bold")
         ax.set_xlabel("False Positive Rate")
         ax.set_ylabel("True Positive Rate")
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
-        ax.legend(fontsize=7, framealpha=0.9, loc="lower right")
+        ax.legend(fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
         ax.grid(alpha=0.3)
-
-    fig.suptitle("ROC Curves — All Methods × Variants", fontsize=14, fontweight="bold")
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    _save_fig(fig, str(output_dir / "roc_curves.png"))
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"roc_curves_{variant}.png"))
+        plt.close(fig)
 
 
 def plot_radar_chart(
     matrix: pd.DataFrame | None,
     output_dir: Path,
 ) -> None:
-    """Radar charts: 3 panels (one per variant), 5-axis radar with all 3 methods overlaid."""
+    """Radar charts: one standalone polar figure per variant, 5-axis radar with all 3 methods overlaid."""
     if matrix is None or matrix.empty:
         logger.warning("No data available for radar chart figure")
         return
@@ -146,9 +153,8 @@ def plot_radar_chart(
     angles = [i / float(n_cats) * 2 * np.pi for i in range(n_cats)]
     angles_closed = angles + angles[:1]
 
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6), subplot_kw={"projection": "polar"})
-
-    for ax, variant in zip(axes, VARIANT_ORDER):
+    for variant in VARIANT_ORDER:
+        fig, ax = plt.subplots(figsize=(7, 7), subplot_kw={"projection": "polar"})
         variant_label = VARIANT_LABELS[variant]
 
         for method in METHOD_ORDER:
@@ -174,10 +180,9 @@ def plot_radar_chart(
         ax.set_xticks(angles)
         ax.set_xticklabels(categories, fontsize=9)
         ax.set_ylim(0, 1)
-        ax.set_title(f"{variant_label}", fontsize=12, fontweight="bold", pad=20)
+        ax.set_title(f"Multi-Metric Performance — {variant_label}", fontsize=12, fontweight="bold", pad=20)
         ax.legend(loc="upper right", bbox_to_anchor=(1.35, 1.1), fontsize=7)
         ax.grid(alpha=0.3)
-
-    fig.suptitle("Multi-Metric Performance Comparison", fontsize=14, fontweight="bold")
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
-    _save_fig(fig, str(output_dir / "radar_chart.png"))
+        fig.tight_layout()
+        _save_fig(fig, str(output_dir / f"radar_chart_{variant}.png"))
+        plt.close(fig)
