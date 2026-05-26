@@ -97,7 +97,7 @@ Connection features include edge rarity, NTLM, network logon, auth success, late
 - Takeaway: NTLM/network-logon semantics and destination degree are the strongest single-feature signals.
 
 ### Speaker notes
-Use the figure to define AUC as the probability that a randomly chosen red-team edge ranks above a benign edge. Emphasize the top combined-variant features: `is_ntlm` at 0.933, `dst_in_degree` at 0.819, `is_network_logon` at 0.817, `dst_total_degree` at 0.812, and `edge_rarity` at 0.809. The point is not that one feature solves the problem; it is that authentication semantics plus graph structure are the right signal family.
+Start by explaining the metric: AUC (Area Under the ROC Curve) is the probability that a randomly chosen red-team edge scores higher than a randomly chosen benign edge. An AUC of 1.0 means perfect ranking; 0.5 means no better than random guessing; the dashed line at 0.5 marks that baseline. Then walk through the top combined-variant features: `is_ntlm` at 0.933, `dst_in_degree` at 0.819, `is_network_logon` at 0.817, `dst_total_degree` at 0.812, and `edge_rarity` at 0.809. The point is not that one feature solves the problem; it is that authentication semantics plus graph structure are the right signal family.
 
 ## Slide 12: Nelder-Mead Makes the Score Interpretable
 
@@ -150,7 +150,7 @@ One-Class SVM uses an RBF kernel with `nu=0.1`; Isolation Forest uses 100 trees,
 - Takeaway: graph scoring gives the best combined-variant AUC; Isolation Forest buys recall with more alert cost.
 
 ### Speaker notes
-AUC is threshold-independent ranking quality; F1 combines precision and recall; recall is the fraction of red-team pairs found. The draft result summary says the combined graph method achieves AUC 0.959 with FPR 0.004. Isolation Forest detects more red-team pairs in the combined setting, but its higher false-positive rate means more analyst burden. Present this as a tradeoff, not a universal win.
+First clarify what each panel measures. AUC (top panel): threshold-independent ranking quality — what fraction of the time a random attack edge scores higher than a random benign edge; higher is better, 1.0 is perfect. F1 (middle panel): harmonic mean of precision (what fraction of flagged edges are actually attacks) and recall (what fraction of real attacks were caught); higher is better, 1.0 is perfect. A high F1 means the detector both catches most attacks and does not flood analysts with false alarms. Recall (bottom panel): what fraction of the 308 red-team pairs were detected; higher means more attacks caught, but a detector that flags everything would have recall 1.0 and terrible precision. The combined graph method achieves AUC 0.959 with FPR 0.004 (only 0.4% of benign pairs incorrectly flagged). Isolation Forest detects more red-team pairs in the combined setting, but its higher false-positive rate means more analyst burden. Present this as a tradeoff, not a universal win.
 
 ## Slide 18: Auth-Only Is Strongest in LANL; Flow-Only Is Not Actionable
 
@@ -160,7 +160,7 @@ Combined: AUC 0.959, recall 0.211, FPR 0.004.
 Flow-only: AUC 0.963, recall 0.068, FPR 0.030.
 
 ### Speaker notes
-This is the most important nuanced result. Authentication-only catches most red-team pairs in LANL because NTLM and network-logon behavior are highly informative. Combined has the lowest false positive rate but lower recall at its selected threshold. Flow-only can rank some edges well but has poor operating-point recall, making it weak as a standalone detector.
+Explain the metrics briefly before interpreting the numbers. AUC: probability a random attack edge outscores a random benign edge (higher = better ranking). Recall: fraction of the 308 red-team pairs the detector actually flagged (higher = more attacks caught). FPR (false positive rate): fraction of benign pairs incorrectly flagged as attacks (lower = fewer false alarms, less analyst fatigue). With that framing: auth-only catches 92% of attacks with only 0.6% false positives — the strongest single source. Combined has the fewest false alarms (0.4%) but catches only 21% of attacks at its threshold, meaning it is very precise but conservative. Flow-only ranks edges decently (AUC 0.963) but flags barely 7% of attacks with 3% false positives, making it unusable as a standalone detector. The takeaway is that auth semantics drive detection on LANL; flow adds noise more than signal in this dataset.
 
 ## Slide 19: Optimized Weights Generalize on Held-Out Edges
 
@@ -171,7 +171,7 @@ This is the most important nuanced result. Authentication-only catches most red-
 - Takeaway: calibration and held-out AUC stay nearly identical, so optimized weights are not just memorizing.
 
 ### Speaker notes
-Calibration means the half used to fit weights; evaluation means the held-out half. The held-out split has calibration AUC 0.9646 and evaluation AUC 0.9630, a gap of only 0.0016 or 0.17%. The equal-weight baseline is about 0.9101, so optimized weights improve ranking without a meaningful held-out penalty.
+Explain the setup: edges are split 50/50 into calibration (used to fit weights) and evaluation (held-out, never seen during optimization). The y-axis is AUC — the probability a random attack edge outscores a random benign edge (higher = better). If weights were memorizing the training data, held-out AUC would drop sharply. The held-out split shows calibration AUC 0.9646 and evaluation AUC 0.9630, a gap of only 0.0016 or 0.17%. The equal-weight baseline is about 0.9101, so optimized weights improve ranking by ~5.4 points without a meaningful held-out penalty. This confirms the weights generalize rather than overfit.
 
 ## Slide 20: Logistic Regression Matches Nelder-Mead, So Features Drive Lift
 
@@ -180,7 +180,7 @@ Nelder-Mead eval AUC: 0.9630.
 Logistic regression eval AUC: 0.9624.
 
 ### Speaker notes
-The supervised linear method barely changes the outcome. Logistic regression and Nelder-Mead agree within single-seed noise. So the optimizer should be presented as an interpretable scoring mechanism aligned with the project’s formula, not as a novel learner outperforming standard supervised models.
+Both AUC values (0.9630 vs 0.9624) are nearly identical — AUC here is the probability a random attack edge outscores a random benign edge, so a difference of 0.0006 is noise. The takeaway: the supervised linear method barely changes the outcome. Logistic regression and Nelder-Mead agree within single-seed variability. So the optimizer should be presented as an interpretable scoring mechanism aligned with the project's formula, not as a novel learner outperforming standard supervised models.
 
 ## Slide 21: Graph Features Explain Most of the AUC Gain
 
@@ -191,7 +191,7 @@ The supervised linear method barely changes the outcome. Logistic regression and
 - Takeaway: graph-derived features outperform pure tabular features and explain most of the gain.
 
 ### Speaker notes
-Pure tabular features reach eval AUC 0.9529. Graph-derived features alone reach 0.9867. Combined features reach 0.9904. Adding graph-derived features on top of tabular raises eval AUC by 0.0375, while adding tabular features on top of graph features adds only 0.0037. This is the strongest evidence that representation, not optimizer choice, drives the result.
+Recall that AUC is the probability a random attack edge outscores a random benign edge (higher = better ranking, 1.0 = perfect). Pure tabular features reach eval AUC 0.9529. Graph-derived features alone reach 0.9867. Combined features reach 0.9904. Adding graph-derived features on top of tabular raises eval AUC by 0.0375 (+3.75 percentage points of ranking quality), while adding tabular features on top of graph features adds only 0.0037. This is the strongest evidence that representation, not optimizer choice, drives the result.
 
 ## Slide 22: Representation Matters More Than Optimizer Choice
 
