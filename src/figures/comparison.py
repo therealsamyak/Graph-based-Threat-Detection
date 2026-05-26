@@ -169,6 +169,10 @@ def plot_performance_tradeoff(matrix: pd.DataFrame, output_dir: Path) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 7))
 
+    plotted_labels: set[str] = set()
+    handles: list = []
+    labels: list[str] = []
+
     for variant in VARIANT_ORDER:
         marker = _VARIANT_MARKERS[variant]
         for method in METHOD_ORDER:
@@ -189,27 +193,32 @@ def plot_performance_tradeoff(matrix: pd.DataFrame, output_dir: Path) -> None:
                 lat_ms *= 1000
 
             color = BASE_METHOD_COLORS[method]
-            method_init = _METHOD_DISPLAY[method][:1]
-            variant_short = VARIANT_LABELS[variant][:3]
-            label_short = f"{method_init}-{variant_short}"
+            method_label = _METHOD_DISPLAY[method]
+            variant_label = VARIANT_LABELS[variant]
+            combo_label = f"{method_label} ({variant_label})"
 
-            ax.scatter(lat_ms, float(auc), color=color, marker=marker, s=120, zorder=5)
+            sc = ax.scatter(lat_ms, float(auc), color=color, marker=marker, s=120, zorder=5)
+
+            if combo_label not in plotted_labels:
+                handles.append(sc)
+                labels.append(combo_label)
+                plotted_labels.add(combo_label)
+
             ax.annotate(
-                label_short,
+                combo_label,
                 (lat_ms, float(auc)),
                 textcoords="offset points",
-                xytext=(6, 4),
-                fontsize=8,
+                xytext=(8, 6),
+                fontsize=7,
+                alpha=0.85,
             )
 
-    # Legend — method colors
-    for method, color in BASE_METHOD_COLORS.items():
-        ax.scatter([], [], color=color, s=80, label=_METHOD_DISPLAY[method])
-    # Legend — variant markers
-    for variant, marker in _VARIANT_MARKERS.items():
-        ax.scatter([], [], color="gray", marker=marker, s=80, label=VARIANT_LABELS[variant])
+    if not handles:
+        logger.warning("plot_performance_tradeoff: no data points to plot, skipping")
+        plt.close(fig)
+        return
 
-    ax.legend(loc="lower right", fontsize=9)
+    ax.legend(handles, labels, loc="upper right", fontsize=8, framealpha=0.9)
     ax.set_xlabel("Latency (ms)")
     ax.set_ylabel("AUC")
     ax.set_title("Accuracy vs Speed Tradeoff")
