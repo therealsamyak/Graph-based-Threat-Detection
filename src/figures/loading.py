@@ -57,8 +57,12 @@ def load_run_metadata(results_dir: Path) -> dict | None:
 def load_feature_audit(audit_dir: Path) -> dict | None:
     path = audit_dir / "feature_audit_results.json"
     if not path.exists():
-        logger.warning("feature_audit_results.json not found: %s", path)
-        return None
+        combined_path = audit_dir / "combined" / "feature_audit_results.json"
+        if combined_path.exists():
+            path = combined_path
+        else:
+            logger.warning("feature_audit_results.json not found: %s (also tried %s)", path, combined_path)
+            return None
     with open(path) as f:
         data = json.load(f)
     logger.info("Loaded feature audit from %s", path)
@@ -68,13 +72,17 @@ def load_feature_audit(audit_dir: Path) -> dict | None:
 def load_analysis_results(analysis_dir: Path) -> dict | None:
     json_files = sorted(analysis_dir.glob("*.json"))
     if not json_files:
-        logger.warning("No JSON files found in %s", analysis_dir)
+        combined_dir = analysis_dir / "combined"
+        if combined_dir.is_dir():
+            json_files = sorted(combined_dir.glob("*.json"))
+    if not json_files:
+        logger.warning("No JSON files found in %s (or its combined/ subdir)", analysis_dir)
         return None
     aggregated = {}
     for jf in json_files:
         with open(jf) as f:
             aggregated[jf.stem] = json.load(f)
-    logger.info("Loaded %d analysis files from %s", len(json_files), analysis_dir)
+    logger.info("Loaded %d analysis files from %s", len(json_files), json_files[0].parent)
     return aggregated
 
 
