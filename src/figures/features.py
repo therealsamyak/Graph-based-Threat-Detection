@@ -186,7 +186,7 @@ def plot_ablation(analysis_data: dict | None, output_dir: Path) -> None:
     ax.set_xlabel("Feature Set")
     ax.set_ylim(0, 1.15)
     ax.set_title("Feature Category Ablation Study")
-    ax.legend(title="Variant", framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+    ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "ablation_study.png"))
 
