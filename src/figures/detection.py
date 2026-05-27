@@ -336,7 +336,7 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
         )
         return
 
-    rows: dict[str, tuple[float | None, float | None, float | None]] = {}
+    rows: dict[str, tuple[float | None, float | None]] = {}
     for variant, holdout in holdouts.items():
         opt_eval = _first_float(holdout, ("eval_auc", "auc", "optimized_auc", "best_auc"))
         if opt_eval is None:
@@ -344,11 +344,8 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
         lr_eval = _first_float(holdout, ("lr_baseline", "baseline_auc", "logreg_auc", "lr_auc"))
         if lr_eval is None:
             lr_eval = _nested_float(holdout, ("logistic_regression", "baseline", "lr"), ("auc_eval", "eval_auc", "auc", "lr_auc"))
-        opt_cal = _nested_float(holdout, ("optimizer", "optimized"), ("auc_calibration", "calibrated_auc", "calibration_auc"))
-        if opt_cal is None:
-            opt_cal = _first_float(holdout, ("calibrated", "calibrated_auc", "calibration_auc"))
-        if any(v is not None for v in (opt_eval, lr_eval, opt_cal)):
-            rows[variant] = (opt_eval, lr_eval, opt_cal)
+        if any(v is not None for v in (opt_eval, lr_eval)):
+            rows[variant] = (opt_eval, lr_eval)
 
     if not rows:
         logger.warning("Skipping holdout validation: no AUC values found")
@@ -361,16 +358,16 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
 
     ordered_variants = [v for v in ("combined", "auth_only", "flow_only") if v in rows]
     ordered_variants.extend(v for v in rows if v not in ordered_variants)
-    labels = ["Optimized Model - Evaluation", "Logistic Regression - Evaluation", "Optimized Model - Calibration"]
-    colors = ["#2196F3", "#FF9800", "#4CAF50"]
+    labels = ["Optimized Model", "Logistic Regression"]
+    colors = ["#2196F3", "#FF9800"]
     x = np.arange(len(ordered_variants))
-    width = 0.24
+    width = 0.32
 
     fig, ax = plt.subplots(figsize=(10, 5.5))
     for idx, label in enumerate(labels):
         vals = [rows[variant][idx] for variant in ordered_variants]
         plot_vals = [0.0 if val is None else val for val in vals]
-        bars = ax.bar(x + (idx - 1) * width, plot_vals, width, label=label, color=colors[idx], alpha=0.85, edgecolor="white", linewidth=0.5)
+        bars = ax.bar(x + (idx - 0.5) * width, plot_vals, width, label=label, color=colors[idx], alpha=0.85, edgecolor="white", linewidth=0.5)
         for bar, val in zip(bars, vals):
             text = "n/a" if val is None else f"{val:.3f}"
             ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, text, ha="center", va="bottom", fontsize=8)
@@ -378,7 +375,7 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
     ax.set_xticks(x)
     ax.set_xticklabels([v.replace("_", " ").title() for v in ordered_variants])
     ax.set_ylim(0, 1.08)
-    ax.set_ylabel("Holdout/Calibration AUC")
+    ax.set_ylabel("Holdout AUC")
     ax.set_xlabel("Feature Set")
     ax.set_title("Holdout Validation - Optimized vs Logistic Regression")
     ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
