@@ -8,17 +8,10 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-from src.figures.comparison import (
-    plot_detection_counts,
-    plot_metrics_summary,
-    plot_performance_tradeoff,
-    plot_variant_heatmap,
-)
+from src.figures.comparison import plot_metrics_summary
 from src.figures.detection import (
-    plot_detection_timeline,
     plot_graph_statistics,
     plot_holdout_validation,
-    plot_score_distributions,
 )
 from src.figures.discovery import (
     find_latest_analysis,
@@ -26,7 +19,7 @@ from src.figures.discovery import (
     find_latest_feature_audit,
     find_latest_results,
 )
-from src.figures.features import plot_ablation, plot_feature_audit, plot_feature_sweep
+from src.figures.features import plot_ablation, plot_feature_audit
 from src.figures.loading import (
     load_analysis_results,
     load_baseline_summary,
@@ -142,14 +135,8 @@ def generate_all(data: dict[str, Any], output_dir: Path) -> None:
         ("Radar Chart", lambda: plot_radar_chart(matrix, output_dir)),
         ("Feature Audit", lambda: plot_feature_audit(audit_data, output_dir)),
         ("Ablation", lambda: plot_ablation(analysis_data, output_dir)),
-        ("Feature Sweep", lambda: plot_feature_sweep(analysis_data, output_dir)),
-        ("Score Distributions", lambda: plot_score_distributions(results_dir, baselines_dir, output_dir)),
-        ("Detection Timeline", lambda: plot_detection_timeline(results_dir, baselines_dir, output_dir)),
         ("Graph Statistics", lambda: plot_graph_statistics(results_dir, output_dir)),
         ("Holdout Validation", lambda: plot_holdout_validation(analysis_data, output_dir)),
-        ("Variant Heatmap", lambda: plot_variant_heatmap(matrix, output_dir)),
-        ("Detection Counts", lambda: plot_detection_counts(matrix, output_dir)),
-        ("Performance Tradeoff", lambda: plot_performance_tradeoff(matrix, output_dir)),
         ("Metrics Summary", lambda: plot_metrics_summary(matrix, output_dir)),
     ]
 
@@ -177,13 +164,7 @@ __all__ = [
     "plot_radar_chart",
     "plot_feature_audit",
     "plot_ablation",
-    "plot_feature_sweep",
-    "plot_score_distributions",
-    "plot_detection_timeline",
     "plot_graph_statistics",
     "plot_holdout_validation",
-    "plot_variant_heatmap",
-    "plot_detection_counts",
-    "plot_performance_tradeoff",
     "plot_metrics_summary",
 ]
