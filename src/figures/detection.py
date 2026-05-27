@@ -273,11 +273,12 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
         offset = (i - 1.5) * width
         ax.bar(x + offset, df[metric].values, width, label=label, color=palette[i], alpha=0.85, edgecolor="white", linewidth=0.5)
 
+    ax.set_yscale("log")
     ax.set_xticks(x)
     ax.set_xticklabels(df["variant"].tolist())
     ax.set_title("Graph Topology Statistics by Variant")
     ax.set_xlabel("Variant")
-    ax.set_ylabel("Value")
+    ax.set_ylabel("Value (log scale)")
     ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "graph_statistics.png"))
