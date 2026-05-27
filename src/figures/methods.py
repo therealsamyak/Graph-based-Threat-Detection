@@ -140,15 +140,7 @@ def plot_radar_chart(
         logger.warning("No data available for radar chart figure")
         return
 
-    # Normalize throughput across entire matrix
-    matrix = matrix.copy()
-    tp_max = float(matrix["throughput"].max())
-    if tp_max > 0:
-        matrix["throughput_norm"] = matrix["throughput"] / tp_max
-    else:
-        matrix["throughput_norm"] = 0.0
-
-    categories = ["AUC", "Recall", "F1", "1−FPR", "Throughput"]
+    categories = ["AUC", "Recall", "F1", "1−FPR"]
     n_cats = len(categories)
     angles = [i / float(n_cats) * 2 * np.pi for i in range(n_cats)]
     angles_closed = angles + angles[:1]
@@ -163,13 +155,11 @@ def plot_radar_chart(
                 continue
             r = row.iloc[0]
             fpr_val = float(r.get("fpr", 0))
-            tp_norm = float(r.get("throughput_norm", 0))
             values = [
                 float(r.get("auc", 0)),
                 float(r.get("recall", 0)),
                 float(r.get("f1", 0)),
                 1 - fpr_val,
-                tp_norm,
             ]
             values_closed = values + values[:1]
             color = get_method_color(method, variant)

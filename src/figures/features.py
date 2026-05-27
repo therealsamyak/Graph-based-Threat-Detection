@@ -62,10 +62,15 @@ def _feature_auc_rows(audit_data: dict) -> list[tuple[str, float]]:
 
 def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
     variants = _per_variant_data(audit_data)
-    rows_by_variant = {
-        variant: sorted(_feature_auc_rows(data), key=lambda row: row[1], reverse=True)[:10]
-        for variant, data in variants.items()
-    }
+    rows_by_variant = {}
+    for variant, data in variants.items():
+        all_rows = sorted(_feature_auc_rows(data), key=lambda row: row[1], reverse=True)
+        n = len(all_rows)
+        if n <= 10:
+            selected = all_rows
+        else:
+            selected = all_rows[:5] + all_rows[n // 2 - 1 : n // 2 + 1] + all_rows[-3:]
+        rows_by_variant[variant] = selected
     rows_by_variant = {variant: rows for variant, rows in rows_by_variant.items() if rows}
 
     if not rows_by_variant:
