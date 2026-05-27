@@ -75,7 +75,6 @@ def plot_method_comparison(
         ax.set_ylabel(y_label)
         ax.set_title(f"{title} — Detection Performance", fontsize=13, fontweight="bold")
         ax.legend(
-            title="Detector",
             bbox_to_anchor=(1.02, 1), loc="upper left",
             framealpha=0.9,
         )
