@@ -79,6 +79,8 @@ def plot_variant_heatmap(matrix: pd.DataFrame, output_dir: Path) -> None:
         ax.set_xticklabels([VARIANT_LABELS[v] for v in VARIANT_ORDER])
         ax.set_yticks(range(len(METHOD_ORDER)))
         ax.set_yticklabels([_METHOD_DISPLAY[m] for m in METHOD_ORDER])
+        ax.set_xlabel("Data Variant")
+        ax.set_ylabel("Method")
         ax.set_title(title)
 
         # Annotate cells
@@ -157,6 +159,7 @@ def plot_detection_counts(matrix: pd.DataFrame, output_dir: Path) -> None:
     labels = [get_method_label(m, v) for m, v in combos]
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=45, ha="right")
+    ax.set_xlabel("Method × Variant")
     ax.set_ylabel("Count")
     ax.set_title("Detection Counts: Predicted vs Ground Truth")
     ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1))

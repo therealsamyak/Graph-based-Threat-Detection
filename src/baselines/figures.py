@@ -263,6 +263,7 @@ def _plot_detected_pairs(
             label=f"Total red-team ({num_redteam})",
         )
         ax.set_title(variant.replace("_", " ").title(), fontsize=12)
+        ax.set_xlabel("Detection Method", fontsize=11)
         ax.set_ylabel("Detected Pairs", fontsize=11)
         ax.tick_params(axis="x", rotation=45)
         if i == 0:
