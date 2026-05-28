@@ -86,6 +86,7 @@ def plot_method_comparison(
         ax.set_xticks(x)
         ax.set_xticklabels(methods, rotation=25, ha="right", fontsize=8)
         ax.set_ylim(0, 1.15)
+        ax.set_xlabel("Method", fontsize=LABEL_FS)
         ax.set_ylabel("Score", fontsize=LABEL_FS)
         ax.set_title(dataset, fontsize=TITLE_FS, fontweight="bold", pad=10)
         ax.legend(fontsize=8, framealpha=0.9, loc="upper right")

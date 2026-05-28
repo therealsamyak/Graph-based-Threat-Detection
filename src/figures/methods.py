@@ -68,6 +68,7 @@ def plot_method_comparison(
 
         ax.set_xticks(x)
         ax.set_xticklabels([VARIANT_LABELS[v] for v in VARIANT_ORDER])
+        ax.set_xlabel("Data Variant")
         if col == "f1":
             ax.set_ylim(0, min(1.0, max(0.25, panel_max * 1.25 + 0.03)))
         else:

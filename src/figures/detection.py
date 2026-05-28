@@ -127,8 +127,8 @@ def plot_score_distributions(
 
         ax.set_yscale("log")
         ax.set_title(f"Score Distribution — {variant}")
-        ax.set_xlabel("Score")
-        ax.set_ylabel("Count (log)")
+        ax.set_xlabel("Anomaly Score")
+        ax.set_ylabel("Count (log scale)")
         ax.legend(fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"score_distributions_{variant}.png"))
@@ -213,8 +213,8 @@ def plot_detection_timeline(
         if mask_rt.any():
             ax.scatter(ts[mask_rt], scores[mask_rt], s=24, alpha=0.9, color="#e74c3c", marker="x", linewidths=1.2, label="Red team")
         ax.set_title(f"Detection Timeline — {variant.replace('_', ' ').title()}")
-        ax.set_xlabel("LANL time (seconds)")
-        ax.set_ylabel("Score")
+        ax.set_xlabel("Time (seconds)")
+        ax.set_ylabel("Anomaly Score")
         ax.legend(framealpha=0.9, fontsize=8, loc="upper left", bbox_to_anchor=(1.02, 1))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"detection_timeline_{variant}.png"))
@@ -275,9 +275,9 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
 
     ax.set_yscale("log")
     ax.set_xticks(x)
-    ax.set_xticklabels(df["variant"].tolist())
+    ax.set_xticklabels([v.replace("_", " ").title() for v in df["variant"].tolist()])
     ax.set_title("Graph Topology Statistics by Variant")
-    ax.set_xlabel("Variant")
+    ax.set_xlabel("Data Variant")
     ax.set_ylabel("Value (log scale)")
     ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
     fig.tight_layout()
