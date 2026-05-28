@@ -69,7 +69,15 @@ def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
         if n <= 10:
             selected = all_rows
         else:
-            selected = all_rows[:5] + all_rows[n // 2 - 1 : n // 2 + 1] + all_rows[-3:]
+            top = all_rows[:5]
+            mid = all_rows[n // 2 - 1 : n // 2 + 1]
+            bot = all_rows[-3:]
+            seen = set()
+            selected = []
+            for row in top + mid + bot:
+                if row[0] not in seen:
+                    seen.add(row[0])
+                    selected.append(row)
         rows_by_variant[variant] = selected
     rows_by_variant = {variant: rows for variant, rows in rows_by_variant.items() if rows}
 
