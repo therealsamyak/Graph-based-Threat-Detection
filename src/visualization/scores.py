@@ -9,9 +9,8 @@ import matplotlib.pyplot as plt
 from src.visualization.style import (
     _apply_style,
     _save_fig,
+    _smart_legend_loc,
     BG_COLOR,
-    FIG_SIZE,
-    TITLE_FS,
     LABEL_FS,
     _HAS_SCIPY_KDE,
     _gaussian_kde,
@@ -31,7 +30,7 @@ def plot_score_distribution(
     Uses log scale on y-axis.
     """
     _apply_style()
-    fig, ax = plt.subplots(figsize=FIG_SIZE, facecolor=BG_COLOR)
+    fig, ax = plt.subplots(figsize=(12, 7), facecolor=BG_COLOR)
 
     mask_red = labels.fillna(0).astype(int) == 1
     mask_base = ~mask_red
@@ -74,15 +73,11 @@ def plot_score_distribution(
         ax.axvline(x=threshold, color="#f39c12", lw=1.5, ls="--", label=f"Threshold ({threshold:.2f})")
 
     ax.set_yscale("log")
-    ax.set_title(title, fontsize=TITLE_FS, fontweight="bold", pad=12)
-    ax.set_title(
-        f"Score range [{score_min:.3f}, {score_max:.3f}]  |  "
-        f"Baseline: {len(base_scores):,}  Red team: {len(red_scores):,}",
-        fontsize=9, color="#7f8c8d", pad=22,
-    )
+    ax.set_title("Anomaly scores form bimodal distribution separating attack from normal",
+                 fontsize=13, fontweight="bold", pad=12)
     ax.set_xlabel("Anomaly Score", fontsize=LABEL_FS)
     ax.set_ylabel("Count (log scale)", fontsize=LABEL_FS)
-    ax.legend(fontsize=9, framealpha=0.9)
+    ax.legend(fontsize=9, **_smart_legend_loc(ax))
     ax.tick_params(labelsize=9)
     fig.tight_layout()
     _save_fig(fig, output_path)

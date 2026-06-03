@@ -122,7 +122,7 @@ def generate_all(data: dict[str, Any], output_dir: Path) -> None:
     audit_data = data.get("audit_data")
     analysis_data = data.get("analysis_data")
     results_dir = data.get("results_dir")
-    baselines_dir = data.get("baselines_dir")
+    _baselines_dir = data.get("baselines_dir")
     matrix = data.get("matrix")
     roc_data = data.get("roc_data")
 

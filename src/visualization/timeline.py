@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 from src.visualization.style import (
     _apply_style,
     _save_fig,
+    _smart_legend_loc,
     BG_COLOR,
-    TITLE_FS,
     LABEL_FS,
     _HAS_DATEFORMATTER,
     _DateFormatter,
@@ -31,7 +31,7 @@ def plot_detection_timeline(
     Subsamples non-red-team points when > 10000 for performance.
     """
     _apply_style()
-    fig, ax = plt.subplots(figsize=(12, 5), facecolor=BG_COLOR)
+    fig, ax = plt.subplots(figsize=(14, 7), facecolor=BG_COLOR)
 
     times = event_times.copy()
     use_datetime = False
@@ -96,10 +96,11 @@ def plot_detection_timeline(
     else:
         x_label = "Time"
 
-    ax.set_title(title, fontsize=TITLE_FS, fontweight="bold", pad=12)
+    ax.set_title("Detections cluster around active attack phases",
+                 fontsize=13, fontweight="bold", pad=12)
     ax.set_xlabel(x_label, fontsize=LABEL_FS)
     ax.set_ylabel("Anomaly Score", fontsize=LABEL_FS)
-    ax.legend(fontsize=9, framealpha=0.9, loc="upper right")
+    ax.legend(fontsize=9, **_smart_legend_loc(ax))
     ax.tick_params(labelsize=9)
     fig.tight_layout()
     _save_fig(fig, output_path)

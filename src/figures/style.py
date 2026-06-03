@@ -22,7 +22,7 @@ PAPER_CONFIG = {
     "xtick.labelsize": 10,
     "ytick.labelsize": 10,
     "legend.fontsize": 10,
-    "figure.figsize": (10, 6),
+    "figure.figsize": (12, 7),
     "savefig.dpi": PAPER_DPI,
 }
 

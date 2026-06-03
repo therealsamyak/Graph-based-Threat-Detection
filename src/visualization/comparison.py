@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from src.visualization.style import (
     _apply_style,
     _save_fig,
+    _smart_legend_loc,
     BG_COLOR,
     FIG_SIZE,
     TITLE_FS,
@@ -43,7 +44,7 @@ def plot_method_comparison(
         datasets = ["All"]
 
     n_datasets = len(datasets)
-    fig, axes = plt.subplots(1, n_datasets, figsize=(5 * n_datasets + 1, 6), facecolor=BG_COLOR)
+    fig, axes = plt.subplots(1, n_datasets, figsize=(max(5 * n_datasets + 1, 12), 7), facecolor=BG_COLOR)
     if n_datasets == 1:
         axes = [axes]
 
@@ -89,9 +90,10 @@ def plot_method_comparison(
         ax.set_xlabel("Method", fontsize=LABEL_FS)
         ax.set_ylabel("Score", fontsize=LABEL_FS)
         ax.set_title(dataset, fontsize=TITLE_FS, fontweight="bold", pad=10)
-        ax.legend(fontsize=8, framealpha=0.9, loc="upper right")
+        ax.legend(fontsize=8, **_smart_legend_loc(ax))
         ax.tick_params(labelsize=8)
 
-    fig.suptitle(title, fontsize=TITLE_FS + 1, fontweight="bold", y=1.02)
+    fig.suptitle("Detection metrics vary significantly across methods",
+                  fontsize=TITLE_FS + 1, fontweight="bold", y=1.02)
     fig.tight_layout()
     _save_fig(fig, output_path)
