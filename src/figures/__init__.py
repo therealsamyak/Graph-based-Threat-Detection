@@ -28,7 +28,6 @@ from src.figures.loading import (
     load_feature_audit,
     load_metrics,
     load_per_method_details,
-    load_run_metadata,
 )
 from src.figures.methods import plot_method_comparison, plot_radar_chart, plot_roc_curves
 from src.figures.style import apply_paper_style, logger
@@ -86,7 +85,6 @@ def load_all(sources: dict[str, Path | None]) -> dict[str, Any]:
     baselines_dir = sources.get("baselines_dir")
 
     metrics_df = load_metrics(results_dir) if results_dir else None
-    _run_metadata = load_run_metadata(results_dir) if results_dir else None  # noqa: F841 — reserved for future figures
     audit_data = load_feature_audit(audit_dir) if audit_dir else None
     analysis_data = load_analysis_results(analysis_dir) if analysis_dir else None
     baseline_summary = load_baseline_summary(baselines_dir) if baselines_dir else None

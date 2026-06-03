@@ -11,7 +11,8 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 
-from src.figures.style import _save_fig, _smart_legend_loc, logger, save_placeholder_figure
+from src.figures.style import _save_fig, logger, save_placeholder_figure
+from src.visualization.style import _smart_legend_loc
 
 
 def _per_variant_data(data: dict | None, preferred_key: str | None = None) -> dict[str, dict]:

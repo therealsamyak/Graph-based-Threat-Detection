@@ -19,11 +19,11 @@ from src.figures.loading import (
 from src.figures.style import (
     BASE_METHOD_COLORS,
     _save_fig,
-    _smart_legend_loc,
     get_method_label,
     logger,
     save_placeholder_figure,
 )
+from src.visualization.style import _smart_legend_loc
 
 
 def plot_score_distributions(

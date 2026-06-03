@@ -16,10 +16,10 @@ from src.figures.style import (
     VARIANT_LABELS,
     VARIANT_ORDER,
     _save_fig,
-    _smart_legend_loc,
     get_method_label,
     logger,
 )
+from src.visualization.style import _smart_legend_loc
 
 # Display names for y-axis of heatmap
 _METHOD_DISPLAY = {
