@@ -98,10 +98,10 @@ def _smart_legend_loc(ax, preferred: str | None = None) -> dict:
 
     base = {
         "loc": preferred or "upper right",
-        "framealpha": 0.95,
+        "framealpha": 1.0,
         "facecolor": "white",
         "edgecolor": "black",
-        "fancybox": True,
+        "fancybox": False,
         "shadow": False,
     }
 
@@ -150,6 +150,17 @@ def _apply_style() -> None:
 
 def _save_fig(fig, output_path: str) -> None:
     """Save figure and close."""
+    for ax in fig.axes:
+        leg = ax.get_legend()
+        if leg is not None:
+            leg.set_frame_on(True)
+            leg.set_zorder(100)
+            frame = leg.get_frame()
+            frame.set_visible(True)
+            frame.set_linewidth(1.5)
+            frame.set_edgecolor("black")
+            frame.set_facecolor("white")
+            frame.set_alpha(1.0)
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=DPI, bbox_inches="tight", facecolor=BG_COLOR)
     plt.close(fig)

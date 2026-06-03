@@ -13,7 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.visualization.style import _smart_legend_loc
+from src.visualization.style import _save_fig, _smart_legend_loc
 
 VARIANTS = ("combined", "auth_only", "flow_only")
 VARIANT_LABELS = {
@@ -138,8 +138,7 @@ def _plot_f1(
     ax.set_yscale("log")
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_f1_comparison.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_f1_comparison.png"))
 
 
 def _plot_auc(
@@ -168,8 +167,7 @@ def _plot_auc(
     ax.set_ylim(0.4, 1.05)
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_auc_comparison.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_auc_comparison.png"))
 
 
 def _plot_recall_fpr(
@@ -200,8 +198,7 @@ def _plot_recall_fpr(
     ax.set_xlim(-0.005, 0.11)
     ax.set_ylim(-0.01, 1.05)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_recall_fpr_scatter.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_recall_fpr_scatter.png"))
 
 
 def _plot_radar(
@@ -236,8 +233,7 @@ def _plot_radar(
     ax.legend(fontsize=12, **_smart_legend_loc(ax, preferred="upper right"))
     ax.grid(alpha=0.3)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_radar_combined.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_radar_combined.png"))
 
 
 def _plot_detected_pairs(
@@ -273,5 +269,4 @@ def _plot_detected_pairs(
 
     plt.suptitle("Detection coverage varies across methods and variants", fontsize=16, fontweight="bold")
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_detected_pairs.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_detected_pairs.png"))

@@ -41,10 +41,10 @@ def plot_method_comparison(
     bar_width = 0.22
 
     takeaway_map = {
-        "auc": "**All methods achieve high AUC, with graph-based approaches leading**",
-        "recall": "**Recall varies more than precision across detection methods**",
-        "f1": "**F1 scores favor methods leveraging graph structure**",
-        "fpr": "**False positive rates stay below 5% for top methods**",
+        "auc": "All methods achieve high AUC, with graph-based approaches leading",
+        "recall": "Recall varies more than precision across detection methods",
+        "f1": "F1 scores favor methods leveraging graph structure",
+        "fpr": "False positive rates stay below 5% for top methods",
     }
 
     for col, title, y_label, suffix in zip(metrics_cols, metric_titles, y_labels, suffixes):
@@ -82,7 +82,7 @@ def plot_method_comparison(
         else:
             ax.set_ylim(0, 1.08)
         ax.set_ylabel(y_label)
-        takeaway = takeaway_map.get(col, f"**{title} reveals meaningful differences across methods**")
+        takeaway = takeaway_map.get(col, f"{title} reveals meaningful differences across methods")
         ax.set_title(takeaway, fontsize=15, fontweight="bold", pad=15)
         ax.legend(**_smart_legend_loc(ax))
         fig.tight_layout()
@@ -125,7 +125,7 @@ def plot_roc_curves(
                 ax.plot(fpr, tpr, color=color, lw=2, label=label, linestyle="--")
 
         ax.plot([0, 1], [0, 1], "--", color="gray", lw=1, label="Random classifier")
-        ax.set_title(f"**ROC analysis shows strong separability for {variant_label}**", fontsize=15, fontweight="bold")
+        ax.set_title(f"ROC analysis shows strong separability for {variant_label}", fontsize=15, fontweight="bold")
         ax.set_xlabel("False Positive Rate")
         ax.set_ylabel("True Positive Rate")
         ax.set_xlim(0, 1)
@@ -176,7 +176,7 @@ def plot_radar_chart(
         ax.set_xticks(angles)
         ax.set_xticklabels(categories, fontsize=11)
         ax.set_ylim(0, 1)
-        ax.set_title(f"**Radar profile reveals method strengths across metrics for {variant_label}**", fontsize=14, fontweight="bold", pad=20)
+        ax.set_title(f"Radar profile reveals method strengths across metrics for {variant_label}", fontsize=14, fontweight="bold", pad=20)
         ax.legend(fontsize=10, **_smart_legend_loc(ax, preferred="upper right"))
         ax.grid(alpha=0.3)
         fig.tight_layout()
