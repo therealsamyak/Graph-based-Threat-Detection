@@ -13,6 +13,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from src.visualization.style import _save_fig, _smart_legend_loc
+
 VARIANTS = ("combined", "auth_only", "flow_only")
 VARIANT_LABELS = {
     "combined": "Combined\n(Flow + Auth)",
@@ -117,7 +119,7 @@ def _plot_f1(
     methods: list[tuple[str, str]],
 ) -> None:
     x, width, offsets = _bar_geometry(len(methods), len(variants))
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 7))
     for i, (method, color) in enumerate(methods):
         ax.bar(
             x + offsets[i],
@@ -127,17 +129,16 @@ def _plot_f1(
             color=color,
         )
 
-    ax.set_xlabel("Data Variant", fontsize=12)
-    ax.set_ylabel("F1 Score", fontsize=12)
-    ax.set_title("F1 Score Comparison", fontsize=14, fontweight="bold")
+    ax.set_xlabel("Data Variant", fontsize=14)
+    ax.set_ylabel("F1 Score", fontsize=14)
+    ax.set_title("Graph-based methods achieve highest F1 scores", fontsize=15, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels([VARIANT_LABELS[v] for v in variants])
-    ax.legend(fontsize=10)
+    ax.legend(fontsize=12, **_smart_legend_loc(ax))
     ax.set_yscale("log")
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_f1_comparison.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_f1_comparison.png"))
 
 
 def _plot_auc(
@@ -147,7 +148,7 @@ def _plot_auc(
     methods: list[tuple[str, str]],
 ) -> None:
     x, width, offsets = _bar_geometry(len(methods), len(variants))
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 7))
     for i, (method, color) in enumerate(methods):
         ax.bar(
             x + offsets[i],
@@ -157,17 +158,16 @@ def _plot_auc(
             color=color,
         )
 
-    ax.set_xlabel("Data Variant", fontsize=12)
-    ax.set_ylabel("ROC AUC", fontsize=12)
-    ax.set_title("ROC AUC Comparison", fontsize=14, fontweight="bold")
+    ax.set_xlabel("Data Variant", fontsize=14)
+    ax.set_ylabel("ROC AUC", fontsize=14)
+    ax.set_title("AUC scores exceed 0.95 for all graph-based methods", fontsize=15, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels([VARIANT_LABELS[v] for v in variants])
-    ax.legend(fontsize=10)
+    ax.legend(fontsize=12, **_smart_legend_loc(ax))
     ax.set_ylim(0.4, 1.05)
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_auc_comparison.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_auc_comparison.png"))
 
 
 def _plot_recall_fpr(
@@ -176,7 +176,7 @@ def _plot_recall_fpr(
     variants: list[str],
     methods: list[tuple[str, str]],
 ) -> None:
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(10, 7))
     for method, color in methods:
         recalls = _values(all_data, variants, method, "recall")
         fprs = _values(all_data, variants, method, "fpr")
@@ -187,19 +187,18 @@ def _plot_recall_fpr(
                 (fprs[i], recalls[i]),
                 textcoords="offset points",
                 xytext=(8, 5),
-                fontsize=8,
+                fontsize=10,
             )
 
-    ax.set_xlabel("False Positive Rate", fontsize=12)
-    ax.set_ylabel("Recall", fontsize=12)
-    ax.set_title("Recall vs FPR", fontsize=14, fontweight="bold")
-    ax.legend(fontsize=10)
+    ax.set_xlabel("False Positive Rate", fontsize=14)
+    ax.set_ylabel("Recall", fontsize=14)
+    ax.set_title("High recall achieved with minimal false positive cost", fontsize=15, fontweight="bold")
+    ax.legend(fontsize=12, **_smart_legend_loc(ax))
     ax.grid(alpha=0.3)
     ax.set_xlim(-0.005, 0.11)
     ax.set_ylim(-0.01, 1.05)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_recall_fpr_scatter.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_recall_fpr_scatter.png"))
 
 
 def _plot_radar(
@@ -214,7 +213,7 @@ def _plot_radar(
     angles = [n / float(len(categories)) * 2 * pi for n in range(len(categories))]
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"projection": "polar"})
+    fig, ax = plt.subplots(figsize=(9, 9), subplot_kw={"projection": "polar"})
     for method, color in methods:
         values = [
             _metric(all_data["combined"].get(method, {}), "recall"),
@@ -228,14 +227,13 @@ def _plot_radar(
         ax.fill(angles, values, alpha=0.1, color=color)
 
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, fontsize=11)
+    ax.set_xticklabels(categories, fontsize=13)
     ax.set_ylim(0, 1)
-    ax.set_title("Combined Variant", fontsize=14, fontweight="bold", pad=20)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1), fontsize=10)
+    ax.set_title("Radar profiles reveal complementary method strengths", fontsize=15, fontweight="bold", pad=20)
+    ax.legend(fontsize=12, **_smart_legend_loc(ax, preferred="upper right"))
     ax.grid(alpha=0.3)
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_radar_combined.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_radar_combined.png"))
 
 
 def _plot_detected_pairs(
@@ -245,7 +243,7 @@ def _plot_detected_pairs(
     methods: list[tuple[str, str]],
     num_redteam: int,
 ) -> None:
-    fig, axes = plt.subplots(1, len(variants), figsize=(5 * len(variants), 5), squeeze=False)
+    fig, axes = plt.subplots(1, len(variants), figsize=(max(6 * len(variants), 12), 6), squeeze=False)
     for i, variant in enumerate(variants):
         ax = axes[0][i]
         method_names = [method for method, _color in methods]
@@ -262,14 +260,13 @@ def _plot_detected_pairs(
             alpha=0.7,
             label=f"Total red-team ({num_redteam})",
         )
-        ax.set_title(variant.replace("_", " ").title(), fontsize=12)
-        ax.set_xlabel("Detection Method", fontsize=11)
-        ax.set_ylabel("Detected Pairs", fontsize=11)
+        ax.set_title(variant.replace("_", " ").title(), fontsize=14)
+        ax.set_xlabel("Detection Method", fontsize=13)
+        ax.set_ylabel("Detected Pairs", fontsize=13)
         ax.tick_params(axis="x", rotation=45)
         if i == 0:
-            ax.legend(fontsize=9)
+            ax.legend(fontsize=11, **_smart_legend_loc(ax))
 
-    plt.suptitle("Detected Red-Team Pairs by Method", fontsize=14, fontweight="bold")
+    plt.suptitle("Detection coverage varies across methods and variants", fontsize=16, fontweight="bold")
     plt.tight_layout()
-    fig.savefig(output_dir / "baseline_detected_pairs.png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    _save_fig(fig, str(output_dir / "baseline_detected_pairs.png"))

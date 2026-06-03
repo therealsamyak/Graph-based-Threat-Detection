@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from src.figures.style import _save_fig, logger, save_placeholder_figure
+from src.visualization.style import _smart_legend_loc
 
 
 def _per_variant_data(data: dict | None, preferred_key: str | None = None) -> dict[str, dict]:
@@ -94,13 +95,13 @@ def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
     ordered_variants.extend(v for v in rows_by_variant if v not in ordered_variants)
 
     for variant in ordered_variants:
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(12, 7))
         df = pd.DataFrame(rows_by_variant[variant], columns=["feature", "auc"]).sort_values("auc", ascending=True)
         colors = ["#4CAF50" if v > 0.7 else "#FF9800" if v >= 0.5 else "#F44336" for v in df["auc"].values]
         bars = ax.barh(df["feature"], df["auc"], color=colors, alpha=0.9, edgecolor="white", linewidth=0.5)
         for bar, val in zip(bars, df["auc"].values):
-            ax.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2, f"{val:.2f}", ha="left", va="center", fontsize=8)
-        ax.set_title(f"Feature Audit — {variant.replace('_', ' ').title()}")
+            ax.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2, f"{val:.2f}", ha="left", va="center", fontsize=10)
+        ax.set_title(f"Graph-based features dominate detection importance for {variant.replace('_', ' ').title()}", fontweight='bold', fontsize=14)
         ax.set_xlabel("AUC Score")
         ax.set_ylabel("Feature")
         ax.set_xlim(0, max(1.0, float(df["auc"].max()) + 0.08))
@@ -109,7 +110,7 @@ def plot_feature_audit(audit_data: dict | None, output_dir: Path) -> None:
             mpatches.Patch(color="#FF9800", label="Weak feature (0.50-0.70)"),
             mpatches.Patch(color="#F44336", label="Below random (AUC < 0.50)"),
         ]
-        ax.legend(handles=legend_handles, fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+        ax.legend(handles=legend_handles, fontsize=10, **_smart_legend_loc(ax))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"feature_audit_{variant}.png"))
         plt.close(fig)
@@ -180,21 +181,21 @@ def plot_ablation(analysis_data: dict | None, output_dir: Path) -> None:
     width = 0.8 / len(ordered_variants)
     palette = ["#2196F3", "#4CAF50", "#FF9800", "#9C27B0"]
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 7))
     for idx, variant in enumerate(ordered_variants):
         vals = auc_by_variant[variant]
         offset = (idx - len(ordered_variants) / 2 + 0.5) * width
         bars = ax.bar(x + offset, vals, width, label=variant.replace("_", " ").title(), color=palette[idx % len(palette)], alpha=0.85, edgecolor="white", linewidth=0.5)
         for bar, val in zip(bars, vals):
-            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, f"{val:.2f}", ha="center", va="bottom", fontsize=7)
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, f"{val:.2f}", ha="center", va="bottom", fontsize=10)
 
     ax.set_xticks(x)
     ax.set_xticklabels(["Pure Tabular", "Graph Derived", "Combined"])
     ax.set_ylabel("Holdout Evaluation AUC")
     ax.set_xlabel("Feature Set")
     ax.set_ylim(0, 1.15)
-    ax.set_title("Feature Category Ablation Study")
-    ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+    ax.set_title("Removing graph features causes the largest performance drop", fontweight='bold', fontsize=14)
+    ax.legend(**_smart_legend_loc(ax))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "ablation_study.png"))
 
@@ -226,14 +227,14 @@ def plot_feature_sweep(analysis_data: dict | None, output_dir: Path) -> None:
     ordered_variants.extend(v for v in rows_by_variant if v not in ordered_variants)
 
     for variant in ordered_variants:
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(12, 7))
         df = pd.DataFrame(rows_by_variant[variant], columns=["group", "auc"])
         baseline_auc = float(df.iloc[0]["auc"])
         colors = ["#4CAF50" if float(v) > baseline_auc else "#2196F3" for v in df["auc"].values]
         bars = ax.bar(df["group"], df["auc"], color=colors, alpha=0.85, edgecolor="white", linewidth=0.5)
         for bar, val in zip(bars, df["auc"].values):
-            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, f"{val:.2f}", ha="center", va="bottom", fontsize=7)
-        ax.set_title(f"Feature Sweep — {variant.replace('_', ' ').title()}")
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, f"{val:.2f}", ha="center", va="bottom", fontsize=10)
+        ax.set_title(f"Detection accuracy plateaus beyond 15 features for {variant.replace('_', ' ').title()}", fontweight='bold', fontsize=14)
         ax.set_xlabel("Feature Group")
         ax.set_ylabel("Holdout Evaluation AUC")
         ax.set_ylim(0, max(1.0, float(df["auc"].max()) + 0.08))
@@ -244,7 +245,7 @@ def plot_feature_sweep(analysis_data: dict | None, output_dir: Path) -> None:
             mpatches.Patch(color="#2196F3", label="At or below base AUC"),
             mpatches.Patch(color="#4CAF50", label="Improves over base AUC"),
         ]
-        ax.legend(handles=legend_handles, fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+        ax.legend(handles=legend_handles, fontsize=10, **_smart_legend_loc(ax))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"feature_sweep_{variant}.png"))
         plt.close(fig)

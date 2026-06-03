@@ -11,9 +11,8 @@ from matplotlib.patches import Patch
 from src.visualization.style import (
     _apply_style,
     _save_fig,
+    _smart_legend_loc,
     BG_COLOR,
-    FIG_SIZE,
-    TITLE_FS,
     NODE_COLORS,
     EDGE_COLORS,
 )
@@ -30,17 +29,15 @@ def plot_graph_snapshot(
     highest-degree nodes and their neighbors for readability.
     """
     _apply_style()
-    fig, ax = plt.subplots(figsize=FIG_SIZE, facecolor=BG_COLOR)
+    fig, ax = plt.subplots(figsize=(12, 8), facecolor=BG_COLOR)
 
     if g.vcount() == 0:
         ax.text(0.5, 0.5, "Empty graph", ha="center", va="center",
-                transform=ax.transAxes, fontsize=13, color="#95a5a6")
+                transform=ax.transAxes, fontsize=15, color="#95a5a6")
         _save_fig(fig, output_path)
         return
 
     total_nodes = g.vcount()
-    total_edges = g.ecount()
-    subtitle = ""
 
     if total_nodes > 500:
         degrees = np.array(g.degree(), dtype=float)
@@ -59,7 +56,6 @@ def plot_graph_snapshot(
 
         sub_nodes = sorted(neighbor_set)
         g = g.subgraph(sub_nodes)
-        subtitle = f"Subgraph: {g.vcount():,} of {total_nodes:,} nodes shown"
 
     vcount = g.vcount()
 
@@ -111,14 +107,10 @@ def plot_graph_snapshot(
         Line2D([0], [0], color=EDGE_COLORS["auth"], lw=1.5, alpha=0.6, label="Auth edge"),
         Line2D([0], [0], color=EDGE_COLORS["flow"], lw=1.5, alpha=0.6, label="Flow edge"),
     ]
-    ax.legend(handles=legend_handles, loc="upper right", fontsize=9, framealpha=0.9)
+    ax.legend(handles=legend_handles, fontsize=11, **_smart_legend_loc(ax))
 
-    ax.set_title(title, fontsize=TITLE_FS, fontweight="bold", pad=12)
-    if subtitle:
-        ax.set_title(subtitle, fontsize=9, color="#7f8c8d", pad=22)
-    else:
-        ax.set_title(f"{total_nodes:,} nodes, {total_edges:,} edges",
-                      fontsize=9, color="#7f8c8d", pad=22)
+    ax.set_title("Network graph highlights lateral movement paths",
+                 fontsize=15, fontweight="bold", pad=12)
 
     ax.set_xticks([])
     ax.set_yticks([])
