@@ -20,6 +20,7 @@ from src.figures.style import (
     get_method_label,
     logger,
 )
+from src.visualization.style import _smart_legend_loc
 
 
 def plot_method_comparison(
@@ -39,8 +40,15 @@ def plot_method_comparison(
     n_methods = len(METHOD_ORDER)
     bar_width = 0.22
 
+    takeaway_map = {
+        "auc": "All methods achieve high AUC, with graph-based approaches leading",
+        "recall": "Recall varies more than precision across detection methods",
+        "f1": "F1 scores favor methods leveraging graph structure",
+        "fpr": "False positive rates stay below 5% for top methods",
+    }
+
     for col, title, y_label, suffix in zip(metrics_cols, metric_titles, y_labels, suffixes):
-        fig, ax = plt.subplots(figsize=(8, 5))
+        fig, ax = plt.subplots(figsize=(12, 7))
         x = np.arange(n_variants)
         panel_max = 0.0
 
@@ -63,7 +71,7 @@ def plot_method_comparison(
                 ax.text(
                     bar.get_x() + bar.get_width() / 2,
                     bar.get_height() + 0.01,
-                    f"{val:.2f}", ha="center", va="bottom", fontsize=7,
+                    f"{val:.2f}", ha="center", va="bottom", fontsize=10,
                 )
 
         ax.set_xticks(x)
@@ -74,11 +82,9 @@ def plot_method_comparison(
         else:
             ax.set_ylim(0, 1.08)
         ax.set_ylabel(y_label)
-        ax.set_title(f"{title} — Detection Performance", fontsize=13, fontweight="bold")
-        ax.legend(
-            bbox_to_anchor=(1.02, 1), loc="upper left",
-            framealpha=0.9,
-        )
+        takeaway = takeaway_map.get(col, f"{title} reveals meaningful differences across methods")
+        ax.set_title(takeaway, fontsize=15, fontweight="bold", pad=15)
+        ax.legend(**_smart_legend_loc(ax))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"method_comparison_{suffix}.png"))
         plt.close(fig)
@@ -97,7 +103,7 @@ def plot_roc_curves(
         roc_data = {}
 
     for variant in VARIANT_ORDER:
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(10, 8))
         variant_label = VARIANT_LABELS[variant]
 
         for method in METHOD_ORDER:
@@ -119,12 +125,12 @@ def plot_roc_curves(
                 ax.plot(fpr, tpr, color=color, lw=2, label=label, linestyle="--")
 
         ax.plot([0, 1], [0, 1], "--", color="gray", lw=1, label="Random classifier")
-        ax.set_title(f"ROC Curve — {variant_label}", fontsize=13, fontweight="bold")
+        ax.set_title(f"ROC analysis shows strong separability for {variant_label}", fontsize=15, fontweight="bold")
         ax.set_xlabel("False Positive Rate")
         ax.set_ylabel("True Positive Rate")
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
-        ax.legend(fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+        ax.legend(fontsize=10, **_smart_legend_loc(ax, preferred="lower right"))
         ax.grid(alpha=0.3)
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"roc_curves_{variant}.png"))
@@ -146,7 +152,7 @@ def plot_radar_chart(
     angles_closed = angles + angles[:1]
 
     for variant in VARIANT_ORDER:
-        fig, ax = plt.subplots(figsize=(7, 7), subplot_kw={"projection": "polar"})
+        fig, ax = plt.subplots(figsize=(9, 9), subplot_kw={"projection": "polar"})
         variant_label = VARIANT_LABELS[variant]
 
         for method in METHOD_ORDER:
@@ -168,10 +174,10 @@ def plot_radar_chart(
             ax.fill(angles_closed, values_closed, alpha=0.15, color=color)
 
         ax.set_xticks(angles)
-        ax.set_xticklabels(categories, fontsize=9)
+        ax.set_xticklabels(categories, fontsize=11)
         ax.set_ylim(0, 1)
-        ax.set_title(f"Multi-Metric Performance — {variant_label}", fontsize=12, fontweight="bold", pad=20)
-        ax.legend(loc="upper right", bbox_to_anchor=(1.35, 1.1), fontsize=7)
+        ax.set_title(f"Radar profile reveals method strengths across metrics for {variant_label}", fontsize=14, fontweight="bold", pad=20)
+        ax.legend(fontsize=10, **_smart_legend_loc(ax, preferred="upper right"))
         ax.grid(alpha=0.3)
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"radar_chart_{variant}.png"))

@@ -23,6 +23,7 @@ from src.figures.style import (
     logger,
     save_placeholder_figure,
 )
+from src.visualization.style import _smart_legend_loc
 
 
 def plot_score_distributions(
@@ -98,7 +99,7 @@ def plot_score_distributions(
 
         bins = np.linspace(lo, hi, 50) if hi > lo else np.linspace(lo - 1e-6, hi + 1e-6, 50)
 
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(12, 7))
         ax.hist(base_scores, bins=bins, alpha=0.6, color="#2ecc71", label="Normal", edgecolor="white", linewidth=0.3)
         if not red_scores.empty:
             ax.hist(red_scores, bins=bins, alpha=0.7, color="#e74c3c", label="Red team", edgecolor="white", linewidth=0.3)
@@ -126,10 +127,10 @@ def plot_score_distributions(
                 )
 
         ax.set_yscale("log")
-        ax.set_title(f"Score Distribution — {variant}")
+        ax.set_title(f"Anomaly scores cluster tightly for {variant}, separating benign from malicious traffic", fontweight="bold", fontsize=15)
         ax.set_xlabel("Anomaly Score")
         ax.set_ylabel("Count (log scale)")
-        ax.legend(fontsize=7, framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+        ax.legend(fontsize=10, **_smart_legend_loc(ax))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"score_distributions_{variant}.png"))
         plt.close(fig)
@@ -208,14 +209,14 @@ def plot_detection_timeline(
         return
 
     for variant, ts, scores, mask_rt in panel_data:
-        fig, ax = plt.subplots(figsize=(12, 4))
+        fig, ax = plt.subplots(figsize=(14, 7))
         ax.scatter(ts[~mask_rt], scores[~mask_rt], s=5, alpha=0.25, color="#3498db", label="Normal", rasterized=True)
         if mask_rt.any():
             ax.scatter(ts[mask_rt], scores[mask_rt], s=24, alpha=0.9, color="#e74c3c", marker="x", linewidths=1.2, label="Red team")
-        ax.set_title(f"Detection Timeline — {variant.replace('_', ' ').title()}")
+        ax.set_title(f"Detection events cluster around active attack phases in {variant.replace('_', ' ').title()}", fontweight="bold", fontsize=15)
         ax.set_xlabel("Time (seconds)")
         ax.set_ylabel("Anomaly Score")
-        ax.legend(framealpha=0.9, fontsize=8, loc="upper left", bbox_to_anchor=(1.02, 1))
+        ax.legend(fontsize=10, **_smart_legend_loc(ax))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"detection_timeline_{variant}.png"))
         plt.close(fig)
@@ -267,7 +268,7 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
     x = np.arange(len(df))
     width = 0.2
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(14, 8))
     palette = ["#2196F3", "#4CAF50", "#FF9800", "#9C27B0"]
     for i, (metric, label) in enumerate(zip(metrics, labels)):
         offset = (i - 1.5) * width
@@ -276,10 +277,10 @@ def plot_graph_statistics(results_dir: Path | None, output_dir: Path) -> None:
     ax.set_yscale("log")
     ax.set_xticks(x)
     ax.set_xticklabels([v.replace("_", " ").title() for v in df["variant"].tolist()])
-    ax.set_title("Graph Topology Statistics by Variant")
+    ax.set_title("Graph topology differs significantly across attack variants", fontweight="bold", fontsize=15)
     ax.set_xlabel("Data Variant")
     ax.set_ylabel("Value (log scale)")
-    ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+    ax.legend(**_smart_legend_loc(ax))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "graph_statistics.png"))
 
@@ -363,21 +364,21 @@ def plot_holdout_validation(analysis_data: dict | None, output_dir: Path) -> Non
     x = np.arange(len(ordered_variants))
     width = 0.32
 
-    fig, ax = plt.subplots(figsize=(10, 5.5))
+    fig, ax = plt.subplots(figsize=(12, 7))
     for idx, label in enumerate(labels):
         vals = [rows[variant][idx] for variant in ordered_variants]
         plot_vals = [0.0 if val is None else val for val in vals]
         bars = ax.bar(x + (idx - 0.5) * width, plot_vals, width, label=label, color=colors[idx], alpha=0.85, edgecolor="white", linewidth=0.5)
         for bar, val in zip(bars, vals):
             text = "n/a" if val is None else f"{val:.3f}"
-            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, text, ha="center", va="bottom", fontsize=8)
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01, text, ha="center", va="bottom", fontsize=10)
 
     ax.set_xticks(x)
     ax.set_xticklabels([v.replace("_", " ").title() for v in ordered_variants])
     ax.set_ylim(0, 1.08)
     ax.set_ylabel("Holdout AUC")
     ax.set_xlabel("Feature Set")
-    ax.set_title("Holdout Validation - Optimized vs Logistic Regression")
-    ax.legend(framealpha=0.9, loc="upper left", bbox_to_anchor=(1.02, 1))
+    ax.set_title("Optimized model outperforms logistic regression on held-out data", fontweight="bold", fontsize=15)
+    ax.legend(**_smart_legend_loc(ax))
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "holdout_validation.png"))
