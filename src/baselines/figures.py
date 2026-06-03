@@ -129,12 +129,12 @@ def _plot_f1(
             color=color,
         )
 
-    ax.set_xlabel("Data Variant", fontsize=12)
-    ax.set_ylabel("F1 Score", fontsize=12)
-    ax.set_title("Graph-based methods achieve highest F1 scores", fontsize=13, fontweight="bold")
+    ax.set_xlabel("Data Variant", fontsize=14)
+    ax.set_ylabel("F1 Score", fontsize=14)
+    ax.set_title("Graph-based methods achieve highest F1 scores", fontsize=15, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels([VARIANT_LABELS[v] for v in variants])
-    ax.legend(fontsize=10, **_smart_legend_loc(ax))
+    ax.legend(fontsize=12, **_smart_legend_loc(ax))
     ax.set_yscale("log")
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
@@ -159,12 +159,12 @@ def _plot_auc(
             color=color,
         )
 
-    ax.set_xlabel("Data Variant", fontsize=12)
-    ax.set_ylabel("ROC AUC", fontsize=12)
-    ax.set_title("AUC scores exceed 0.95 for all graph-based methods", fontsize=13, fontweight="bold")
+    ax.set_xlabel("Data Variant", fontsize=14)
+    ax.set_ylabel("ROC AUC", fontsize=14)
+    ax.set_title("AUC scores exceed 0.95 for all graph-based methods", fontsize=15, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels([VARIANT_LABELS[v] for v in variants])
-    ax.legend(fontsize=10, **_smart_legend_loc(ax))
+    ax.legend(fontsize=12, **_smart_legend_loc(ax))
     ax.set_ylim(0.4, 1.05)
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
@@ -189,13 +189,13 @@ def _plot_recall_fpr(
                 (fprs[i], recalls[i]),
                 textcoords="offset points",
                 xytext=(8, 5),
-                fontsize=8,
+                fontsize=10,
             )
 
-    ax.set_xlabel("False Positive Rate", fontsize=12)
-    ax.set_ylabel("Recall", fontsize=12)
-    ax.set_title("High recall achieved with minimal false positive cost", fontsize=13, fontweight="bold")
-    ax.legend(fontsize=10, **_smart_legend_loc(ax))
+    ax.set_xlabel("False Positive Rate", fontsize=14)
+    ax.set_ylabel("Recall", fontsize=14)
+    ax.set_title("High recall achieved with minimal false positive cost", fontsize=15, fontweight="bold")
+    ax.legend(fontsize=12, **_smart_legend_loc(ax))
     ax.grid(alpha=0.3)
     ax.set_xlim(-0.005, 0.11)
     ax.set_ylim(-0.01, 1.05)
@@ -230,10 +230,10 @@ def _plot_radar(
         ax.fill(angles, values, alpha=0.1, color=color)
 
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, fontsize=11)
+    ax.set_xticklabels(categories, fontsize=13)
     ax.set_ylim(0, 1)
-    ax.set_title("Radar profiles reveal complementary method strengths", fontsize=13, fontweight="bold", pad=20)
-    ax.legend(fontsize=10, **_smart_legend_loc(ax, preferred="upper right"))
+    ax.set_title("Radar profiles reveal complementary method strengths", fontsize=15, fontweight="bold", pad=20)
+    ax.legend(fontsize=12, **_smart_legend_loc(ax, preferred="upper right"))
     ax.grid(alpha=0.3)
     plt.tight_layout()
     fig.savefig(output_dir / "baseline_radar_combined.png", dpi=300, bbox_inches="tight")
@@ -264,14 +264,14 @@ def _plot_detected_pairs(
             alpha=0.7,
             label=f"Total red-team ({num_redteam})",
         )
-        ax.set_title(variant.replace("_", " ").title(), fontsize=12)
-        ax.set_xlabel("Detection Method", fontsize=11)
-        ax.set_ylabel("Detected Pairs", fontsize=11)
+        ax.set_title(variant.replace("_", " ").title(), fontsize=14)
+        ax.set_xlabel("Detection Method", fontsize=13)
+        ax.set_ylabel("Detected Pairs", fontsize=13)
         ax.tick_params(axis="x", rotation=45)
         if i == 0:
-            ax.legend(fontsize=9, **_smart_legend_loc(ax))
+            ax.legend(fontsize=11, **_smart_legend_loc(ax))
 
-    plt.suptitle("Detection coverage varies across methods and variants", fontsize=14, fontweight="bold")
+    plt.suptitle("Detection coverage varies across methods and variants", fontsize=16, fontweight="bold")
     plt.tight_layout()
     fig.savefig(output_dir / "baseline_detected_pairs.png", dpi=300, bbox_inches="tight")
     plt.close(fig)

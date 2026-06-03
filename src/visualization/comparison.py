@@ -31,7 +31,7 @@ def plot_method_comparison(
     if not results_list:
         fig, ax = plt.subplots(figsize=FIG_SIZE, facecolor=BG_COLOR)
         ax.text(0.5, 0.5, "No results to display", ha="center", va="center",
-                transform=ax.transAxes, fontsize=13, color="#95a5a6")
+                transform=ax.transAxes, fontsize=15, color="#95a5a6")
         ax.set_title(title, fontsize=TITLE_FS, fontweight="bold", pad=12)
         _save_fig(fig, output_path)
         return
@@ -58,7 +58,7 @@ def plot_method_comparison(
 
         if sub.empty:
             ax.text(0.5, 0.5, f"No data for {dataset}", ha="center", va="center",
-                    transform=ax.transAxes, fontsize=11, color="#95a5a6")
+                    transform=ax.transAxes, fontsize=13, color="#95a5a6")
             ax.set_title(dataset, fontsize=TITLE_FS, fontweight="bold")
             continue
 
@@ -81,16 +81,16 @@ def plot_method_comparison(
                 if val > 0:
                     ax.text(
                         bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01,
-                        f"{val:.3f}", ha="center", va="bottom", fontsize=7, color="#2c3e50",
+                        f"{val:.3f}", ha="center", va="bottom", fontsize=10, color="#2c3e50",
                     )
 
         ax.set_xticks(x)
-        ax.set_xticklabels(methods, rotation=25, ha="right", fontsize=8)
+        ax.set_xticklabels(methods, rotation=25, ha="right", fontsize=10)
         ax.set_ylim(0, 1.15)
         ax.set_xlabel("Method", fontsize=LABEL_FS)
         ax.set_ylabel("Score", fontsize=LABEL_FS)
         ax.set_title(dataset, fontsize=TITLE_FS, fontweight="bold", pad=10)
-        ax.legend(fontsize=8, **_smart_legend_loc(ax))
+        ax.legend(fontsize=10, **_smart_legend_loc(ax))
         ax.tick_params(labelsize=8)
 
     fig.suptitle("Detection metrics vary significantly across methods",

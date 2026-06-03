@@ -34,7 +34,7 @@ def plot_roc_curves(
 
     if not results_list:
         ax.text(0.5, 0.5, "No results to display", ha="center", va="center",
-                transform=ax.transAxes, fontsize=13, color="#95a5a6")
+                transform=ax.transAxes, fontsize=15, color="#95a5a6")
         ax.set_title(title, fontsize=TITLE_FS, fontweight="bold", pad=12)
         _save_fig(fig, output_path)
         return
@@ -63,12 +63,12 @@ def plot_roc_curves(
     ax.plot([0, 1], [0, 1], "--", color="#95a5a6", lw=1, label="Random baseline")
 
     ax.set_title("ROC curves demonstrate strong detection separability",
-                 fontsize=13, fontweight="bold", pad=12)
+                 fontsize=15, fontweight="bold", pad=12)
     ax.set_xlabel("False Positive Rate", fontsize=LABEL_FS)
     ax.set_ylabel("True Positive Rate", fontsize=LABEL_FS)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.legend(fontsize=9, **_smart_legend_loc(ax, preferred="lower right"))
+    ax.legend(fontsize=11, **_smart_legend_loc(ax, preferred="lower right"))
     ax.tick_params(labelsize=9)
     ax.set_aspect("equal", adjustable="box")
     fig.tight_layout()

@@ -71,7 +71,7 @@ def plot_method_comparison(
                 ax.text(
                     bar.get_x() + bar.get_width() / 2,
                     bar.get_height() + 0.01,
-                    f"{val:.2f}", ha="center", va="bottom", fontsize=7,
+                    f"{val:.2f}", ha="center", va="bottom", fontsize=10,
                 )
 
         ax.set_xticks(x)
@@ -83,7 +83,7 @@ def plot_method_comparison(
             ax.set_ylim(0, 1.08)
         ax.set_ylabel(y_label)
         takeaway = takeaway_map.get(col, f"**{title} reveals meaningful differences across methods**")
-        ax.set_title(takeaway, fontsize=13, fontweight="bold", pad=15)
+        ax.set_title(takeaway, fontsize=15, fontweight="bold", pad=15)
         ax.legend(**_smart_legend_loc(ax))
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"method_comparison_{suffix}.png"))
@@ -125,12 +125,12 @@ def plot_roc_curves(
                 ax.plot(fpr, tpr, color=color, lw=2, label=label, linestyle="--")
 
         ax.plot([0, 1], [0, 1], "--", color="gray", lw=1, label="Random classifier")
-        ax.set_title(f"**ROC analysis shows strong separability for {variant_label}**", fontsize=13, fontweight="bold")
+        ax.set_title(f"**ROC analysis shows strong separability for {variant_label}**", fontsize=15, fontweight="bold")
         ax.set_xlabel("False Positive Rate")
         ax.set_ylabel("True Positive Rate")
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
-        ax.legend(fontsize=7, **_smart_legend_loc(ax, preferred="lower right"))
+        ax.legend(fontsize=10, **_smart_legend_loc(ax, preferred="lower right"))
         ax.grid(alpha=0.3)
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"roc_curves_{variant}.png"))
@@ -174,10 +174,10 @@ def plot_radar_chart(
             ax.fill(angles_closed, values_closed, alpha=0.15, color=color)
 
         ax.set_xticks(angles)
-        ax.set_xticklabels(categories, fontsize=9)
+        ax.set_xticklabels(categories, fontsize=11)
         ax.set_ylim(0, 1)
-        ax.set_title(f"**Radar profile reveals method strengths across metrics for {variant_label}**", fontsize=12, fontweight="bold", pad=20)
-        ax.legend(fontsize=7, **_smart_legend_loc(ax, preferred="upper right"))
+        ax.set_title(f"**Radar profile reveals method strengths across metrics for {variant_label}**", fontsize=14, fontweight="bold", pad=20)
+        ax.legend(fontsize=10, **_smart_legend_loc(ax, preferred="upper right"))
         ax.grid(alpha=0.3)
         fig.tight_layout()
         _save_fig(fig, str(output_dir / f"radar_chart_{variant}.png"))

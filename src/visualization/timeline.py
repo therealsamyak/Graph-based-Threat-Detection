@@ -97,10 +97,10 @@ def plot_detection_timeline(
         x_label = "Time"
 
     ax.set_title("Detections cluster around active attack phases",
-                 fontsize=13, fontweight="bold", pad=12)
+                 fontsize=15, fontweight="bold", pad=12)
     ax.set_xlabel(x_label, fontsize=LABEL_FS)
     ax.set_ylabel("Anomaly Score", fontsize=LABEL_FS)
-    ax.legend(fontsize=9, **_smart_legend_loc(ax))
+    ax.legend(fontsize=11, **_smart_legend_loc(ax))
     ax.tick_params(labelsize=9)
     fig.tight_layout()
     _save_fig(fig, output_path)

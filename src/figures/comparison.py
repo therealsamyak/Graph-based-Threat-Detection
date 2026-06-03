@@ -82,7 +82,7 @@ def plot_variant_heatmap(matrix: pd.DataFrame, output_dir: Path) -> None:
         ax.set_yticklabels([_METHOD_DISPLAY[m] for m in METHOD_ORDER])
         ax.set_xlabel("Data Variant")
         ax.set_ylabel("Method")
-        ax.set_title(title, fontweight="bold", fontsize=13)
+        ax.set_title(title, fontweight="bold", fontsize=15)
 
         # Annotate cells
         for i in range(data.shape[0]):
@@ -92,7 +92,7 @@ def plot_variant_heatmap(matrix: pd.DataFrame, output_dir: Path) -> None:
                     ax.text(
                         j, i, f"{val:.3f}",
                         ha="center", va="center",
-                        fontsize=9,
+                        fontsize=11,
                         color="white" if val < 0.4 else "black",
                     )
 
@@ -154,7 +154,7 @@ def plot_detection_counts(matrix: pd.DataFrame, output_dir: Path) -> None:
             ax.annotate(
                 f"{ratio:.2f}",
                 (x[i], max(d, rt) + 0.5),
-                ha="center", va="bottom", fontsize=8,
+                ha="center", va="bottom", fontsize=10,
             )
 
     labels = [get_method_label(m, v) for m, v in combos]
@@ -162,7 +162,7 @@ def plot_detection_counts(matrix: pd.DataFrame, output_dir: Path) -> None:
     ax.set_xticklabels(labels, rotation=45, ha="right")
     ax.set_xlabel("Method × Variant")
     ax.set_ylabel("Count")
-    ax.set_title("Predicted detections align closely with ground truth across methods", fontweight="bold", fontsize=13)
+    ax.set_title("Predicted detections align closely with ground truth across methods", fontweight="bold", fontsize=15)
     ax.legend(**_smart_legend_loc(ax))
 
     fig.tight_layout()
@@ -221,7 +221,7 @@ def plot_performance_tradeoff(matrix: pd.DataFrame, output_dir: Path) -> None:
                 (lat_ms, float(auc)),
                 textcoords="offset points",
                 xytext=(8, 6),
-                fontsize=7,
+fontsize=12,
                 alpha=0.85,
             )
 
@@ -230,10 +230,10 @@ def plot_performance_tradeoff(matrix: pd.DataFrame, output_dir: Path) -> None:
         plt.close(fig)
         return
 
-    ax.legend(handles, labels, **_smart_legend_loc(ax), fontsize=8)
+    ax.legend(handles, labels, **_smart_legend_loc(ax), fontsize=10)
     ax.set_xlabel("Latency (ms)")
     ax.set_ylabel("AUC")
-    ax.set_title("Higher accuracy methods require more processing time", fontweight="bold", fontsize=13)
+    ax.set_title("Higher accuracy methods require more processing time", fontweight="bold", fontsize=15)
 
     # Ideal zone annotation
     ax.annotate(
@@ -329,7 +329,7 @@ def plot_metrics_summary(matrix: pd.DataFrame, output_dir: Path) -> None:
         cell.set_facecolor("#c8e6c9")  # light green
         cell.set_text_props(fontweight="bold")
 
-    ax.set_title("All methods achieve strong detection performance with tradeoffs", fontweight="bold", fontsize=14, pad=20)
+    ax.set_title("All methods achieve strong detection performance with tradeoffs", fontweight="bold", fontsize=16, pad=20)
 
     fig.tight_layout()
     _save_fig(fig, str(output_dir / "metrics_summary.png"))

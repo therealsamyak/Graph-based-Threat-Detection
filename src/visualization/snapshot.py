@@ -33,7 +33,7 @@ def plot_graph_snapshot(
 
     if g.vcount() == 0:
         ax.text(0.5, 0.5, "Empty graph", ha="center", va="center",
-                transform=ax.transAxes, fontsize=13, color="#95a5a6")
+                transform=ax.transAxes, fontsize=15, color="#95a5a6")
         _save_fig(fig, output_path)
         return
 
@@ -107,10 +107,10 @@ def plot_graph_snapshot(
         Line2D([0], [0], color=EDGE_COLORS["auth"], lw=1.5, alpha=0.6, label="Auth edge"),
         Line2D([0], [0], color=EDGE_COLORS["flow"], lw=1.5, alpha=0.6, label="Flow edge"),
     ]
-    ax.legend(handles=legend_handles, fontsize=9, **_smart_legend_loc(ax))
+    ax.legend(handles=legend_handles, fontsize=11, **_smart_legend_loc(ax))
 
     ax.set_title("Network graph highlights lateral movement paths",
-                 fontsize=13, fontweight="bold", pad=12)
+                 fontsize=15, fontweight="bold", pad=12)
 
     ax.set_xticks([])
     ax.set_yticks([])
