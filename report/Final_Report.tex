@@ -39,7 +39,7 @@ Lateral movement is the phase of a network attack where an adversary, having gai
 
 No single log source provides enough signal to reliably identify lateral movement. Network flow logs capture connections but cannot distinguish an attacker's session from an administrator's. Authentication logs record login events but are blind to reconnaissance activity such as port scans or service enumeration that never triggers a login event. Existing perimeter-focused intrusion detection systems are designed to identify north-south traffic crossing the network boundary, not the east-west movement that characterizes lateral movement within a cloud VPC.
 
-We address this gap by constructing a unified streaming graph from both flow and authentication logs, where computers and user identities are nodes, and connections and authentication events are edges. Graph-based features---degree centrality, fan-out ratios, temporal patterns, and betweenness---capture the relational structure of lateral movement that tabular features miss. Our detection pipeline scores each edge for lateral movement likelihood, applies path-level analysis to identify multi-hop attack chains, and thresholds scores to flag anomalous behavior. On auth-only data this configuration reaches 92.2\% recall at 0.64\% FPR, and Figure~\ref{fig:roc_all} shows graph-based scoring holding above 0.96 AUC on every variant while unsupervised baselines drop on flow-only data (Table~\ref{tab:baseline_comparison}).
+We address this gap by constructing a unified streaming graph from both flow and authentication logs, where computers and user identities are nodes, and connections and authentication events are edges. Graph-based features (degree centrality, fan-out ratios, temporal patterns, and betweenness) capture the relational structure of lateral movement that tabular features miss. Our detection pipeline scores each edge for lateral movement likelihood, applies path-level analysis to identify multi-hop attack chains, and thresholds scores to flag anomalous behavior. On auth-only data this configuration reaches 92.2\% recall at 0.64\% FPR, and Figure~\ref{fig:roc_all} shows graph-based scoring holding above 0.96 AUC on every variant while unsupervised baselines drop on flow-only data (Table~\ref{tab:baseline_comparison}).
 
 The main contributions of this paper are:
 
@@ -100,7 +100,7 @@ The top features selected per variant are:
 \label{fig:feat_audit}
 \end{figure}
 
-Figure~\ref{fig:feat_audit} shows the individual AUC scores for all audited features in the combined variant. The \texttt{src\_betweenness\_centrality} feature scores 0.17, indicating it is inversely correlated with lateral movement edges---attackers tend to target peripheral rather than central nodes, consistent with the LANL red-team strategy of compromising a single jump box (C17693) and pivoting from there.
+Figure~\ref{fig:feat_audit} shows the individual AUC scores for all audited features in the combined variant. The \texttt{src\_betweenness\_centrality} feature scores 0.17, indicating it is inversely correlated with lateral movement edges: attackers tend to target peripheral rather than central nodes, consistent with the LANL red-team strategy of compromising a single jump box (C17693) and pivoting from there.
 
 \subsection{Weight Optimization and Held-Out Validation}
 
@@ -112,7 +112,7 @@ We optimize the selected edge features using the Nelder-Mead algorithm to maximi
 \item \textbf{Flow-only:} AUC improves from 0.929 (equal weights) to 0.963 (+3.6\%). Held-out: calibration 0.765, evaluation 0.768.
 \end{itemize}
 
-The negative weight on \texttt{src\_in\_degree} (auth-only) and \texttt{dst\_total\_degree} (combined) indicates that lateral movement edges target less-connected hosts rather than high-traffic servers---consistent with attackers avoiding noisy, well-monitored systems.
+The negative weight on \texttt{src\_in\_degree} (auth-only) and \texttt{dst\_total\_degree} (combined) indicates that lateral movement edges target less-connected hosts rather than high-traffic servers, consistent with attackers avoiding noisy, well-monitored systems.
 
 \begin{figure}[htbp]
 \centering
@@ -121,7 +121,7 @@ The negative weight on \texttt{src\_in\_degree} (auth-only) and \texttt{dst\_tot
 \label{fig:holdout}
 \end{figure}
 
-Figure~\ref{fig:holdout} shows the held-out validation results. Logistic regression on the same features achieves nearly identical eval AUC: combined 0.962, auth-only 0.976, flow-only 0.758. This confirms that the AUC improvement comes from the features themselves---both Nelder-Mead direct AUC maximization and logistic regression converge to essentially the same performance.
+Figure~\ref{fig:holdout} shows the held-out validation results. Logistic regression on the same features achieves nearly identical eval AUC: combined 0.962, auth-only 0.976, flow-only 0.758. This confirms that the AUC improvement comes from the features themselves: both Nelder-Mead direct AUC maximization and logistic regression converge to essentially the same performance.
 
 \subsection{Edge Scoring and Path Analysis}
 
@@ -319,7 +319,7 @@ Figure~\ref{fig:ablation} presents the ablation study results evaluated under lo
 \item \textbf{Combined:} Graph-derived 0.987 vs. tabular 0.953 (+3.8\%). Adding tabular features to graph features yields negligible additional benefit (0.990 AUC).
 \end{itemize}
 
-The 21\% AUC gain on flow-only data is the key takeaway: raw flow features (ports, protocols, bytes, packets) carry only weak lateral movement signal, but when the same flows are organized into a graph structure, the resulting topology---which hosts connect to which, how densely, and with what temporal patterns---provides near-perfect discrimination. This confirms that lateral movement is fundamentally a relational phenomenon, not a property of individual network flows.
+The 21\% AUC gain on flow-only data is the key takeaway: raw flow features (ports, protocols, bytes, packets) carry only weak lateral movement signal, but when the same flows are organized into a graph structure, the resulting topology (which hosts connect to which, how densely, and with what temporal patterns) provides near-perfect discrimination. This confirms that lateral movement is fundamentally a relational phenomenon, not a property of individual network flows.
 
 \subsection{False Positive Analysis}
 \label{sec:fp_analysis}
@@ -381,13 +381,13 @@ We presented a graph-based approach for lateral movement detection that integrat
 \begin{enumerate}
 \item \textbf{Auth-only graph analysis achieves the best lateral movement detection:} 92.2\% recall at 0.64\% FPR with 0.984 AUC, outperforming Isolation Forest (0.973 AUC) and One-Class SVM (0.923 AUC) on the same features.
 
-\item \textbf{Graph-based lateral movement detection generalizes across data variants:} it maintains AUC $\geq$ 0.96 on auth-only, combined, and flow-only data, while unsupervised baselines degrade to 0.66--0.72 AUC on flow-only. This demonstrates that modeling lateral movement as a graph problem---reasoning about which hosts connect to which, and how---provides robust signal regardless of which log source is available.
+\item \textbf{Graph-based lateral movement detection generalizes across data variants:} it maintains AUC $\geq$ 0.96 on auth-only, combined, and flow-only data, while unsupervised baselines degrade to 0.66--0.72 AUC on flow-only. This demonstrates that modeling lateral movement as a graph problem (reasoning about which hosts connect to which, and how) provides robust signal regardless of which log source is available.
 
 \item \textbf{Graph topology is the primary driver of lateral movement detection:} graph-derived features alone achieve up to 0.998 AUC compared to 0.823 for pure tabular features on flow data, a 21\% gain. This confirms that lateral movement is fundamentally a relational phenomenon: the pattern of connections between hosts carries more discriminative signal than the properties of individual flows or authentication events.
 
 \item \textbf{Lateral movement detection weights generalize to unseen data:} Nelder-Mead optimized weights achieve held-out AUC within 2.1\% of calibration AUC across all variants, matching logistic regression performance on the same features. This confirms that the features themselves carry the lateral movement signal, not the optimization method.
 
-\item \textbf{False positives in lateral movement detection have identifiable structural causes:} administrative activity, service-to-service communication, and machine account authentication produce patterns that mimic lateral movement at the edge level. Targeted mitigations---admin whitelisting, temporal baselining, and community-based exclusion---can reduce the false positive burden without sacrificing detection rate.
+\item \textbf{False positives in lateral movement detection have identifiable structural causes:} administrative activity, service-to-service communication, and machine account authentication produce patterns that mimic lateral movement at the edge level. Targeted mitigations (admin whitelisting, temporal baselining, and community-based exclusion) can reduce the false positive burden without sacrificing detection rate.
 \end{enumerate}
 
 The combined graph method's lower recall relative to auth-only suggests that integrating flow and authentication signals requires more sophisticated feature engineering or scoring approaches. Future work should test on additional real-world cloud VPC datasets, explore incremental graph updates for real-time lateral movement detection, and develop scoring functions that better integrate flow-level signals with authentication semantics while accounting for the different noise levels across log sources.
