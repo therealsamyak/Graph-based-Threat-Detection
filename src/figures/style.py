@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 PAPER_DPI = 300
 
 PAPER_CONFIG = {
-    "font.size": 13,
-    "axes.titlesize": 16,
-    "axes.labelsize": 14,
-    "xtick.labelsize": 12,
-    "ytick.labelsize": 12,
-    "legend.fontsize": 12,
+    "font.size": 18,
+    "axes.titlesize": 22,
+    "axes.labelsize": 20,
+    "xtick.labelsize": 17,
+    "ytick.labelsize": 17,
+    "legend.fontsize": 17,
     "figure.figsize": (12, 7),
     "savefig.dpi": PAPER_DPI,
 }
@@ -102,7 +102,7 @@ def apply_paper_style() -> None:
 def save_placeholder_figure(output_path: str, title: str, reason: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.axis("off")
-    ax.text(0.5, 0.62, title, ha="center", va="center", fontsize=16, fontweight="bold")
-    ax.text(0.5, 0.42, "Skipped gracefully", ha="center", va="center", fontsize=13)
-    ax.text(0.5, 0.28, reason, ha="center", va="center", fontsize=11, color="#666666", wrap=True)
+    ax.text(0.5, 0.62, title, ha="center", va="center", fontsize=22, fontweight="bold")
+    ax.text(0.5, 0.42, "Skipped gracefully", ha="center", va="center", fontsize=18)
+    ax.text(0.5, 0.28, reason, ha="center", va="center", fontsize=15, color="#666666", wrap=True)
     _save_fig(fig, output_path)

@@ -28,8 +28,8 @@ LINE_STYLES = ["-", "--", "-.", ":", "-", "--", "-."]
 BG_COLOR = "#fdfdfd"
 FIG_SIZE = (12, 7)
 DPI = 300
-TITLE_FS = 16
-LABEL_FS = 14
+TITLE_FS = 22
+LABEL_FS = 20
 
 NODE_COLORS = {"computer": "#3498db", "user": "#2ecc71"}
 EDGE_COLORS = {"auth": "#3498db", "flow": "#e74c3c"}
