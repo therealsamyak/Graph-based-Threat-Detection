@@ -39,13 +39,13 @@ Lateral movement is the phase of a network attack where an adversary, having gai
 
 No single log source provides enough signal to reliably identify lateral movement. Network flow logs capture connections but cannot distinguish an attacker's session from an administrator's. Authentication logs record login events but are blind to reconnaissance activity such as port scans or service enumeration that never triggers a login event. Existing perimeter-focused intrusion detection systems are designed to identify north-south traffic crossing the network boundary, not the east-west movement that characterizes lateral movement within a cloud VPC.
 
-We address this gap by constructing a unified streaming graph from both flow and authentication logs, where computers and user identities are nodes, and connections and authentication events are edges. Graph-based features (degree centrality, fan-out ratios, temporal patterns, and betweenness) capture the relational structure of lateral movement that tabular features miss. Our detection pipeline scores each edge for lateral movement likelihood, applies path-level analysis to identify multi-hop attack chains, and thresholds scores to flag anomalous behavior. On auth-only data this configuration reaches 92.2\% recall at 0.64\% FPR, and Figure~\ref{fig:roc_all} shows graph-based scoring holding above 0.96 AUC on every variant while unsupervised baselines drop on flow-only data (Table~\ref{tab:baseline_comparison}).
+We address this gap by constructing a unified streaming graph from both flow and authentication logs, where computers and user identities are nodes, and connections and authentication events are edges. Graph-based features (degree centrality, fan-out ratios, temporal patterns, and betweenness) capture the relational structure of lateral movement that tabular features miss. Our detection pipeline scores each edge for lateral movement likelihood, applies path-level analysis to identify multi-hop attack chains, and thresholds scores to flag anomalous behavior. On auth-only data this configuration reaches 92.2\% recall at 0.64\% FPR, and Figure~\ref{fig:roc_all} shows graph-based scoring holding above 0.96 AUC on every variant while unsupervised baselines drop on flow-only data (Table~\ref{tab:metrics_summary}).
 
 The main contributions of this paper are:
 
 \begin{enumerate}
 \item \textbf{Unified graph framework:} we integrate flow and authentication logs into a single directed multigraph for lateral movement analysis.
-\item \textbf{Multi-variant evaluation:} graph-based auth-only analysis reaches 92.2\% recall at 0.64\% FPR (Table~\ref{tab:methods_comparison}), beating Isolation Forest and One-Class SVM on the same features (Table~\ref{tab:baseline_comparison}).
+\item \textbf{Multi-variant evaluation:} graph-based auth-only analysis reaches 92.2\% recall at 0.64\% FPR (Table~\ref{tab:methods_comparison}), beating Isolation Forest and One-Class SVM on the same features (Table~\ref{tab:metrics_summary}).
 \item \textbf{Feature ablation:} graph-derived features yield a 21\% AUC gain over tabular features on flow data (Section~\ref{sec:ablation}).
 \item \textbf{False positive analysis:} we identify the structural causes of false alarms and propose targeted mitigation strategies (Section~\ref{sec:fp_analysis}).
 \end{enumerate}
@@ -194,34 +194,35 @@ Figure~\ref{fig:roc_all} presents ROC curves for all three methods on each data 
 
 \begin{table}[h]
 \centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lcccccc}
 \toprule
-Method & Recall & FPR & F1 & AUC & Latency (s) & Throughput (events/s) \\
+Method & Recall & FPR & F1 & AUC & Lat. (s) & Thpt (ev/s) \\
 \midrule
 auth\_only  & \textbf{0.9221} & 0.0064 & \textbf{0.1778} & \textbf{0.9842} & 3903.87 & 26,659 \\
 flow\_only  & 0.0682 & 0.0298 & 0.0099 & 0.9626 & 430.02 & \textbf{73,511} \\
 combined    & 0.2110 & \textbf{0.0036} & 0.0591 & 0.9590 & 5899.24 & 23,000 \\
 \bottomrule
 \end{tabular}
-\caption{Graph-based method comparison. Auth-only achieves the highest recall (92.2\%) and AUC (0.984). Combined achieves the lowest FPR (0.36\%) but at the cost of recall (21.1\%). Flow-only is fastest but captures few lateral movement pairs.}
+\caption{Graph-based method comparison. Auth-only achieves the highest recall (92.2\%) and AUC (0.984). Combined achieves the lowest FPR (0.36\%) but at the cost of recall (21.1\%). Flow-only is fastest but captures few lateral movement pairs. Lat.\ = latency; Thpt.\ = throughput.}
 \label{tab:methods_comparison}
 \end{table}
 
 \begin{table}[h]
 \centering
-\small
-\resizebox{\columnwidth}{!}{%
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lcccccc}
 \toprule
-Method & Graph Nodes & Graph Edges & RT Pairs in Graph & Anomalous Pairs & Threshold & Score \\
+Method & Nodes & Edges & RT Pairs & Anom. Pairs & Threshold & Score \\
 \midrule
 auth\_only  & 90,783 & 409,100 & 302 & 2,886 & 99th & 1.1179 \\
 combined    & 91,589 & 512,529 & 305 & 1,892 & 99.5th & 1.2686 \\
 flow\_only  & 11,586 & 131,562 & 35 & 3,947 & 97th & 0.6952 \\
 \bottomrule
-\end{tabular}%
-}
-\caption{Graph structure and detection statistics. Auth-only and combined capture nearly all red-team pairs (302--305 of 308). Flow-only captures only 35, as many attack endpoints are invisible through flow logs alone.}
+\end{tabular}
+\caption{Graph structure and detection statistics. Auth-only and combined capture nearly all red-team pairs (302--305 of 308). Flow-only captures only 35, as many attack endpoints are invisible through flow logs alone. RT = red-team; Anom.\ = anomalous.}
 \label{tab:graph_stats}
 \end{table}
 
@@ -238,48 +239,43 @@ Table~\ref{tab:graph_stats} reports the underlying graph sizes and pair counts. 
 \label{fig:method_auc}
 \end{figure}
 
-\begin{table}[h]
-\centering
-\begin{tabular}{lccccc}
-\toprule
-Variant & Method & AUC & Recall & FPR & F1 \\
-\midrule
-\multirow{3}{*}{Auth Only}
-  & Graph-based      & \textbf{0.9842} & \textbf{0.9221} & \textbf{0.0064} & \textbf{0.1778} \\
-  & Isolation Forest & 0.9726 & 0.9448 & 0.0291 & 0.1322 \\
-  & One-Class SVM    & 0.9234 & 0.9416 & 0.1068 & 0.0399 \\
-\midrule
-\multirow{3}{*}{Combined}
-  & Graph-based      & \textbf{0.9590} & 0.2110 & \textbf{0.0036} & 0.0591 \\
-  & Isolation Forest & 0.9572 & 0.5877 & 0.0291 & \textbf{0.0626} \\
-  & One-Class SVM    & 0.8000 & 0.0519 & 0.0009 & 0.0652 \\
-\midrule
-\multirow{3}{*}{Flow Only}
-  & Graph-based      & \textbf{0.9626} & \textbf{0.0682} & \textbf{0.0298} & \textbf{0.0099} \\
-  & Isolation Forest & 0.7182 & 0.0422 & 0.0999 & 0.0038 \\
-  & One-Class SVM    & 0.6622 & 0.0292 & 0.1018 & 0.0026 \\
-\bottomrule
-\end{tabular}
-\caption{Full comparison of graph-based scoring against unsupervised baselines on the same edge features. Graph-based achieves the highest AUC on all three variants. The gap is most pronounced on flow-only data (0.963 vs. 0.718 for IF, 0.662 for SVM). Graph-based recall and FPR are reported in pair-space (anomalous edges collapsed to source--destination pairs); baseline recall and FPR are reported in edge-space and are not directly comparable.}
-\label{tab:baseline_comparison}
-\end{table}
-
-Figure~\ref{fig:method_auc} and Table~\ref{tab:baseline_comparison} compare graph-based scoring against two unsupervised baselines on the same edge features.
+Figure~\ref{fig:method_auc} and Table~\ref{tab:metrics_summary} compare graph-based scoring against two unsupervised baselines on the same edge features.
 
 \begin{itemize}
-\item \textbf{On auth-only data}, all three methods find most lateral movement pairs, but graph-based holds the lowest pair-space FPR by a wide margin (Table~\ref{tab:baseline_comparison}). Fewer false alerts per real detection matters operationally, since a SOC analyst triages every flagged pair.
+\item \textbf{On auth-only data}, all three methods find most lateral movement pairs, but graph-based holds the lowest pair-space FPR by a wide margin (Table~\ref{tab:metrics_summary}). Fewer false alerts per real detection matters operationally, since a SOC analyst triages every flagged pair.
 
 \item \textbf{On combined data}, graph-based and Isolation Forest are nearly tied in AUC, yet graph-based again reports a much lower pair-space FPR while One-Class SVM degrades sharply. For mixed-source deployments, the graph formulation keeps the alert volume manageable.
 
 \item \textbf{On flow-only data}, the gap is largest: graph-based stays above 0.96 AUC while both baselines fall to 0.66--0.72. Lateral movement relies on which hosts reach which, not on per-flow attributes, so detectors that ignore topology lose the signal entirely.
 \end{itemize}
 
-\begin{figure}[htbp]
+\begin{table}[h]
 \centering
-\includegraphics[width=0.95\columnwidth]{metrics_summary.png}
-\caption{Performance metrics summary across all methods and variants. Best value per metric highlighted. Graph-based auth-only achieves the best AUC (0.984) and F1 (0.178).}
-\label{fig:metrics_summary}
-\end{figure}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccc}
+\toprule
+Variant & Method & AUC & F1 & Recall & FPR & Precision \\
+\midrule
+\multirow{3}{*}{Auth Only}
+  & Graph-based      & \textbf{0.9842} & \textbf{0.1778} & 0.9221          & 0.0064          & \textbf{0.098} \\
+  & Isolation Forest & 0.9726          & 0.1322          & \textbf{0.9448} & 0.0291          & 0.071          \\
+  & One-Class SVM    & 0.9234          & 0.0399          & 0.9416          & 0.1068          & 0.020          \\
+\midrule
+\multirow{3}{*}{Combined}
+  & Graph-based      & 0.9590          & 0.0591          & 0.2110          & 0.0036          & 0.034          \\
+  & Isolation Forest & 0.9572          & 0.0626          & 0.5877          & 0.0291          & 0.033          \\
+  & One-Class SVM    & 0.8000          & 0.0652          & 0.0519          & \textbf{0.0009} & 0.087          \\
+\midrule
+\multirow{3}{*}{Flow Only}
+  & Graph-based      & 0.9626          & 0.0099          & 0.0682          & 0.0298          & 0.005          \\
+  & Isolation Forest & 0.7182          & 0.0038          & 0.0422          & 0.0999          & 0.002          \\
+  & One-Class SVM    & 0.6622          & 0.0026          & 0.0292          & 0.1018          & 0.001          \\
+\bottomrule
+\end{tabular}
+\caption{Performance metrics summary across all methods and variants. Best value per metric is bolded; for FPR the lowest value is best. Graph-based auth-only achieves the best AUC (0.984) and F1 (0.178). Low precision reflects extreme class imbalance: hundreds of thousands of benign edges produce false alarms even at low FPR. Graph-based recall and FPR are reported in pair-space (anomalous edges collapsed to source--destination pairs); baseline recall and FPR are reported in edge-space and are not directly comparable.}
+\label{tab:metrics_summary}
+\end{table}
 
 \subsection{Graph Topology Differences}
 
@@ -324,33 +320,7 @@ The 21\% AUC gain on flow-only data is the key takeaway: raw flow features (port
 \subsection{False Positive Analysis}
 \label{sec:fp_analysis}
 
-Despite high AUC, all methods produce false positives at operationally relevant thresholds. Understanding \emph{why} these false positives occur is critical for deploying lateral movement detection in production. Table~\ref{tab:precision} reports precision values across all methods and variants.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{lccccc}
-\toprule
-Variant & Method & AUC & Recall & FPR & Precision \\
-\midrule
-\multirow{3}{*}{Auth Only}
-  & Graph-based      & \textbf{0.984} & 0.922 & 0.006 & \textbf{0.098} \\
-  & Isolation Forest & 0.973 & 0.945 & 0.029 & 0.071 \\
-  & One-Class SVM    & 0.923 & 0.942 & 0.107 & 0.020 \\
-\midrule
-\multirow{3}{*}{Combined}
-  & Graph-based      & 0.959 & 0.211 & 0.004 & 0.034 \\
-  & One-Class SVM    & \textbf{0.800} & 0.052 & \textbf{0.001} & \textbf{0.087} \\
-  & Isolation Forest & 0.957 & 0.588 & 0.029 & 0.033 \\
-\midrule
-\multirow{3}{*}{Flow Only}
-  & Graph-based      & \textbf{0.963} & 0.068 & 0.030 & 0.005 \\
-  & One-Class SVM    & 0.662 & 0.029 & 0.102 & 0.001 \\
-  & Isolation Forest & 0.718 & 0.042 & 0.100 & 0.002 \\
-\bottomrule
-\end{tabular}
-\caption{Precision values for all methods. Low precision reflects extreme class imbalance: hundreds of thousands of benign edges produce false alarms even at low FPR. Graph-based FPR is reported in pair-space; baseline FPR in edge-space.}
-\label{tab:precision}
-\end{table}
+Despite high AUC, all methods produce false positives at operationally relevant thresholds. Understanding \emph{why} these false positives occur is critical for deploying lateral movement detection in production. Precision values for all methods and variants appear in Table~\ref{tab:metrics_summary}.
 
 Before examining these specific sources, it helps to ask why topology-based detection produces false positives at all. Lateral movement is, by definition, lateral access: an attacker pivoting through a network uses the same protocols (NTLM, SMB, RDP), the same credentials, and the same network paths as an administrator performing routine maintenance. What separates attack from administration is intent, and intent is not recorded in authentication or flow logs. Our graph features capture the topology of lateral movement (high fan-out from a single source, NTLM-based authentication chains, connections into peripheral hosts), yet legitimate lateral access produces the same topology. The false positives analyzed below are therefore not a defect of our feature design but a property of any detector that reasons from connectivity alone. Administrative activity, service-to-service communication, and machine account authentication each represent a distinct way that benign work can produce attack-shaped topology.
 
