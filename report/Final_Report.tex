@@ -9,13 +9,16 @@
 
 \author{
 {\rm Ibrahim Pehlivan}\\
-University of California, Los Angeles
+University of California, Los Angeles\\
+ipehlivan@ucla.edu
 \and
 {\rm Wesley Gunawan}\\
-University of California, Los Angeles
+University of California, Los Angeles\\
+wesleygwn@gmail.com
 \and
 {\rm Samyak Kakatur}\\
-University of California, Los Angeles
+University of California, Los Angeles\\
+skaka008@ucla.edu
 }
 
 \maketitle
@@ -31,7 +34,7 @@ Lateral movement in cloud VPCs is difficult to detect because internal traffic i
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{lat_mvmt.png}
-\caption{Modified Advanced-Persistent-Threat Model, showing Lateral Movement as the step after the attacker compromises one machine (Foothold). Adapted from Mamun et al.~\cite{APT-detection}.}
+\caption{\textbf{Lateral movement is the post-compromise pivot step in the kill chain.} Modified Advanced-Persistent-Threat Model, showing Lateral Movement as the step after the attacker compromises one machine (Foothold). Adapted from Mamun et al.~\cite{APT-detection}.}
 \label{fig:lat_mvmt}
 \end{figure}
 
@@ -64,13 +67,13 @@ We evaluate whether a graph built from both network flow and authentication logs
 
 \subsection{Graph Construction}
 
-We model the network as a directed multigraph. Nodes represent computers and users; edges represent authentication events or network flows. A streaming builder reads gzipped CSV files line-by-line, keeping only events within time windows centered on red-team activity ($\pm$3,600 seconds per event, merged into 25 non-overlapping intervals). Events outside all windows are skipped, so memory stays proportional to active windows, not the full 1.6 billion-event dataset.
+A single directed multigraph contains both authentication and flow edges, so each host appears as a single node regardless of which log it appears in. Nodes represent computers and users; edges represent authentication events or network flows. A streaming builder reads gzipped CSV files line-by-line, keeping only events within time windows centered on red-team activity ($\pm$3,600 seconds per event, merged into 25 non-overlapping intervals). Events outside all windows are skipped, so memory stays proportional to active windows, not the full 1.6 billion-event dataset.
 
 For each authentication event, the builder adds a computer-to-computer edge storing auth type, logon type, orientation, success, and timestamp. For each flow event, a computer-to-computer edge stores protocol, source/destination ports, packet count, byte count, duration, and timestamp. When multiple events share the same $(src, dst)$ pair, the edge weight increments and only the first and last timestamps are kept. Node types are inferred by naming convention: names containing \texttt{\$} before \texttt{@} or ending with \texttt{\$} are machine accounts; everything else is a user.
 
 \subsection{Feature Extraction}
 
-We extract 23 features across three granularities: per-edge (11), per-node (7), and per-graph (5).
+23 features span the edge, node, and graph levels of the multigraph, with graph-derived features carrying most of the lift documented in Section~\ref{sec:ablation}.
 
 \textbf{Edge features (11).}
 Each edge receives: edge rarity ($1 / \text{weight}$, percentile-ranked), source out-degree, destination in-degree, destination fan-out ratio, source fan-out, normalized weight, self-loop flag, user-edge flag, and a temporal decay weight. For authentication edges: whether the auth type is NTLM (\texttt{is\_ntlm}), whether the logon type is Network (\texttt{is\_network\_logon}), and whether authentication succeeded (\texttt{is\_success\_auth}). For flow edges: whether the destination port is unusual (\texttt{is\_unusual\_dst\_port}); protocol rarity; byte-per-packet ratio (percentile-ranked); and duration z-score.
@@ -83,7 +86,7 @@ Density, average clustering coefficient (computed on the undirected version), we
 
 \subsection{Feature Selection and Auditing}
 
-To select the feature subset for each graph variant, we audit each candidate feature with a held-out AUC protocol. The cached edge table is joined with node-level statistics, filtered to remove self-loops and user-edge metadata, and labeled by whether each source-destination pair appears in the LANL red-team ground truth. A stratified 50/50 split reserves one half for calibrating the feature ranking and the other half for checking generalization. For each feature, we compute ROC AUC using that feature alone; if red-team edges have a lower mean than benign edges, we invert the AUC so the score measures separability regardless of direction.
+A held-out AUC audit narrows the 23 candidates per variant, with NTLM and graph-degree features taking the top spots. The cached edge table is joined with node-level statistics, filtered to remove self-loops and user-edge metadata, and labeled by whether each source-destination pair appears in the LANL red-team ground truth. A stratified 50/50 split reserves one half for calibrating the feature ranking and the other half for checking generalization. For each feature, we compute ROC AUC using that feature alone; if red-team edges have a lower mean than benign edges, we invert the AUC so the score measures separability regardless of direction.
 
 The top features selected per variant are:
 
@@ -95,8 +98,8 @@ The top features selected per variant are:
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\columnwidth]{feature_audit_combined.png}
-\caption{Feature audit for the combined variant. NTLM authentication is the strongest individual signal (AUC 0.93), followed by destination in-degree and network logon type (both 0.82). Seven of ten features exceed 0.75 AUC, indicating strong individual discriminative power for lateral movement detection.}
+\includegraphics[width=\columnwidth]{feature_audit_combined.png}
+\caption{\textbf{NTLM authentication dominates feature-level signal (AUC 0.93).} Feature audit for the combined variant. NTLM authentication is the strongest individual signal (AUC 0.93), followed by destination in-degree and network logon type (both 0.82). Seven of ten features exceed 0.75 AUC, indicating strong individual discriminative power for lateral movement detection.}
 \label{fig:feat_audit}
 \end{figure}
 
@@ -104,7 +107,7 @@ Figure~\ref{fig:feat_audit} shows the individual AUC scores for all audited feat
 
 \subsection{Weight Optimization and Held-Out Validation}
 
-We optimize the selected edge features using the Nelder-Mead algorithm to maximize AUC. For each graph variant, the optimizer converges independently on the full dataset, then we validate generalization using a stratified 50/50 calibration/evaluation split (seed 42):
+Nelder-Mead optimization lifts AUC by up to 11.3 percent over equal weights, and a held-out split confirms the lift is not an in-sample artifact. For each graph variant, the optimizer converges independently on the full dataset, then we validate generalization using a stratified 50/50 calibration/evaluation split (seed 42):
 
 \begin{itemize}
 \item \textbf{Auth-only:} AUC improves from 0.907 (equal weights) to 0.985 (+8.6\%). Held-out: calibration 0.956, evaluation 0.976. Optimized weights: \texttt{src\_out\_degree} = 0.809, \texttt{is\_ntlm} = 0.379, \texttt{src\_in\_degree} = $-$0.449.
@@ -117,7 +120,7 @@ The negative weight on \texttt{src\_in\_degree} (auth-only) and \texttt{dst\_tot
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{holdout_validation.png}
-\caption{Holdout validation: Nelder-Mead optimized weights vs. logistic regression on a 50/50 stratified split. Both methods generalize with gaps under 2.1\%. Auth-only achieves the highest held-out AUC (0.976). The near-identical performance confirms that the AUC derives from feature quality, not optimization method.}
+\caption{\textbf{Optimized weights generalize within 2.1\% on held-out data.} Holdout validation: Nelder-Mead optimized weights vs. logistic regression on a 50/50 stratified split. Both methods generalize with gaps under 2.1\%. Auth-only achieves the highest held-out AUC (0.976). The near-identical performance confirms that the AUC derives from feature quality, not optimization method.}
 \label{fig:holdout}
 \end{figure}
 
@@ -125,24 +128,23 @@ Figure~\ref{fig:holdout} shows the held-out validation results. Logistic regress
 
 \subsection{Edge Scoring and Path Analysis}
 
-Edges are scored with a weighted sum of the optimized features. All non-binary features are percentile-rank transformed before the weighted sum. Self-loops and user-to-user edges are explicitly zeroed (score = 0.0).
+Edge scoring combines a weighted sum of optimized features with a path-level boost that captures multi-hop attack chains. All non-binary features are percentile-rank transformed before the weighted sum. Self-loops and user-to-user edges are explicitly zeroed (score = 0.0).
 
 Single-edge scoring misses multi-hop lateral movement chains. To capture these, we enumerate paths via breadth-first search from every node, up to 4 hops, following only the top outgoing edges per node ranked by edge score. Each path is scored as the mean of its edge scores' geometric mean, maximum, and arithmetic mean. The top 50 paths are retained, and every edge appearing in a top-50 path receives a boost of $0.1 \times \text{path\_score}$ added to its own score, capped at 1.0. This feeds path-level lateral movement signal back into edge-level detection.
 
 \subsection{Threshold Selection}
 
-Anomalous edges are identified by thresholding final edge scores. We auto-search over percentile thresholds [90, 95, 97, 99, 99.5, 99.9] and select the one that maximizes F1 against known red-team pairs. The optimal thresholds are: auth-only at the 99th percentile (score = 1.1179), combined at the 99.5th percentile (score = 1.2686), and flow-only at the 97th percentile (score = 0.6952).
+Each variant uses its own percentile threshold (97th to 99.5th), selected by maximizing F1 against red-team pairs over a sweep of [90, 95, 97, 99, 99.5, 99.9]. The optimal thresholds are: auth-only at the 99th percentile (score = 1.1179), combined at the 99.5th percentile (score = 1.2686), and flow-only at the 97th percentile (score = 0.6952).
 
 \subsection{Baseline Methods}
 
-We compare graph-based scoring against Isolation Forest~\cite{isoforest} and One-Class SVM. Both operate on the same edge feature vector, using scikit-learn defaults (Isolation Forest: n\_estimators=100, contamination="auto"; One-Class SVM: kernel="rbf", nu=0.1). Features are standardized via \texttt{StandardScaler}.
+Isolation Forest~\cite{isoforest} and One-Class SVM operate on the same edge features as the graph-based scorer, controlling for feature choice in the comparison. Defaults are scikit-learn (Isolation Forest: n\_estimators=100, contamination="auto"; One-Class SVM: kernel="rbf", nu=0.1), with features standardized via \texttt{StandardScaler}.
 
 \section{Experiment Setup}
 
 \subsection{Dataset}
 
-\textbf{LANL Cybersecurity Dataset (LANL-2015)~\cite{kent-2015-cyberdata1}.}
-The dataset covers 58 days of continuous network activity across 12,425 users and 17,684 computers in three gzipped CSV files: authentication events, network flow events, and 749 labeled red-team attack events forming 308 unique source-destination pairs. Red-team events include lateral movement via SMB, SSH, RDP, credential reuse, and network reconnaissance; 93.6\% originate from a single compromised host (C17693) used as a jump box.
+LANL-2015~\cite{kent-2015-cyberdata1} provides 58 days of real enterprise network activity across 12,425 users and 17,684 computers, with 308 labeled red-team source-destination pairs as ground truth. The data is distributed as three gzipped CSV files (authentication events, network flow events, and 749 red-team attack events). Red-team events include lateral movement via SMB, SSH, RDP, credential reuse, and network reconnaissance; 93.6\% originate from a single compromised host (C17693) used as a jump box.
 
 Because loading 1.6 billion events is impractical, we scope the data using time windows. For each red-team event, we define a window of $\pm$3,600 seconds. Overlapping windows are merged, producing 25 non-overlapping intervals that capture approximately 104 million auth events and 31.6 million flow events.
 
@@ -158,7 +160,7 @@ With 308 red-team pairs among hundreds of thousands of total edges, precision wi
 
 \subsection{Implementation}
 
-The pipeline is implemented in Python using igraph for graph operations and scikit-learn for baselines and weight optimization. All hyperparameters are stored in JSON configuration files. The pipeline processes 23,000--73,000 events per second depending on log source, completing end-to-end in roughly 36 minutes with 20 parallel workers.
+The Python pipeline (igraph for graphs, scikit-learn for baselines) processes 23,000 to 73,000 events per second depending on log source and completes end-to-end in about 36 minutes on 20 parallel workers. All hyperparameters are stored in JSON configuration files. 
 
 \section{Results}
 
@@ -184,7 +186,7 @@ The pipeline is implemented in Python using igraph for graph operations and scik
 \caption{Flow Only}
 \label{fig:roc_flow}
 \end{subfigure}
-\caption{ROC curves for all three methods on each data variant. Graph-based scoring achieves the highest AUC on all three: 0.98 (auth-only), 0.96 (combined), and 0.96 (flow-only). The gap is widest on flow-only data, where unsupervised baselines degrade to 0.66--0.72 AUC.}
+\caption{\textbf{Graph-based scoring leads on every variant (AUC 0.96 to 0.98).} ROC curves for all three methods on each data variant. Graph-based scoring achieves the highest AUC on all three: 0.98 (auth-only), 0.96 (combined), and 0.96 (flow-only). The gap is widest on flow-only data, where unsupervised baselines degrade to 0.66--0.72 AUC.}
 \label{fig:roc_all}
 \end{figure}
 
@@ -205,7 +207,7 @@ flow\_only  & 0.0682 & 0.0298 & 0.0099 & 0.9626 & 430.02 & \textbf{73,511} \\
 combined    & 0.2110 & \textbf{0.0036} & 0.0591 & 0.9590 & 5899.24 & 23,000 \\
 \bottomrule
 \end{tabular}
-\caption{Graph-based method comparison. Auth-only achieves the highest recall (92.2\%) and AUC (0.984). Combined achieves the lowest FPR (0.36\%) but at the cost of recall (21.1\%). Flow-only is fastest but captures few lateral movement pairs. Lat.\ = latency; Thpt.\ = throughput.}
+\caption{\textbf{Auth-only achieves the best lateral movement detection (92.2\% recall, 0.984 AUC).} Graph-based method comparison. Auth-only achieves the highest recall (92.2\%) and AUC (0.984). Combined achieves the lowest FPR (0.36\%) but at the cost of recall (21.1\%). Flow-only is fastest but captures few lateral movement pairs. Lat.\ = latency; Thpt.\ = throughput.}
 \label{tab:methods_comparison}
 \end{table}
 
@@ -222,7 +224,7 @@ combined    & 91,589 & 512,529 & 305 & 1,892 & 99.5th & 1.2686 \\
 flow\_only  & 11,586 & 131,562 & 35 & 3,947 & 97th & 0.6952 \\
 \bottomrule
 \end{tabular}
-\caption{Graph structure and detection statistics. Auth-only and combined capture nearly all red-team pairs (302--305 of 308). Flow-only captures only 35, as many attack endpoints are invisible through flow logs alone. RT = red-team; Anom.\ = anomalous.}
+\caption{\textbf{Flow-only graph captures only 35 of 308 red-team pairs structurally.} Graph structure and detection statistics. Auth-only and combined capture nearly all red-team pairs (302--305 of 308). Flow-only captures only 35, as many attack endpoints are invisible through flow logs alone. RT = red-team; Anom.\ = anomalous.}
 \label{tab:graph_stats}
 \end{table}
 
@@ -235,7 +237,7 @@ Table~\ref{tab:graph_stats} reports the underlying graph sizes and pair counts. 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{method_comparison_auc.png}
-\caption{AUC comparison across all methods and variants. Graph-based scoring maintains AUC $\geq$ 0.95 across all variants, while unsupervised baselines degrade significantly on flow-only data.}
+\caption{\textbf{Graph-based stays above 0.95 AUC while baselines collapse on flow-only.} AUC comparison across all methods and variants. Graph-based scoring maintains AUC $\geq$ 0.95 across all variants, while unsupervised baselines degrade significantly on flow-only data.}
 \label{fig:method_auc}
 \end{figure}
 
@@ -273,7 +275,7 @@ Variant & Method & AUC & F1 & Recall & FPR & Precision \\
   & One-Class SVM    & 0.6622          & 0.0026          & 0.0292          & 0.1018          & 0.001          \\
 \bottomrule
 \end{tabular}
-\caption{Performance metrics summary across all methods and variants. Best value per metric is bolded; for FPR the lowest value is best. Graph-based auth-only achieves the best AUC (0.984) and F1 (0.178). Low precision reflects extreme class imbalance: hundreds of thousands of benign edges produce false alarms even at low FPR. Graph-based recall and FPR are reported in pair-space (anomalous edges collapsed to source--destination pairs); baseline recall and FPR are reported in edge-space and are not directly comparable.}
+\caption{\textbf{Graph-based leads or ties on AUC across every variant.} Performance metrics summary across all methods and variants. Best value per metric is bolded; for FPR the lowest value is best. Graph-based auth-only achieves the best AUC (0.984) and F1 (0.178). Low precision reflects extreme class imbalance: hundreds of thousands of benign edges produce false alarms even at low FPR. Graph-based recall and FPR are reported in pair-space (anomalous edges collapsed to source--destination pairs); baseline recall and FPR are reported in edge-space and are not directly comparable.}
 \label{tab:metrics_summary}
 \end{table}
 
@@ -282,7 +284,7 @@ Variant & Method & AUC & F1 & Recall & FPR & Precision \\
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{graph_statistics.png}
-\caption{Graph topology metrics across data variants (log scale). Auth-only and combined have similar scale (90K nodes, 400K--500K edges). Flow-only is smaller (11K nodes) but denser, with 2--3$\times$ higher average degree.}
+\caption{\textbf{Flow-only graph is denser despite being an order of magnitude smaller.} Graph topology metrics across data variants (log scale). Auth-only and combined have similar scale (90K nodes, 400K--500K edges). Flow-only is smaller (11K nodes) but denser, with 2--3$\times$ higher average degree.}
 \label{fig:graph_stats}
 \end{figure}
 
@@ -291,7 +293,7 @@ Figure~\ref{fig:graph_stats} reveals how the graph structure differs across data
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{radar_chart_auth_only.png}
-\caption{Radar profile for auth-only variant: all methods achieve high Recall, AUC, and 1-FPR, but diverge significantly on F1. Graph-based achieves the highest F1 (0.178).}
+\caption{\textbf{Methods diverge on F1 despite tied recall.} Radar profile for auth-only variant: all methods achieve high Recall, AUC, and 1-FPR, but diverge significantly on F1. Graph-based achieves the highest F1 (0.178).}
 \label{fig:radar_auth}
 \end{figure}
 
@@ -303,7 +305,7 @@ Figure~\ref{fig:radar_auth} shows the multi-metric radar profile for the auth-on
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{ablation_study.png}
-\caption{Feature ablation: pure tabular vs. graph-derived vs. combined features under logistic regression holdout. Graph-derived features dominate across all three data variants. The largest gap is on flow-only data (0.998 vs. 0.823 AUC).}
+\caption{\textbf{Graph structure rescues weak flow signal from 0.823 to 0.998 AUC.} Feature ablation: pure tabular vs. graph-derived vs. combined features under logistic regression holdout. Graph-derived features dominate across all three data variants. The largest gap is on flow-only data (0.998 vs. 0.823 AUC).}
 \label{fig:ablation}
 \end{figure}
 
@@ -361,6 +363,16 @@ We presented a graph-based approach for lateral movement detection that integrat
 \end{enumerate}
 
 The combined graph method's lower recall relative to auth-only suggests that integrating flow and authentication signals requires more sophisticated feature engineering or scoring approaches. Future work should test on additional real-world cloud VPC datasets, explore incremental graph updates for real-time lateral movement detection, and develop scoring functions that better integrate flow-level signals with authentication semantics while accounting for the different noise levels across log sources.
+
+\section*{Contributions}
+
+
+Ibrahim Pehlivan led the feature audit framework, the held-out validation protocol, the logistic-regression baseline, and the tabular-vs-graph feature ablation. Samyak Kakatur led the multi-variant pipeline architecture, Nelder-Mead weight optimization, path and edge scoring, and the unified figure pipeline. Wesley Gunawan led the baseline implementations, contributed score-distribution visualizations, and contributed to the false-positive analysis. 
+
+
+
+\section*{Ethics}
+We use the publicly released LANL-2015 dataset~\cite{kent-2015-cyberdata1}, which Los Alamos National Laboratory anonymized and approved for academic research. No new data were collected and no individuals were identified beyond the anonymized identifiers in the released dataset.
 
 {\footnotesize \bibliographystyle{acm}
 \bibliography{sample}}
