@@ -1,5 +1,0 @@
-%% REPLACE Section 4.5 (Threshold Selection) → Section 4.7 (Threshold Selection)
-\subsection{Threshold Selection}
-\label{sec:threshold_selection}
-
-Anomalous edges are flagged by thresholding final edge scores. We sweep percentile values $\{90, 95, 97, 99, 99.5, 99.9\}$ and pick the one that maximizes F1 against known red-team pairs. Each percentile is evaluated by computing precision and recall in pair-space; the threshold with the best F1 wins. If edge scores have zero variance (all identical), the threshold is set above the maximum score so no edges are flagged.

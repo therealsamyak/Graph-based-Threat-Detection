@@ -1,9 +1,0 @@
-%% REPLACE Section 5.5 (Implementation)
-
-\subsection{Implementation}
-
-The pipeline is implemented in Python with two execution modes. The feature audit mode runs a held-out AUC evaluation on cached pipeline outputs to identify discriminative features. The main execution mode runs the full pipeline: graph construction, feature extraction, Nelder-Mead weight optimization, edge scoring, path scoring, threshold selection, and visualization. Hyperparameters are stored in a JSON config file.
-
-Graph operations use igraph. Weight optimization uses SciPy's \texttt{minimize} with the Nelder-Mead method. Baselines and metrics come from scikit-learn. The path boost factor ($0.1$), hop limit ($4$), and top-$k$ path count ($50$) are configurable parameters. Features are standardized via \texttt{StandardScaler} before being passed to baseline detectors.
-
-A separate evaluation module performs held-out validation of the weight optimizer, logistic-regression baseline comparison, tabular versus graph feature ablation, and graph feature extension sweeps. These analyses run independently of the main pipeline and operate on cached edge tables.
