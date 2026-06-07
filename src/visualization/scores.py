@@ -74,10 +74,10 @@ def plot_score_distribution(
 
     ax.set_yscale("log")
     ax.set_title("Anomaly scores form bimodal distribution separating attack from normal",
-                 fontsize=15, fontweight="bold", pad=12)
+                 fontsize=21, fontweight="bold", pad=12)
     ax.set_xlabel("Anomaly Score", fontsize=LABEL_FS)
     ax.set_ylabel("Count (log scale)", fontsize=LABEL_FS)
-    ax.legend(fontsize=11, **_smart_legend_loc(ax))
+    ax.legend(fontsize=15, **_smart_legend_loc(ax))
     ax.tick_params(labelsize=9)
     fig.tight_layout()
     _save_fig(fig, output_path)
