@@ -1,4 +1,5 @@
-/data/
+/data/*
+!/data/README_DATA.md
 .venv/
 __pycache__/
 .ruff_cache/
