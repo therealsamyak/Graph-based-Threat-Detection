@@ -1,4 +1,4 @@
-.PHONY: i pipeline feature feature_audit eval baselines check lint all test figures
+.PHONY: i pipeline feature feature_audit eval baselines check lint all test figures results
 
 i:
 	uv sync
@@ -20,6 +20,9 @@ check lint:
 
 figures:
 	uv run figures.py
+
+results: feature pipeline baselines eval
+	@echo "Results regenerated in results/, feature_results/, analysis_results/, baseline_results/"
 
 all:
 	$(RM) -r .cache
