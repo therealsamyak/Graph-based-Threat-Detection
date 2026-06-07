@@ -1,4 +1,4 @@
-.PHONY: i pipeline feature feature_audit eval baselines check lint all test figures results
+.PHONY: i pipeline feature feature_audit eval baselines check lint all test results
 
 i:
 	uv sync
@@ -18,9 +18,6 @@ baselines:
 check lint:
 	uvx ruff check --fix .
 
-figures:
-	uv run figures.py
-
 results: feature pipeline baselines eval
 	@echo "Results regenerated in results/, feature_results/, analysis_results/, baseline_results/"
 
@@ -30,7 +27,6 @@ all:
 	uv run main.py
 	uv run baselines.py
 	uv run eval.py
-	uv run figures.py
 	git add -A
 	git commit -m "results at $$(date +%Y-%m-%d_%H:%M:%S)"
 	git push
