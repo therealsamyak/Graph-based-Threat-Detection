@@ -1,8 +1,0 @@
-%% REPLACE Section 4.4 (Path Scoring) → Section 4.6 (Path Scoring)
-
-\subsection{Path Scoring}
-\label{sec:path_scoring}
-
-Single-edge scoring misses multi-hop attack chains. To capture these, we enumerate paths through the graph via breadth-first search from every node, up to 4~hops, following only the top 10 outgoing edges per node ranked by edge score. Limiting the branching factor keeps search tractable on graphs with hundreds of thousands of edges while retaining the most suspicious paths.
-
-Each path is scored as the mean of three aggregates of its constituent edge scores: geometric mean (high if every edge is somewhat suspicious), maximum edge score (high if any single hop is very suspicious), and arithmetic mean. The top 50 paths by score are retained. Every edge that appears in a top-50 path receives a boost of $0.1 \times \text{path\_score}$ added to its own score, capped at 1.0. This feeds path-level signal back into edge-level detection.
