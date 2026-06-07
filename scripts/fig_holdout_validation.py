@@ -1,0 +1,27 @@
+"""Generate holdout validation figure."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts._common import parse_args, apply_paper_style, resolve_output_dir, ensure_data_or_fail
+from src.figures.discovery import find_latest_analysis
+from src.figures.loading import load_analysis_results
+
+def main():
+    args = parse_args("Generate holdout validation figure")
+    apply_paper_style()
+    output_dir = resolve_output_dir()
+
+    analysis_dir = find_latest_analysis()
+    ensure_data_or_fail(analysis_dir, "Error: No analysis results directory found.")
+
+    analysis_data = load_analysis_results(analysis_dir)
+    ensure_data_or_fail(analysis_data, "Error: Could not load analysis results.")
+
+    from src.figures.detection import plot_holdout_validation
+    plot_holdout_validation(analysis_data, output_dir)
+
+if __name__ == "__main__":
+    main()

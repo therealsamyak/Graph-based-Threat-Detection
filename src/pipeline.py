@@ -21,7 +21,7 @@ def generate_run_id() -> str:
 
 
 def get_base_output_dir(run_id: str) -> Path:
-    return Path("results") / run_id
+    return Path("results") / "pipeline" / run_id
 
 
 def get_output_dir(run_id: str, variant: str = "combined") -> Path:

@@ -18,7 +18,7 @@ python-igraph = "igraph"
 scikit-learn = "sklearn"
 
 [tool.ruff]
-exclude = ["results/", "baseline_results/", "analysis_results/", "feature_results/"]
+exclude = ["results/"]
 
 [tool.vulture]
 exclude = [".venv/", "data/"]

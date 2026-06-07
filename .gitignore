@@ -1,4 +1,5 @@
-/data/
+/data/*
+!/data/README_DATA.md
 .venv/
 __pycache__/
 .ruff_cache/
@@ -7,3 +8,4 @@ __pycache__/
 .sisyphus/
 _backup/
 .cache/
+

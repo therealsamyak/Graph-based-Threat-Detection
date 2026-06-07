@@ -72,7 +72,7 @@ def run(argv: list[str] | None = None):
 
     # Permanent results directory
     feat_results_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    feat_results_dir = Path("feature_results") / feat_results_id
+    feat_results_dir = Path("results") / "feature_audit" / feat_results_id
 
     # 3. For each variant: build graph, extract features, run audit, save top features
     for descriptor in descriptors:

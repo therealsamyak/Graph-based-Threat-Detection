@@ -24,21 +24,21 @@ def find_latest_dir(base_dir: Path) -> Path | None:
 
 def find_latest_results(run_id: str | None) -> Path | None:
     if run_id is not None:
-        target = Path("results") / run_id
+        target = Path("results") / "pipeline" / run_id
         if target.is_dir():
             return target
         logger.warning("Specified run-id directory not found: %s", target)
         return None
-    return find_latest_dir(Path("results"))
+    return find_latest_dir(Path("results") / "pipeline")
 
 
 def find_latest_feature_audit() -> Path | None:
-    return find_latest_dir(Path("feature_results"))
+    return find_latest_dir(Path("results") / "feature_audit")
 
 
 def find_latest_analysis() -> Path | None:
-    return find_latest_dir(Path("analysis_results"))
+    return find_latest_dir(Path("results") / "analysis")
 
 
 def find_latest_baselines() -> Path | None:
-    return find_latest_dir(Path("baseline_results"))
+    return find_latest_dir(Path("results") / "baselines")
