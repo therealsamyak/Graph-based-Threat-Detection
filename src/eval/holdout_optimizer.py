@@ -193,7 +193,7 @@ def run_holdout_optimization(
 
     if output_dir is None:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_dir = Path("analysis_results") / ts
+        out_dir = Path("results") / "analysis" / ts
         out_dir.mkdir(parents=True, exist_ok=True)
     else:
         out_dir = output_dir.resolve()

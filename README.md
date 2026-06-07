@@ -20,10 +20,10 @@ data/LANL-Dataset-2015/
 
 ```bash
 uv sync                  # install deps
-uv run feature.py        # feature audit  → feature_results/
-uv run main.py           # detection      → results/
-uv run baselines.py      # SVM, IF        → baseline_results/
-uv run eval.py           # evaluation     → analysis_results/
+uv run feature.py        # feature audit  → results/feature_audit/<run_id>/
+uv run main.py           # detection      → results/pipeline/<run_id>/
+uv run baselines.py      # SVM, IF        → results/baselines/<run_id>/
+uv run eval.py           # evaluation     → results/analysis/<run_id>/<variant>/
 ```
 
 ## Figures

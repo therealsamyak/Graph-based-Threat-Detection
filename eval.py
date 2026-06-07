@@ -87,13 +87,13 @@ def _parse_args(argv=None):
     parser.add_argument(
         "--results-dir",
         type=Path,
-        default=Path("results"),
+        default=Path("results") / "pipeline",
         help="Directory to search for cached runs.",
     )
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=Path("analysis_results"),
+        default=Path("results") / "analysis",
         help="Root directory for eval outputs.",
     )
     parser.add_argument("--holdout-frac", type=float, default=0.5)

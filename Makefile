@@ -19,7 +19,7 @@ check lint:
 	uvx ruff check --fix .
 
 results: feature pipeline baselines eval
-	@echo "Results regenerated in results/, feature_results/, analysis_results/, baseline_results/"
+	@echo "Results regenerated in results/pipeline/, results/analysis/, results/baselines/, results/feature_audit/"
 
 all:
 	$(RM) -r .cache
@@ -35,4 +35,4 @@ test:
 	uv run feature.py --sample 10
 	uv run main.py --sample 10
 	uv run baselines.py
-	$(RM) -r results feature_results analysis_results baseline_results
+	$(RM) -r results

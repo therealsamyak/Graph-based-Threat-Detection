@@ -42,13 +42,13 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--results-dir",
         type=Path,
-        default=Path("results"),
+        default=Path("results") / "pipeline",
         help="Directory to search for cached runs.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("baseline_results"),
+        default=Path("results") / "baselines",
         help="Output directory for baseline results.",
     )
     return parser.parse_args(argv)
